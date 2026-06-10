@@ -15,7 +15,7 @@ class UserCreate(UserBase):
 
 # Cosa RESTITUIAMO all'esterno (Output - Noti che non mandiamo indietro la password!)
 class UserOut(UserBase):
-    id: int
+    id: str
     is_active: bool
 
 # Schema per i dati che l'utente invia quando fa il login
@@ -36,9 +36,26 @@ class ProcedureCreate(ProcedureBase):
     pass
 
 class ProcedureOut(ProcedureBase):
-    id: int
+    id: str
     created_at: datetime
-    user_id: int
+    user_id: str
 
 class Config:
     from_attributes = True
+
+class TaskBase(BaseModel):
+    title: str
+    status: str = "pending"
+
+class TaskCreate(TaskBase):
+    pass
+
+class TaskUpdateStatus(BaseModel):
+    status: str
+
+class TaskOut(TaskBase):
+    id: str
+    procedure_id: str
+
+    class Config:
+        from_attributes = True  
