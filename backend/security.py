@@ -1,10 +1,13 @@
 import datetime
-
+import os
+from dotenv import load_dotenv
 import bcrypt
 import jwt
 
+load_dotenv()
+
 # DA SOSTITUIRE CON UNA CHIAVE SEGRETA SALVATA IN UN FILE .ENV
-JWT_SECRET = "your-secret-key"  # Sostituisci con una chiave segreta reale
+JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
