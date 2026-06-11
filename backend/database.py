@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
 
 # 1. Definiamo la stringa di connessione (URL del Database)
 # Formato: postgresql://utente:password@host:porta/nome_db

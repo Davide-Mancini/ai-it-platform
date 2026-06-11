@@ -310,23 +310,39 @@ class RoleChecker:
 allow_it_creators = RoleChecker([UserRole.ADMINISTRATOR, UserRole.IT_MANAGER])  
 ai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 @app.post("/api/ai/generate", response_model=schemas.ProcedureOut)
+@app.post("/api/ai/generate", response_model=schemas.ProcedureOut)
 def generate_procedure_with_ai(
     payload: schemas.AIRequest,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(allow_it_creators)
 ):
-    # 1. VERIFICA AUTENTICAZIONE
-    email = verify_access_token(current_user.email)
-    if not email:
-        raise HTTPException(status_code=401, detail="Token non valido o scaduto")
-    
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="Utente non trovato")
+    print("========================================")
+    print("DEBUG CURRENT_USER DIZIONARIO:", current_user)
+    print("========================================")
 
-    # 2. CHIAMATA NATIVA A GEMINI CON RETRY AUTOMATICO (EXPONENTIAL BACKOFF)
-    import time
+    if isinstance(current_user, dict):
+        # Prendiamo la stringa "Benvenuto prova1@prova.it"
+        message = current_user.get("message", "")
+        # Rimuoviamo la parola "Benvenuto " per isolare solo l'email
+        email = message.replace("Benvenuto ", "").strip()
+    else:
+        email = getattr(current_user, "email", None)
+
+    # 🔍 Riga di controllo per essere sicuri al 100% nel terminale
+    print(f"--- EMAIL ISOLATA CON SUCCESSO: '{email}' ---")
+    # 2. Facciamo una query per prendere l'utente reale dal DB tramite l'email
+    db_user = db.query(models.User).filter(models.User.email == email).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Utente non trovato nel database")
     
+    # 3. Ora abbiamo la certezza matematica di avere il vero ID (sia esso int o str)
+    user_id = db_user.id
+
+
+    # ======================================================================
+    # 2. CHIAMATA NATIVA A GEMINI CON RETRY AUTOMATICO (Resta invariato)
+    # ======================================================================
+    import time
     prompt_sistema = (
         "Sei un esperto di IT Operations e SysAdmin. Il tuo compito è generare procedure tecniche dettagliate "
         "e una lista di task operativi sequenziali basati sulla richiesta dell'utente. "
@@ -334,7 +350,7 @@ def generate_procedure_with_ai(
     )
     
     max_tentativi = 3
-    tempo_attesa = 2  # Secondi iniziali di attesa
+    tempo_attesa = 2
     ai_response = None
 
     for tentativo in range(max_tentativi):
@@ -347,30 +363,26 @@ def generate_procedure_with_ai(
                     response_schema=schemas.AIProcedureResponse  
                 ),
             )
-            # Se la chiamata ha successo, validiamo il JSON ed esciamo dal ciclo for
             ai_response = schemas.AIProcedureResponse.model_validate_json(response.text)
             break
-            
         except Exception as e:
-            # Se l'errore è un sovraccarico (503) e abbiamo ancora tentativi...
             if "503" in str(e) and tentativo < max_tentativi - 1:
-                print(f"Server Google occupato (503). Tentativo {tentativo + 1} fallito. Riprovo tra {tempo_attesa} secondi...")
                 time.sleep(tempo_attesa)
-                tempo_attesa *= 2  # Raddoppia il tempo di attesa
+                tempo_attesa *= 2
                 continue
-            
-            # Se l'errore è un altro o i tentativi sono finiti, solleva l'eccezione
-            raise HTTPException(status_code=500, detail=f"Errore nella generazione AI dopo vari tentativi: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Errore nella generazione AI: {str(e)}")
 
-    # 3. SALVATAGGIO IN DATABASE (Atomico: tutto o niente)
+    # ======================================================================
+    # 3. SALVATAGGIO IN DATABASE (Resta invariato, userà lo user_id corretto)
+    # ======================================================================
     try:
         new_procedure = models.Procedure(
             title=ai_response.title,
             description=ai_response.description,
-            user_id=user.id
+            user_id=user_id  # <--- Qui passerà l'ID corretto recuperato dal DB
         )
         db.add(new_procedure)
-        db.flush()  # Genera l'ID temporaneo della procedura per i task associati
+        db.flush()
 
         for task_data in ai_response.tasks:
             new_task = models.Task(
@@ -380,15 +392,15 @@ def generate_procedure_with_ai(
             )
             db.add(new_task)
         
-        db.commit()  # Salva definitivamente sia la procedura che i task insieme
-        
+        db.commit()
     except Exception as db_err:
-        db.rollback()  # Se un solo task fallisce, cancella tutto per non lasciare dati corrotti
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Errore nel salvataggio a DB: {str(db_err)}")
 
-    # 4. RITORNO DELLA PROCEDURA COMPLETA (Eager Loading dei Task)
+    # ======================================================================
+    # 4. RITORNO DELLA PROCEDURA COMPLETA (Resta invariato)
+    # ======================================================================
     from sqlalchemy.orm import joinedload
-
     procedure_completa = db.query(models.Procedure)\
         .options(joinedload(models.Procedure.tasks))\
         .filter(models.Procedure.id == new_procedure.id)\
