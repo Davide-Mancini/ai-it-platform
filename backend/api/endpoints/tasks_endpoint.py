@@ -8,7 +8,7 @@ from api.endpoints.auth import get_current_user
 
 router = APIRouter()
 
-
+#rotta che cre un nuovo task associato ad una procedura esistente
 @router.post("/procedures/{procedure_id}/tasks", response_model=schemas.TaskOut)
 def create_task_for_procedure(
     procedure_id: str,
@@ -16,6 +16,7 @@ def create_task_for_procedure(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    #variabile che contiene il risultato della query per trovare la procedura a cui associare il task
     procedure = db.query(models.Procedure).filter(models.Procedure.id == procedure_id).first()
     if not procedure:
         raise HTTPException(status_code=404, detail="Procedura non trovata")
@@ -29,7 +30,7 @@ def create_task_for_procedure(
     db.refresh(new_task)
     return new_task
 
-
+#rotta che recupera tutti i task di una determinata procedura
 @router.get("/procedures/{procedure_id}/tasks", response_model=List[schemas.TaskOut])
 def get_tasks_for_procedure(
     procedure_id: str,
@@ -41,7 +42,7 @@ def get_tasks_for_procedure(
         raise HTTPException(status_code=404, detail="Procedura non trovata")
     return procedure.tasks
 
-
+#rotta che permette di aggiornare lo stato di un task esistente,tramite patch per aggiornare solo il campo status
 @router.patch("/tasks/{task_id}/status", response_model=schemas.TaskOut)
 def update_task_status(
     task_id: str,
