@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status,Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List
@@ -34,6 +34,7 @@ def get_users(db: Session = Depends(get_db)):
 
 def login(
     #Utilizzo la classe di fastapi per gestire i dati di login (email e password)
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
@@ -47,5 +48,13 @@ def login(
         )
     #genero un token utilizzando la funzione importata da security, includendo l'email dell'utente come dato nel token
     access_token = create_access_token(data={"sub": user.email})
+    #Salvo il token nei cookie
+    response.set_cookie(
+    key="access_token",
+    value=access_token,
+    httponly=True,
+    secure=True,
+    samesite="lax"
+    )
     #ritorno il token
     return {"access_token": access_token, "token_type": "bearer"}

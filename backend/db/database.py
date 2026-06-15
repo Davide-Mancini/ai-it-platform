@@ -15,10 +15,10 @@ SQLALCHEMY_DATABASE_URL = f"postgresql://{username}:{password}@127.0.0.1:5433/{d
 #Creo il motore di connessione al db
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-#Creo una fabbrica di sessioni (ci servirà per aprire/chiudere connessioni nelle API)
+#Creo una fabbrica di sessioni (per aprire/chiudere connessioni nelle API)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-#Creiamo la classe Base. Tutti i nostri futuri modelli (tabelle) erediteranno da questa.
+#creo la classe Base. Tutti i nostri futuri modelli (tabelle) erediteranno da questa.
 Base = declarative_base()
 
 #Funzione di utilità (Dependency Injection) per ottenere una sessione del DB ad ogni richiesta HTTP

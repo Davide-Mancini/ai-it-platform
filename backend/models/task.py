@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from enums import UserRole
 
+#Entity per i tasks
 class Task(Base):
     __tablename__= "tasks"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)

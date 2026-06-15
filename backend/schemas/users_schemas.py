@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr,Field
 from datetime import datetime
 
 # Schema base comune a tutti
 class UserBase(BaseModel):
-    email: str
+    email: EmailStr
     role: str = "Engineer"
 
     class Config:
@@ -11,7 +11,7 @@ class UserBase(BaseModel):
 
 # Cosa serve ricevere quando si CREA un utente (Input)
 class UserCreate(UserBase):
-    password: str
+    password: str= Field(min_length=8,max_length=25,description="La password deve contenere\n .almeno 8 caratteri\n .una lettera maiuscola\n una lettera minuscola\n un numero\n un carattere speciale ")
 
 # Cosa RESTITUIAMO all'esterno (Output - Noti che non mandiamo indietro la password!)
 class UserOut(UserBase):

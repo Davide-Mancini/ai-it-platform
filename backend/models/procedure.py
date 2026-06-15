@@ -6,6 +6,8 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from enums import UserRole
 
+
+#Questa e la classe (entities) delle procedure
 class Procedure(Base):
     __tablename__ = "procedures"
 

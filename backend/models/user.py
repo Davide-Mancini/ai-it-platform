@@ -5,6 +5,8 @@ from db.database import Base
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from enums import UserRole
+
+#Entity per UsersS
 class User(Base):
     __tablename__ = "users"
 
