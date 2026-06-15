@@ -33,7 +33,7 @@ allow_it_creators = RoleChecker([UserRole.ADMINISTRATOR, UserRole.IT_MANAGER])
 ai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-@router.post("/generate", response_model=schemas.ProcedureOut)
+
 def generate_procedure_with_ai(
     payload: schemas.AIRequest,
     db: Session = Depends(get_db),

@@ -5,6 +5,7 @@ import models
 import schemas
 from db.database import get_db
 from api.endpoints.auth import get_current_user
+from services import task_service
 
 router = APIRouter()
 
@@ -16,19 +17,8 @@ def create_task_for_procedure(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    #variabile che contiene il risultato della query per trovare la procedura a cui associare il task
-    procedure = db.query(models.Procedure).filter(models.Procedure.id == procedure_id).first()
-    if not procedure:
-        raise HTTPException(status_code=404, detail="Procedura non trovata")
-    new_task = models.Task(
-        title=task_data.title,
-        status=task_data.status,
-        procedure_id=procedure_id
-    )
-    db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
-    return new_task
+    return task_service.create_task_for_procedure(procedure_id, task_data, db, current_user)
+
 
 #rotta che recupera tutti i task di una determinata procedura
 @router.get("/procedures/{procedure_id}/tasks", response_model=List[schemas.TaskOut])
@@ -37,10 +27,7 @@ def get_tasks_for_procedure(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    procedure = db.query(models.Procedure).filter(models.Procedure.id == procedure_id).first()
-    if not procedure:
-        raise HTTPException(status_code=404, detail="Procedura non trovata")
-    return procedure.tasks
+    return task_service.get_tasks_for_procedure(procedure_id, db, current_user)
 
 #rotta che permette di aggiornare lo stato di un task esistente,tramite patch per aggiornare solo il campo status
 @router.patch("/tasks/{task_id}/status", response_model=schemas.TaskOut)
@@ -50,10 +37,5 @@ def update_task_status(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    db_task = db.query(models.Task).filter(models.Task.id == task_id).first()
-    if not db_task:
-        raise HTTPException(status_code=404, detail="Task non trovato")
-    db_task.status = status_update.status
-    db.commit()
-    db.refresh(db_task)
-    return db_task
+    return task_service.update_task_status(task_id, status_update, db, current_user)
+   
