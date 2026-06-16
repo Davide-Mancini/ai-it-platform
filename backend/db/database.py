@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
+
 #Carica le variabili d'ambiente dal file .env
 load_dotenv() 
 username = os.getenv("DB_USERNAME")
@@ -28,3 +29,4 @@ def get_db():
         yield db
     finally:
         db.close()
+        

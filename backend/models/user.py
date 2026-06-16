@@ -13,7 +13,8 @@ class User(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(SqlEnum(UserRole), default=UserRole.CUSTOMER) 
+    role = relationship("Role", back_populates="users")
+    role_id=Column(String, ForeignKey("roles.id"))
     is_active = Column(Boolean, default=True)
     # Relazione con Procedure
     procedures = relationship("Procedure", back_populates="author")

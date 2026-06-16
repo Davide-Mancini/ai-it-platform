@@ -7,36 +7,40 @@ import models
 import schemas
 from db.database import get_db
 from repository import auth_repository
+from models import Role
 
 
-
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(user: schemas.UserCreate, db: Session):
     #Qui creo una variabile che contiene il risultato del controllo sulla email
     db_user = auth_repository.get_user_by_email(db,user.email)
     #Se l'email e gia presente lancio un'ecceizione
     if db_user:
         raise HTTPException(status_code=400, detail="Email già registrata")
+    
+    default_role= db.query(Role).filter(Role.name=='Engineer').first()
+    if not default_role:
+        raise HTTPException(status_code=500, detail="Configurazione di sistema incompleta")
     #cripto la password utilizzando la funzione importatata da security
     hashed_password = get_password_hash(user.password)
     #creo un nuovo oggetto con i dati forniti
     new_user = models.User(
         email=user.email,
         hashed_password=hashed_password,
-        role=user.role
+        role_id= default_role.id
     )
     auth_repository.save_new_user(db, new_user)
     return new_user
 
 
-def get_users(db: Session = Depends(get_db)):
+def get_users(db: Session):
     return auth_repository.get_all_users(db)
 
 
 def login(
     #Utilizzo la classe di fastapi per gestire i dati di login (email e password)
+    db: Session,
+    form_data: OAuth2PasswordRequestForm,
     response: Response,
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
 ):
     #Creo una variabile che contiene il risultato della query al db per trovare l'utente con l'email fornita
     user = auth_repository.get_user_by_email(db,form_data.username)
