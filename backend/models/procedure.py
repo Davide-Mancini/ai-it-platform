@@ -20,3 +20,7 @@ class Procedure(Base):
     author = relationship("User", back_populates="procedures")    
     # Relazione con i Task (se elimini la procedura, si eliminano anche i suoi task)
     tasks = relationship("Task", back_populates="procedure", cascade="all, delete-orphan")
+    #relazione con customer
+    customer_id= Column(String, ForeignKey("customers.id", ondelete="SET NULL"), nullable=True)
+    customer= relationship("Customer", back_populates="procedures")
+    

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from api.endpoints import auth, procedures, tasks_endpoint, ai
+from api.endpoints import auth, procedures, tasks_endpoint, ai, customer_endpoints
 
 #Assegno alla variabile api_router un istanza dell'oggeto APIRoute()
 api_router = APIRouter()
@@ -10,3 +10,4 @@ api_router.include_router(ai.router, prefix="/ai", tags=["AI Generation"])
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(procedures.router, prefix="/procedures", tags=["Procedures"])
 api_router.include_router(tasks_endpoint.router,prefix="/tasks", tags=["Tasks"])
+api_router.include_router(customer_endpoints.router, prefix="/customers", tags=["Customers"])
