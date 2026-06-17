@@ -23,4 +23,5 @@ class Procedure(Base):
     #relazione con customer
     customer_id= Column(String, ForeignKey("customers.id", ondelete="SET NULL"), nullable=True)
     customer= relationship("Customer", back_populates="procedures")
+    versions = relationship("ProcedureVersion", back_populates="procedure", cascade="all, delete-orphan")
     

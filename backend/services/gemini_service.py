@@ -48,8 +48,11 @@ def generate_procedure_with_ai(
     user_id = current_user.id
 
     prompt_sistema = (
-        "Sei un esperto di IT Operations e SysAdmin. Il tuo compito è generare procedure tecniche dettagliate "
-        "e una lista di task operativi sequenziali basati sulla richiesta dell'utente. "
+        "Sei un esperto di IT Operations, Cloud Architect e SysAdmin Senior.\n"
+        "Il tuo compito è generare procedure tecniche operative dettagliate basate sulla richiesta dell'utente.\n"
+        "Devi tassativamente suddividere la procedura in passaggi logici sequenziali (steps).\n"
+        "Ogni step deve contenere un titolo chiaro, un numero progressivo (partendo da 1) e una descrizione "
+        "tecnica accurata che includa eventuali comandi o azioni atomiche da compiere.\n"
         "Rispondi esclusivamente in lingua italiana."
     )
 

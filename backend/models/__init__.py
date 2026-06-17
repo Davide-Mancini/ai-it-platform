@@ -4,3 +4,5 @@ from .task import Task
 from .role import Role
 from .AIRecommendation import AIRecommendation
 from .customer import Customer
+from .procedure_version import ProcedureVersion
+from .procedure_steps import ProcedureStep

@@ -13,7 +13,7 @@ class AITaskStructure(BaseModel):
 class AIProcedureResponse(BaseModel):
     title: str
     description: str
-    tasks: list[AITaskStructure]
+    tasks: list[AIStepStructure]
 class AIRecommendationOut(BaseModel):
     id: str
     user_id: str
@@ -22,6 +22,11 @@ class AIRecommendationOut(BaseModel):
     output_text: str
     is_accepted: Optional[bool]
     created_at: datetime
+    
+class AIStepStructure(BaseModel):
+    step_number: int 
+    title: str
+    description: str
 
     class Config:
         from_attributes = True
