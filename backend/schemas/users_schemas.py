@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import UUID
 from pydantic import BaseModel,EmailStr,Field,field_validator
 from datetime import datetime
 
@@ -16,7 +17,7 @@ class UserCreate(UserBase):
     
 # Cosa RESTITUIAMO all'esterno (Output - Noti che non mandiamo indietro la password!)
 class UserOut(UserBase):
-    id: str
+    id: UUID
     is_active: bool
     role:str
     

@@ -6,3 +6,4 @@ from .AIRecommendation import AIRecommendation
 from .customer import Customer
 from .procedure_version import ProcedureVersion
 from .procedure_steps import ProcedureStep
+from .audit_log import AuditLog

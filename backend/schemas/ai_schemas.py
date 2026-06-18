@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from uuid import UUID
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List
@@ -15,8 +15,8 @@ class AIProcedureResponse(BaseModel):
     description: str
     tasks: list[AIStepStructure]
 class AIRecommendationOut(BaseModel):
-    id: str
-    user_id: str
+    id: UUID
+    user_id: UUID
     context_type: str
     input_data: str
     output_text: str

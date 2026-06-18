@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
@@ -12,8 +13,8 @@ class ProcedureStepCreate(ProcedureStepBase):
     pass
 
 class ProcedureStepOut(ProcedureStepBase):
-    id: str
-    version_id: str
+    id: UUID
+    version_id: UUID
 
     class Config:
         from_attributes = True

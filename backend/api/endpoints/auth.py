@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List
@@ -36,8 +36,10 @@ def get_users(db: Session = Depends(get_db)):
 
 #funzione per il login verifica credenziali e genera token di accesso
 @router.post("/login", response_model=schemas.Token)
-def login(response: Response,form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    return auth_service.login(db,form_data,response)
+def login(response: Response,request: Request,form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return auth_service.login(db,form_data,response,ip_address=client_ip, user_agent=user_agent)
 
 #rotta che restituisce informazione sul'utente autenticato, utile nel frontend per mostrare il nome dell'utente o il suo ruolo
 @router.get("/me")

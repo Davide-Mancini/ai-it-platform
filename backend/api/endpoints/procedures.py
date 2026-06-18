@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List
 import models
@@ -13,10 +13,13 @@ router = APIRouter()
 @router.post("/", response_model=schemas.ProcedureOut)
 def create_procedure(
     procedure: schemas.ProcedureCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return procedure_service.create_procedure(procedure, db, current_user)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return procedure_service.create_procedure(procedure,ip_address,user_agent, db, current_user)
 
 #Recupero tutte le procedure
 @router.get("/", response_model=List[schemas.ProcedureOut])
@@ -39,17 +42,23 @@ def get_procedure_by_id(
 @router.put("/{id}", response_model=schemas.ProcedureOut)
 def update_procedure(
     id: str,
+    request: Request,
     procedure: schemas.ProcedureCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return procedure_service.update_procedure(id, procedure, db, current_user)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return procedure_service.update_procedure(id,ip_address,user_agent, procedure, db, current_user)
 
 # Rotta che permette di eliminare una procedura esistente
 @router.delete("/{id}")
 def delete_procedure(
     id: str,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return procedure_service.delete_procedure(db, id, current_user)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return procedure_service.delete_procedure(db,ip_address,user_agent, id, current_user)

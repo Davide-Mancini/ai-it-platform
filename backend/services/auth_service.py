@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status,Response
+from fastapi import APIRouter, Depends, HTTPException, Request, status,Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List
+from services.audit_logger import log_action
 from security.security import get_password_hash, create_access_token, verify_password, verify_access_token
 import models
 import schemas
@@ -41,6 +42,8 @@ def login(
     db: Session,
     form_data: OAuth2PasswordRequestForm,
     response: Response,
+    ip_address: str,
+    user_agent: str
 ):
     #Creo una variabile che contiene il risultato della query al db per trovare l'utente con l'email fornita
     user = auth_repository.get_user_by_email(db,form_data.username)
@@ -60,5 +63,10 @@ def login(
     secure=True,
     samesite="lax"
     )
+    log_action(
+            db, user, "LOGIN", ip_address, user_agent,
+             "Procedure", user
+        )
+    db.commit()
     #ritorno il token
     return {"access_token": access_token, "token_type": "bearer"}

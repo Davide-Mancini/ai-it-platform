@@ -1,10 +1,16 @@
-from fastapi import HTTPException, status
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from api.endpoints.auth import get_current_user
+from services.audit_logger import log_action
 import models
 import schemas
 from repository import customer_repository
 
-def create_new_customer(db: Session, customer_in: schemas.CustomerCreate) -> models.Customer:
+def create_new_customer(
+    db: Session,
+    ip_address: str,
+    user_agent: str,
+    customer_in: schemas.CustomerCreate) -> models.Customer:
     #cerco il nome del cliente nel db
     existing_customer = customer_repository.find_customer_by_name(db,customer_in.name)
     #se gia esiste lancio un errore
@@ -20,9 +26,14 @@ def create_new_customer(db: Session, customer_in: schemas.CustomerCreate) -> mod
         email=customer_in.email,
         notes=customer_in.notes
     )
+    current_user= models.User = Depends(get_current_user),
 
     try:
         customer_repository.save_new_customer(db,new_customer)
+        log_action(
+            db, current_user, "CUSTOMER UPDATED", ip_address, user_agent,
+             "Tasks"
+        )
         return new_customer
     except Exception as e:
         db.rollback()
@@ -34,8 +45,11 @@ def create_new_customer(db: Session, customer_in: schemas.CustomerCreate) -> mod
         
 def update_customer(
     id: str,
+    ip_address: str,
+    user_agent: str,
     customer_data: schemas.CustomerUpdate,
     db: Session,
+    current_user: models.User = Depends(get_current_user)
 ):
     db_customer = customer_repository.get_customer_by_id(db, id)
     if not db_customer:
@@ -45,6 +59,10 @@ def update_customer(
     db_customer.is_active = customer_data.is_active
     db_customer.vat_number = customer_data.vat_number
     db_customer.notes = customer_data.notes
+    log_action(
+            db, current_user, "CUSTOMER UPDATED", ip_address, user_agent,
+             "Tasks", customer_data.id
+        )
     db.commit()
     db.refresh(db_customer)
     return db_customer

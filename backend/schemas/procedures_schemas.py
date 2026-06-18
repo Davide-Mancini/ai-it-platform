@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -9,9 +10,9 @@ class ProcedureCreate(ProcedureBase):
     pass
 
 class ProcedureOut(ProcedureBase):
-    id: str
+    id: UUID
     created_at: datetime
-    user_id: str
+    user_id: UUID
 
     class Config:
         from_attributes = True

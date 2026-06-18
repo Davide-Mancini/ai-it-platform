@@ -1,6 +1,6 @@
 from enums import UserRole
 from services import gemini_service
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session
 import models
 import schemas
@@ -8,7 +8,7 @@ from db.database import get_db
 from fastapi import status
 import json
 from models import AIRecommendation
-
+from services.audit_logger import log_action
 
 router = APIRouter()
 
@@ -26,14 +26,15 @@ def generate_procedure_with_ai(
     new_ai_procedure = gemini_service.generate_procedure_with_ai(payload, db, current_user)
     return new_ai_procedure
 
-#I tuoi endpoint ottimizzati
+
 @router.post("/recommendations/{recommendation_id}/accept", status_code=status.HTTP_201_CREATED)
 def accept_recommendation(
     recommendation_id: str,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(allow_it_creators)
 ):
-    # Recuperiamo la raccomandazione dal DB
+    # Recupero la raccomandazione dal DB
     recommendation = db.query(AIRecommendation).filter(
         models.AIRecommendation.id == recommendation_id
     ).first()
@@ -62,32 +63,56 @@ def accept_recommendation(
         )
         db.add(new_procedure)
         db.flush() # Genera l'ID di new_procedure senza fare il commit definitivo
-
+        
+        #Creo nuova versione
+        new_version = models.ProcedureVersion(
+            procedure_id=new_procedure.id,
+            version_number="1.0.0",
+            status="published", # Diventa subito attiva
+            created_by_id=current_user.id
+        )
+        db.add(new_version)
+        db.flush()
+        
         # Cicliamo sui task estratti dal JSON e li colleghiamo alla procedura
-        for task_item in procedure_data.get("tasks", []):
-            new_task = models.Task(
-                title=task_item.get("title"),
-                status="pending", # Stato iniziale coerente con il tuo db
-                procedure_id=new_procedure.id
+        for step_item in procedure_data.get("tasks", []):
+            new_step = models.ProcedureStep(
+                version_id=new_version.id,
+                step_number=step_item["step_number"],
+                title=step_item["title"],
+                description=step_item["description"]
             )
-            db.add(new_task)
+            db.add(new_step)
 
         # Aggiorniamo lo stato della raccomandazione a True (Accettata)
         recommendation.is_accepted = True
         
+        log_action(
+            db, current_user, "AI_RECOMMENDATION_ACCEPTED", request,
+            "Procedure", new_procedure.id,
+           {"recommendation_id": recommendation_id}
+        )
+        db.commit() 
+        
         # Salviamo tutto definitivamente con un unico commit atomico
         db.commit()
-        
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Errore durante il salvataggio definitivo: {str(e)}")
-
-    return {"message": "Procedura e task approvati e creati con successo!", "procedure_id": new_procedure.id}
+    
+  
+    return {
+            "status": "success",
+            "message": "Procedura, versione e step salvati correttamente!",
+            "procedure_id": new_procedure.id,
+            "version_id": new_version.id
+        }
 
 
 @router.post("/recommendations/{recommendation_id}/reject")
 def reject_recommendation(
     recommendation_id: str,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(allow_it_creators)
 ):
@@ -104,6 +129,11 @@ def reject_recommendation(
 
     # Cambiamo semplicemente il booleano a False (Rifiutata)
     recommendation.is_accepted = False
+    log_action(
+            db, current_user, "AI_RECOMMENDATION_REJECTED", request,
+            "Procedure", recommendation.id,
+           {"recommendation_id": recommendation_id}
+        )
     db.commit()
 
     return {"message": "Raccomandazione scartata. Le tabelle Procedures e Tasks sono rimaste pulite."}

@@ -5,6 +5,7 @@ def save_new_customer(db:Session, customer:models.Customer):
     db.add(customer)
     db.commit()
     db.refresh(customer)
+    return customer
     
 def get_customer_by_id(db:Session, id:str):
     return db.query(models.Customer).filter(models.Customer.id==id).first()

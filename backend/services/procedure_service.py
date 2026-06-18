@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List
 from api.endpoints.auth import get_current_user
+from services.audit_logger import log_action
 from security.security import get_password_hash, create_access_token, verify_password, verify_access_token
 import models
 import schemas
@@ -12,6 +13,8 @@ from repository import procedure_repository
 
 def create_procedure(
     procedure: schemas.ProcedureCreate,
+    ip_address: str,
+    user_agent: str,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -21,6 +24,12 @@ def create_procedure(
         description=procedure.description,
         user_id=current_user.id
     )
+    
+    log_action(
+            db, current_user, "PROCEDURE CREATED", ip_address, user_agent,
+            "Procedure", current_user.id
+        )
+    db.commit()
     #Aggiungo la procedura creata al db
     procedure_repository.save_new_procedure(db, new_procedure)
     return new_procedure
@@ -40,6 +49,8 @@ def get_procedure_by_id(
 
 def update_procedure(
     id: str,
+    ip_address: str,
+    user_agent: str,
     procedure_data: schemas.ProcedureCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
@@ -53,12 +64,19 @@ def update_procedure(
     db_procedure.title = procedure_data.title
     db_procedure.description = procedure_data.description
     #salvo modifche nel db
+    log_action(
+            db, current_user, "PROCEDURE UPDATED", ip_address, user_agent,
+            "Procedure", current_user.id
+        )
+  
     db.commit()
     db.refresh(db_procedure)
     return db_procedure
 
 def delete_procedure(
     db: Session,
+    ip_address: str,
+    user_agent: str,
     id: str,
     current_user: models.User = Depends(get_current_user)
 ):
@@ -67,8 +85,15 @@ def delete_procedure(
     #se la procedura torna false lancio eccezione con messaggio
     if not db_procedure:
         raise HTTPException(status_code=404, detail="Procedura non trovata")
+    
     #altrimenti elimino la procedura dal db
     procedure_repository.delete_procedure_by_id(db,db_procedure)
+    
+    log_action(
+            db, current_user, "PROCEDURE DELETED", ip_address, user_agent,
+            "Procedure", current_user.id
+        )
+    db.commit()
     return {"detail": f"Procedura con ID {id} eliminata con successo"}
 
 

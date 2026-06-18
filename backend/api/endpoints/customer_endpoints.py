@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException,status
+from fastapi import APIRouter, Depends, HTTPException, Request,status
 from sqlalchemy.orm import Session
 from typing import List
 import models
@@ -13,10 +13,13 @@ router = APIRouter()
 @router.post('/', response_model=schemas.CustomerOut)
 def new_customer(
     customer: schemas.CustomerCreate,
+    request: Request,
     db:Session= Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return customer_service.create_new_customer(db,customer)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return customer_service.create_new_customer(db,ip_address,user_agent,customer)
 
 #endpoint per update cliente (sostituzione completa)
 @router.put("/{customer_id}", response_model=schemas.CustomerOut)

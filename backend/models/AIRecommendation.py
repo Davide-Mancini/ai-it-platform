@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from db.database import Base
@@ -8,9 +9,9 @@ class AIRecommendation(Base):
     
     __tablename__ = "ai_recommendations"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Chi ha richiesto la procedura
-    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     # Il tipo di richiesta (es. "procedure_generation")
     context_type = Column(String, nullable=False, default="procedure_generation")
     # Il prompt originale dell'utente

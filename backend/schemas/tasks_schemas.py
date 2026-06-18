@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -12,8 +13,8 @@ class TaskUpdateStatus(BaseModel):
     status: str
 
 class TaskOut(TaskBase):
-    id: str
-    procedure_id: str
+    id: UUID
+    procedure_id: UUID
 
     class Config:
         from_attributes = True

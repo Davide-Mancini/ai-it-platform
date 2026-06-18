@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
@@ -19,7 +20,7 @@ class CustomerUpdate(BaseModel):
     notes: Optional[str] = None
     
 class CustomerOut(CustomerBase):
-    id: str
+    id: UUID
     is_active: bool
     created_at: datetime
     updated_at: datetime
