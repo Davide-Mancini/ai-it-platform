@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints.api import api_router 
 from config.config import settings
 from db.database import engine,Base,SessionLocal
-from seed import seed_role
+from seed import seed_role, seed_document
 import models
 
 Base.metadata.create_all(bind=engine)
@@ -20,6 +20,7 @@ app.add_middleware(
 db = SessionLocal()
 try:
     seed_role(db)
+    seed_document(db)
 finally:
     db.close()
 

@@ -2,18 +2,28 @@ from uuid import UUID
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List
+
+
 class AIRequest(BaseModel):
     prompt: str
 
-# Schema per il singolo task generato dall'IA
-class AITaskStructure(BaseModel):
-    title: str
 
-# Schema completo che l'IA DOVRÀ rispettare
+class AIStepStructure(BaseModel):
+    step_number: int
+    title: str
+    description: str
+    relevant_document_titles: List[str] = []
+
+    class Config:
+        from_attributes = True
+
+
 class AIProcedureResponse(BaseModel):
     title: str
     description: str
-    tasks: list[AIStepStructure]
+    tasks: List[AIStepStructure]
+
+
 class AIRecommendationOut(BaseModel):
     id: UUID
     user_id: UUID
@@ -22,11 +32,3 @@ class AIRecommendationOut(BaseModel):
     output_text: str
     is_accepted: Optional[bool]
     created_at: datetime
-    
-class AIStepStructure(BaseModel):
-    step_number: int 
-    title: str
-    description: str
-
-    class Config:
-        from_attributes = True

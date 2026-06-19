@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, Dict, Any
@@ -18,8 +20,8 @@ class AuditLogCreate(AuditLogBase):
 
 # Schema di output per Swagger / Frontend
 class AuditLogOut(AuditLogBase):
-    id: str
-    user_id: Optional[str] = None
+    id: UUID
+    user_id: Optional[UUID] = None
     user_email: Optional[str] = None
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None

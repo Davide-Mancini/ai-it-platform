@@ -5,5 +5,7 @@ from .role import Role
 from .AIRecommendation import AIRecommendation
 from .customer import Customer
 from .procedure_version import ProcedureVersion
+from .step_document import step_document
 from .procedure_steps import ProcedureStep
 from .audit_log import AuditLog
+from .document import Document

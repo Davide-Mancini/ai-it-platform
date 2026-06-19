@@ -2,6 +2,7 @@ from fastapi import Request
 from sqlalchemy.orm import Session
 import models
 from typing import Any,Dict,Optional
+from repository import audit_repository
 
 def log_action(
     db: Session,
@@ -25,5 +26,10 @@ def log_action(
         details=details
     )
     db.add(audit_log)
+    
+def get_all_audit_log(
+    db:Session
+):
+    return audit_repository.get_all_audit_log(db)
     
        

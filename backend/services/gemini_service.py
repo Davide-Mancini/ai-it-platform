@@ -18,13 +18,9 @@ router = APIRouter()
 
 class RoleChecker:
     def __init__(self, allowed_roles: list[str]):
-        # Ora passiamo una lista di stringhe con i nomi dei ruoli (es. ["ADMINISTRATOR", "IT_MANAGER"])
         self.allowed_roles = allowed_roles
 
     def __call__(self, current_user: models.User = Depends(get_current_user)):
-        # Adatta questa riga in base a come hai strutturato il campo/relazione nel tuo modello User.
-        # Es. se 'role' è una relazione e il nome è nel campo 'name', userai: current_user.role.name
-        # Se invece nel modello User salvi direttamente la stringa del ruolo: current_user.role
         user_role_name = current_user.role.name if hasattr(current_user.role, 'name') else current_user.role
 
         if user_role_name not in self.allowed_roles:
@@ -39,13 +35,22 @@ allow_it_creators = RoleChecker(["Admin", "IT Manager"])
 ai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-
 def generate_procedure_with_ai(
     payload: schemas.AIRequest,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(allow_it_creators)
 ):
     user_id = current_user.id
+
+    available_docs = db.query(models.Document).all()
+    doc_titles_list = "\n".join(f'- "{doc.title}"' for doc in available_docs)
+    doc_context = (
+        f"\n\nDocumenti di riferimento disponibili nel sistema:\n{doc_titles_list}\n"
+        "Per ogni step, indica nel campo 'relevant_document_titles' i titoli (copiati esattamente) "
+        "dei documenti sopra elencati che sono pertinenti a quello step. "
+        "Se nessun documento è pertinente, lascia la lista vuota."
+        if available_docs else ""
+    )
 
     prompt_sistema = (
         "Sei un esperto di IT Operations, Cloud Architect e SysAdmin Senior.\n"
@@ -54,12 +59,12 @@ def generate_procedure_with_ai(
         "Ogni step deve contenere un titolo chiaro, un numero progressivo (partendo da 1) e una descrizione "
         "tecnica accurata che includa eventuali comandi o azioni atomiche da compiere.\n"
         "Rispondi esclusivamente in lingua italiana."
+        + doc_context
     )
 
     max_tentativi = 3
     tempo_attesa = 2
     ai_response = None
-    # Fa piu tentativi se il server google gemini non risponde
     for tentativo in range(max_tentativi):
         try:
             response = ai_client.models.generate_content(
@@ -78,7 +83,7 @@ def generate_procedure_with_ai(
                 tempo_attesa *= 2
                 continue
             raise HTTPException(status_code=500, detail=f"Errore nella generazione AI: {str(e)}")
-    
+
     try:
         new_reccomendation = models.AIRecommendation(
             user_id=user_id,
@@ -93,34 +98,5 @@ def generate_procedure_with_ai(
     except Exception as db_err:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Errore nel salvataggio: {db_err}")
-    
+
     return new_reccomendation
-    # try:
-    #     new_procedure = models.Procedure(
-    #         title=ai_response.title,
-    #         description=ai_response.description,
-    #         user_id=user_id
-    #     )
-    #     db.add(new_procedure)
-    #     db.flush()
-
-    #     for task_data in ai_response.tasks:
-    #         new_task = models.Task(
-    #             title=task_data.title,
-    #             status="pending",
-    #             procedure_id=new_procedure.id
-    #         )
-    #         db.add(new_task)
-
-    #     db.commit()
-    # except Exception as db_err:
-    #     db.rollback()
-    #     raise HTTPException(status_code=500, detail=f"Errore nel salvataggio a DB: {str(db_err)}")
-
-    # procedure_completa = db.query(models.Procedure)\
-    #     .options(joinedload(models.Procedure.tasks))\
-    #     .filter(models.Procedure.id == new_procedure.id)\
-    #     .first()
-
-    # return procedure_completa
-    

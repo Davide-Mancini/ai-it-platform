@@ -59,22 +59,24 @@ def accept_recommendation(
         new_procedure = models.Procedure(
             title=procedure_data.get("title"),
             description=procedure_data.get("description"),
-            user_id=recommendation.user_id # Manteniamo l'autore originale
+            user_id=recommendation.user_id
         )
         db.add(new_procedure)
-        db.flush() # Genera l'ID di new_procedure senza fare il commit definitivo
-        
-        #Creo nuova versione
+        db.flush()
+
         new_version = models.ProcedureVersion(
             procedure_id=new_procedure.id,
             version_number="1.0.0",
-            status="published", # Diventa subito attiva
+            status="published",
             created_by_id=current_user.id
         )
         db.add(new_version)
         db.flush()
-        
-        # Cicliamo sui task estratti dal JSON e li colleghiamo alla procedura
+
+        # Carico tutti i documenti indicizzati per titolo per un lookup O(1)
+        all_documents = db.query(models.Document).all()
+        doc_by_title = {doc.title: doc for doc in all_documents}
+
         for step_item in procedure_data.get("tasks", []):
             new_step = models.ProcedureStep(
                 version_id=new_version.id,
@@ -83,18 +85,23 @@ def accept_recommendation(
                 description=step_item["description"]
             )
             db.add(new_step)
+            db.flush()
 
-        # Aggiorniamo lo stato della raccomandazione a True (Accettata)
+            for doc_title in step_item.get("relevant_document_titles", []):
+                doc = doc_by_title.get(doc_title)
+                if doc:
+                    new_step.documents.append(doc)
+
         recommendation.is_accepted = True
-        
+
         log_action(
-            db, current_user, "AI_RECOMMENDATION_ACCEPTED", request,
-            "Procedure", new_procedure.id,
-           {"recommendation_id": recommendation_id}
+            db, current_user, "AI_RECOMMENDATION_ACCEPTED",
+            request.client.host if request.client else None,
+            request.headers.get("user-agent"),
+            "Procedure",
+            new_procedure.id,
+            {"recommendation_id": recommendation_id}
         )
-        db.commit() 
-        
-        # Salviamo tutto definitivamente con un unico commit atomico
         db.commit()
     except Exception as e:
         db.rollback()
@@ -130,10 +137,13 @@ def reject_recommendation(
     # Cambiamo semplicemente il booleano a False (Rifiutata)
     recommendation.is_accepted = False
     log_action(
-            db, current_user, "AI_RECOMMENDATION_REJECTED", request,
-            "Procedure", recommendation.id,
-           {"recommendation_id": recommendation_id}
-        )
+        db, current_user, "AI_RECOMMENDATION_REJECTED",
+        request.client.host if request.client else None,
+        request.headers.get("user-agent"),
+        "Procedure",
+        recommendation.id,
+        {"recommendation_id": recommendation_id}
+    )
     db.commit()
 
     return {"message": "Raccomandazione scartata. Le tabelle Procedures e Tasks sono rimaste pulite."}

@@ -64,9 +64,9 @@ def login(
     samesite="lax"
     )
     log_action(
-            db, user, "LOGIN", ip_address, user_agent,
-             "Procedure", user
-        )
+        db, user, "LOGIN", ip_address, user_agent,
+        "User", user.id
+    )
     db.commit()
     #ritorno il token
     return {"access_token": access_token, "token_type": "bearer"}

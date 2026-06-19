@@ -19,7 +19,7 @@ def new_customer(
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
-    return customer_service.create_new_customer(db,ip_address,user_agent,customer)
+    return customer_service.create_new_customer(db,ip_address,user_agent,customer,current_user)
 
 #endpoint per update cliente (sostituzione completa)
 @router.put("/{customer_id}", response_model=schemas.CustomerOut)
@@ -35,15 +35,22 @@ def update_customer(
 @router.patch("/{customer_id}", response_model=schemas.CustomerOut)
 def patch_customer(
     customer_id: str,
+    request: Request,
     customer: schemas.CustomerUpdate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return customer_service.patch_customer(customer_id, customer, db)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return customer_service.patch_customer(customer_id,ip_address, user_agent, customer, db,current_user)
 
 @router.delete('/{customer_id}',status_code=status.HTTP_204_NO_CONTENT)
 def delete_customer(
     id:str,
-    db:Session= Depends(get_db)
+    request: Request,
+    db:Session= Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    customer_service.delete_customer(id,db)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    customer_service.delete_customer(id,ip_address,user_agent,db,current_user)

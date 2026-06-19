@@ -3,13 +3,14 @@ from fastapi import HTTPException, status
 import models
 import schemas
 
+
 def create_version_with_steps(
-    db: Session, 
-    procedure_id: str, 
-    version_in: schemas.ProcedureVersionCreate, 
+    db: Session,
+    procedure_id: str,
+    version_in: schemas.ProcedureVersionCreate,
     user_id: str
 ) -> models.ProcedureVersion:
-   
+
     procedure_exists = db.query(models.Procedure).filter(models.Procedure.id == procedure_id).first()
     if not procedure_exists:
         raise HTTPException(
@@ -18,7 +19,6 @@ def create_version_with_steps(
         )
 
     try:
-    
         db_version = models.ProcedureVersion(
             procedure_id=procedure_id,
             version_number=version_in.version_number,
@@ -29,7 +29,6 @@ def create_version_with_steps(
         db.add(db_version)
         db.flush()
 
-    
         for step_data in version_in.steps:
             db_step = models.ProcedureStep(
                 version_id=db_version.id,
@@ -39,7 +38,13 @@ def create_version_with_steps(
                 estimated_duration=step_data.estimated_duration
             )
             db.add(db_step)
+            db.flush()
 
+            if step_data.document_ids:
+                docs = db.query(models.Document).filter(
+                    models.Document.id.in_(step_data.document_ids)
+                ).all()
+                db_step.documents.extend(docs)
 
         db.commit()
         db.refresh(db_version)
