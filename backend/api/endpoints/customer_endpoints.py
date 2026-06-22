@@ -26,10 +26,13 @@ def new_customer(
 def update_customer(
     customer_id: str,
     customer: schemas.CustomerUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return customer_service.update_customer(customer_id, customer, db)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return customer_service.update_customer(customer_id,ip_address,user_agent, customer, db,current_user)
 
 #endpoint per aggiornamento parziale cliente
 @router.patch("/{customer_id}", response_model=schemas.CustomerOut)

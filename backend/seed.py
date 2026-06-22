@@ -115,8 +115,6 @@ POLICIES_TO_SEED = [
 ]
 
 def seed_policies(db: Session):
-    """Funzione per popolare automaticamente le policy aziendali legandole ai documenti"""
-    print("Controllo seeding delle policy interne...")
     
     for policy_data in POLICIES_TO_SEED:
         #Controlla se la policy esiste già (evita duplicati)
@@ -479,7 +477,7 @@ def seed_knowledge_base(db: Session):
                 content=item_data["content"]
             )
             db.add(new_item)
-            print(f"KB Item creato: [{item_data['category']}] {item_data['title']}")
+            
         else:
             print(f"KB Item già presente: '{item_data['title']}'. Salto.")
             

@@ -48,7 +48,7 @@ def update_customer(
     user_agent: str,
     customer_data: schemas.CustomerUpdate,
     db: Session,
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User
 ):
     db_customer = customer_repository.get_customer_by_id(db, id)
     if not db_customer:
@@ -60,7 +60,7 @@ def update_customer(
     db_customer.notes = customer_data.notes
     log_action(
             db, current_user, "CUSTOMER UPDATED", ip_address, user_agent,
-             "Customer", customer_data.id
+             "Customer"
         )
     db.commit()
     db.refresh(db_customer)

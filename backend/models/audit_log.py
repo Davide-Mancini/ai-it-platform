@@ -17,7 +17,7 @@ class AuditLog(Base):
     target_type = Column(String, nullable= True)
     target_id = Column(String, nullable=True)
     details = Column(JSON, nullable=True)
-    created_at= Column(DateTime, default= lambda: datetime.now(timezone.utc), nullable=False)
+    created_at= Column(DateTime, default=datetime.now, nullable=False)
     
   
 

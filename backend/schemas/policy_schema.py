@@ -7,7 +7,7 @@ class PolicyResponse(BaseModel):
     id: UUID
     title: str
     description: str
-    code: str
+    category: str
     is_active: bool
     document_id: Optional[UUID] = None
     created_at: datetime

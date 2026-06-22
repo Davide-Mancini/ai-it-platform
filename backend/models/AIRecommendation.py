@@ -20,5 +20,5 @@ class AIRecommendation(Base):
     output_text = Column(Text, nullable=False)
     # Stato dell'approvazione: None = In attesa, True = Accettato, False = Rifiutato
     is_accepted = Column(Boolean, nullable=True, default=None)
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=datetime.now, nullable=False)
     user = relationship("User")
