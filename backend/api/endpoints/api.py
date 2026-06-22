@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from api.endpoints import auth, procedures, tasks_endpoint, ai, customer_endpoints, procedure_version, audit_log,documents
+from api.endpoints import auth, procedures, tasks_endpoint, ai, customer_endpoints, procedure_version, audit_log,documents,policy_endpoint,knowledgeBI_endpoint
 #Assegno alla variabile api_router un istanza dell'oggeto APIRoute()
 api_router = APIRouter()
 
@@ -13,3 +13,5 @@ api_router.include_router(customer_endpoints.router, prefix="/customers", tags=[
 api_router.include_router(procedure_version.router, prefix="/procedure-version",tags=["Procedure_Version"])
 api_router.include_router(audit_log.router, prefix="/audit",tags=["Audit"])
 api_router.include_router(documents.router, prefix='/documents', tags=['Documents'])
+api_router.include_router(policy_endpoint.router, prefix='/policy', tags=['Policy'])
+api_router.include_router(knowledgeBI_endpoint.router, prefix='/knowledge-base-item',tags=['Knowledge Base Item'])

@@ -7,3 +7,5 @@ from .procedure_steps_schemas import ProcedureStepCreate,ProcedureStepBase,Proce
 from .procedure_version_schemas import ProcedureVersionBase,ProcedureVersionCreate,ProcedureVersionPut
 from .audit_log_schema import AuditLogBase,AuditLogCreate,AuditLogOut
 from .documents_schema import DocumentBase,DocumentCreate,DocumentResponse,DocumentUpdate
+from .policy_schema import PolicyResponse
+from .kwoledgeBI_schema import KBItemCreate,KBItemResponse

@@ -9,3 +9,5 @@ from .step_document import step_document
 from .procedure_steps import ProcedureStep
 from .audit_log import AuditLog
 from .document import Document
+from .policy import Policy
+from .knowledge_base_item import KnowledgeBaseItem
