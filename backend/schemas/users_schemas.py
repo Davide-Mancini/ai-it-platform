@@ -5,7 +5,8 @@ from pydantic import BaseModel,EmailStr,Field,field_validator
 # Schema base comune a tutti
 class UserBase(BaseModel):
     email: EmailStr
-    
+    first_name: str = Field(min_length=1, max_length=50)
+    last_name: str = Field(min_length=1, max_length=50)
 
     class Config:
         from_attributes = True # Permette a Pydantic di leggere i modelli di SQLAlchemy
@@ -18,7 +19,7 @@ class UserCreate(UserBase):
 class UserOut(UserBase):
     id: UUID
     is_active: bool
-    role:str
+    role: str
     
     @field_validator('role', mode='before')
     @classmethod

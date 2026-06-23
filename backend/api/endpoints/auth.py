@@ -44,7 +44,13 @@ def login(response: Response,request: Request,form_data: OAuth2PasswordRequestFo
 #rotta che restituisce informazione sul'utente autenticato, utile nel frontend per mostrare il nome dell'utente o il suo ruolo
 @router.get("/me")
 def get_me(current_user: models.User = Depends(get_current_user)):
-    return {"message": f"Benvenuto {current_user.email}", "role": current_user.role}
+    return {
+        "message": f"Benvenuto {current_user.first_name} {current_user.last_name}",
+        "email": current_user.email,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "role": current_user.role,
+    }
 
 #rotta per modificare ruolo solo se admin
 @router.patch("/users/{user_id}/role")

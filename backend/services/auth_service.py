@@ -24,6 +24,8 @@ def create_user(user: schemas.UserCreate, db: Session):
     #creo un nuovo oggetto con i dati forniti
     new_user = models.User(
         email=user.email,
+        first_name=user.first_name,
+        last_name=user.last_name,
         hashed_password=hashed_password,
         role_id= default_role.id
     )

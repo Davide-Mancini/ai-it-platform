@@ -126,7 +126,6 @@ def seed_policies(db: Session):
             
             document_id = linked_doc.id if linked_doc else None
             if not document_id:
-
                 #Crea e inserisce la policy
                 new_policy = Policy(
                 category=policy_data["category"],
@@ -135,9 +134,9 @@ def seed_policies(db: Session):
                 document_id=document_id,
                 is_active=True
             )
-            db.add(new_policy)
+                db.add(new_policy)
         else:
-            db.commit()
+                db.commit()
    
     
 
