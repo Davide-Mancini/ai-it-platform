@@ -126,10 +126,9 @@ def seed_policies(db: Session):
             
             document_id = linked_doc.id if linked_doc else None
             if not document_id:
-                print(f"Attenzione: Non ho trovato il documento '{policy_data['document_title']}' per la policy {policy_data['category']}. Verrà creata senza collegamento.")
 
-            #Crea e inserisce la policy
-            new_policy = Policy(
+                #Crea e inserisce la policy
+                new_policy = Policy(
                 category=policy_data["category"],
                 title=policy_data["title"],
                 description=policy_data["description"],
@@ -137,11 +136,9 @@ def seed_policies(db: Session):
                 is_active=True
             )
             db.add(new_policy)
-            print(f"Policy creata con successo: {policy_data['category']} -> Collegata a: {policy_data['document_title']}")
         else:
-            print(f"Policy {policy_data['category']} già presente. Salto l'inserimento.")
-            
-    db.commit()
+            db.commit()
+   
     
 
 KB_ITEMS_TO_SEED = [
@@ -479,6 +476,5 @@ def seed_knowledge_base(db: Session):
             db.add(new_item)
             
         else:
-            print(f"KB Item già presente: '{item_data['title']}'. Salto.")
-            
-    db.commit()
+           
+            db.commit()
