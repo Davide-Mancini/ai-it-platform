@@ -1,4 +1,3 @@
-from enums import UserRole
 from services import gemini_service
 from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session

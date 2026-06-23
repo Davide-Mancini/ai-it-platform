@@ -1,8 +1,7 @@
 import os
 import time
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
-from enums import UserRole
+from sqlalchemy.orm import Session
 import models
 import schemas
 from db.database import get_db

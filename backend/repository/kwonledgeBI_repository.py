@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
 from models.knowledge_base_item import KnowledgeBaseItem
-from schemas.kwoledgeBI_schema import KBItemCreate,KBItemResponse
+from schemas.kwoledgeBI_schema import KBItemCreate
 
 class KBItemRepository:
 

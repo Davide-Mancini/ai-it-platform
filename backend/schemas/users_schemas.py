@@ -1,7 +1,6 @@
 from typing import Any
 from uuid import UUID
 from pydantic import BaseModel,EmailStr,Field,field_validator
-from datetime import datetime
 
 # Schema base comune a tutti
 class UserBase(BaseModel):

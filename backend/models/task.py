@@ -1,11 +1,8 @@
 import uuid
-
-from sqlalchemy import Column, Integer, String, Boolean,ForeignKey, Text, DateTime, Enum as SqlEnum
+from sqlalchemy import Column, String,ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from db.database import Base
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
-from enums import UserRole
 
 #Entity per i tasks
 class Task(Base):

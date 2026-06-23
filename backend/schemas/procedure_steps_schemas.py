@@ -1,7 +1,6 @@
 from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
 from schemas.documents_schema import DocumentResponse
 
 

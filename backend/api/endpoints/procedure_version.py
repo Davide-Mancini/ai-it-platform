@@ -6,7 +6,6 @@ import schemas
 from db.database import get_db
 from api.endpoints.auth import get_current_user
 from services import procedure_version_service
-from schemas.procedure_version_schemas import ProcedureVersionPut
 
 router = APIRouter()
 

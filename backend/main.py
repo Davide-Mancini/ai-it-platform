@@ -1,10 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints.api import api_router 
-from config.config import settings
 from db.database import engine,Base,SessionLocal
 from seed import seed_role, seed_document, seed_policies,seed_knowledge_base
-import models
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="AI Assisted IT Platform API")

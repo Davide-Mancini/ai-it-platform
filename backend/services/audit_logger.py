@@ -1,4 +1,3 @@
-from fastapi import Request
 from sqlalchemy.orm import Session
 import models
 from typing import Any,Dict,Optional

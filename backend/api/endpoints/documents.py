@@ -1,15 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from api.endpoints.auth import get_current_user
-from models.user import User
-from security.security import get_password_hash, create_access_token, verify_password, verify_access_token
-import models
 import schemas
 from db.database import get_db
 from services import document_service
-from repository import documents_repository
 router = APIRouter()
 
 @router.get('/documents', response_model=List[schemas.DocumentResponse])

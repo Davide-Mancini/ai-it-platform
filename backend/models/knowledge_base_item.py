@@ -2,7 +2,6 @@ from datetime import datetime
 import uuid
 from sqlalchemy import Column, String, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
-from sqlalchemy.sql import func
 from db.database import Base
 
 class KnowledgeBaseItem(Base):

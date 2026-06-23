@@ -1,10 +1,8 @@
 from sqlalchemy import Column, String, DateTime, JSON, ForeignKey,event
-from datetime import datetime, timezone
+from datetime import datetime
 import uuid
 from db.database import Base
 from sqlalchemy.dialects.postgresql import UUID
-import models
-
 class AuditLog(Base):
     __tablename__="audit_logs"
     

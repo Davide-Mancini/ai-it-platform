@@ -1,6 +1,5 @@
 from uuid import UUID
 from pydantic import BaseModel
-from datetime import datetime
 
 class TaskBase(BaseModel):
     title: str

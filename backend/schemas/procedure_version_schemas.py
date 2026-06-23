@@ -2,7 +2,7 @@ from uuid import UUID
 from pydantic import BaseModel,Field
 from typing import Optional, List
 from datetime import datetime
-from schemas.procedure_steps_schemas import ProcedureStepBase,ProcedureStepCreate,ProcedureStepOut
+from schemas.procedure_steps_schemas import ProcedureStepCreate,ProcedureStepOut
 
 
 class ProcedureVersionBase(BaseModel):
