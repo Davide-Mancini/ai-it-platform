@@ -1,0 +1,14 @@
+/* Heximus — supplemental styles (animations live in the component's <style> tag) */
+
+/* Reset any Bootstrap interference on the Heximus layout */
+.heximus-root *,
+.heximus-root *::before,
+.heximus-root *::after {
+  box-sizing: border-box;
+}
+
+/* Ensure the root fills the viewport without Bootstrap padding */
+#root {
+  height: 100vh;
+  overflow: hidden;
+}

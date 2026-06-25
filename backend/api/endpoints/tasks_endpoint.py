@@ -9,6 +9,14 @@ from services import task_service
 
 router = APIRouter()
 
+# GET all tasks across all procedures (for TaskBoard view)
+@router.get("/", response_model=List[schemas.TaskOut])
+def get_all_tasks(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return db.query(models.Task).all()
+
 #rotta che cre un nuovo task associato ad una procedura esistente
 @router.post("/procedures/{procedure_id}/tasks", response_model=schemas.TaskOut)
 def create_task_for_procedure(

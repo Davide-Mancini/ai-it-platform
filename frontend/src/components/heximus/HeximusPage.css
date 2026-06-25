@@ -1,0 +1,84 @@
+/* ── Global keyframes ─────────────────────────────────── */
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes ovFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+  40%            { transform: scale(1.1); opacity: 1; }
+}
+
+/* ── Layout shell ─────────────────────────────────────── */
+.hx-root {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--app-bg);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.hx-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hx-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Shared modal base ────────────────────────────────── */
+.hx-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 24, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 60;
+  animation: ovFade 0.18s ease;
+}
+
+.hx-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 64px rgba(10, 12, 24, 0.28);
+  z-index: 61;
+  animation: fadeUp 0.2s ease;
+}
+
+.hx-modal__header {
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hx-modal__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.hx-modal__subtitle {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin-top: 3px;
+}

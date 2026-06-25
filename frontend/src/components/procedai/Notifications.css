@@ -1,0 +1,50 @@
+.pai-notif__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.pai-notif__title { font-size: 18px; font-weight: 800; color: #0F172A; }
+.pai-notif__sub   { font-size: 13px; color: #64748B; margin-top: 2px; }
+
+.pai-notif__list  { overflow: hidden; }
+
+.pai-notif-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  transition: background .1s;
+}
+.pai-notif-row:last-child { border-bottom: none; }
+.pai-notif-row:hover { background: #F8FAFC; }
+.pai-notif-row--unread { background: #FAFCFF; }
+
+.pai-notif-row__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.pai-notif-row__body { flex: 1; }
+.pai-notif-row__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 3px;
+}
+.pai-notif-row__msg  { font-size: 12px; color: #64748B; margin-bottom: 4px; }
+.pai-notif-row__time { font-size: 11px; color: #94A3B8; }
+.pai-notif-row__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563EB;
+  flex-shrink: 0;
+  margin-top: 6px;
+}

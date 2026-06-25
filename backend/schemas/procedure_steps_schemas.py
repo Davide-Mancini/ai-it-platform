@@ -18,6 +18,7 @@ class ProcedureStepCreate(ProcedureStepBase):
 class ProcedureStepOut(ProcedureStepBase):
     id: UUID
     version_id: UUID
+    status: str = "todo"
     documents: List[DocumentResponse] = []
 
     class Config:

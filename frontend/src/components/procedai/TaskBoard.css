@@ -1,0 +1,191 @@
+.pai-kanban {
+  display: flex;
+  gap: 14px;
+  height: calc(100vh - 156px);
+  align-items: flex-start;
+}
+
+.pai-kanban-col {
+  flex: 1;
+  background: #F8FAFC;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  border: 1px solid #E9EEF4;
+  overflow: hidden;
+  transition: border-color .15s;
+}
+.pai-kanban-col--over {
+  border-color: #2563EB;
+  background: #F0F7FF;
+}
+
+.pai-kanban-col__header {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #E9EEF4;
+  flex-shrink: 0;
+}
+.pai-kanban-col__header-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.pai-kanban-col__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.pai-kanban-col__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+.pai-kanban-col__count {
+  background: white;
+  border: 1px solid #E2E8F0;
+  color: #64748B;
+  border-radius: 99px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+.pai-kanban-col__add-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94A3B8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s, color .12s;
+}
+.pai-kanban-col__add-btn:hover { background: #E9EEF4; color: #2563EB; }
+
+.pai-kanban-col__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pai-kanban-col__empty {
+  font-size: 12px;
+  color: #CBD5E1;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Task card wrapper (drag) */
+.pai-task-card-wrap {
+  cursor: grab;
+  transition: opacity .2s;
+}
+.pai-task-card-wrap--dragging { opacity: .4; }
+.pai-task-card-wrap:active { cursor: grabbing; }
+
+/* Task card */
+.pai-task-card {
+  background: white;
+  border-radius: 10px;
+  padding: 13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  border: 1px solid #E9EEF4;
+}
+.pai-task-card__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.45;
+  margin-bottom: 5px;
+}
+.pai-task-card__proc {
+  font-size: 10px;
+  color: #94A3B8;
+  margin-bottom: 10px;
+}
+.pai-task-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pai-task-card__spacer { flex: 1; }
+.pai-task-card__btn {
+  font-size: 10.5px;
+  color: #2563EB;
+  background: #EFF6FF;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  transition: filter .15s;
+}
+.pai-task-card__btn:hover { filter: brightness(.95); }
+.pai-task-card__btn--done {
+  color: #059669;
+  background: #ECFDF5;
+}
+.pai-task-card__btn--undo {
+  color: #64748B;
+  background: #F1F5F9;
+}
+
+/* Create task modal */
+.pai-task-form { width: 480px; }
+.pai-task-form__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid #E9EEF4;
+}
+.pai-task-form__title { font-size: 16px; font-weight: 700; color: #0F172A; margin-bottom: 3px; }
+.pai-task-form__sub   { font-size: 12px; color: #64748B; }
+.pai-task-form__close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #94A3B8;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s;
+  flex-shrink: 0;
+}
+.pai-task-form__close:hover { background: #F1F5F9; }
+.pai-task-form__body { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+.pai-task-form__error {
+  font-size: 13px; color: #DC2626; background: #FEF2F2; padding: 9px 12px; border-radius: 7px;
+}
+.pai-task-form__actions { display: flex; gap: 10px; justify-content: flex-end; }
+.pai-field__select {
+  width: 100%;
+  height: 40px;
+  padding: 0 13px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0F172A;
+  background: #F8FAFC;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.pai-field__select:focus { border-color: #2563EB; background: white; }

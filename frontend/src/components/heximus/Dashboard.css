@@ -1,0 +1,158 @@
+.hx-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1100px;
+}
+
+/* Stats row */
+.hx-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.hx-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--card-shadow);
+}
+
+.hx-stat-card__label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.hx-stat-card__value {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-top: 8px;
+}
+
+.hx-stat-card__sub {
+  font-size: 11.5px;
+  color: var(--text-soft);
+  margin-top: 5px;
+}
+
+/* Charts row */
+.hx-dashboard__charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.hx-dashboard__card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+}
+
+.hx-dashboard__card-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+/* Status bar */
+.hx-dashboard__bar-track {
+  display: flex;
+  height: 14px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--app-bg);
+  margin-bottom: 18px;
+}
+
+.hx-dashboard__bar-segment {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.hx-dashboard__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hx-dashboard__legend-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.hx-dashboard__legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.hx-dashboard__legend-name {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.hx-dashboard__legend-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Priority chart */
+.hx-dashboard__prio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hx-dashboard__prio-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.hx-dashboard__prio-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hx-dashboard__prio-name {
+  font-size: 13px;
+  font-weight: 500;
+  width: 64px;
+  color: var(--text-muted);
+}
+
+.hx-dashboard__prio-track {
+  flex: 1;
+  height: 8px;
+  background: var(--app-bg);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.hx-dashboard__prio-fill {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s;
+}
+
+.hx-dashboard__prio-count {
+  font-size: 13px;
+  font-weight: 700;
+  width: 20px;
+  text-align: right;
+  color: var(--text);
+}

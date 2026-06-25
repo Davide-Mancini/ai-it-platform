@@ -1,0 +1,68 @@
+.hx-board-col {
+  width: 300px;
+  flex-shrink: 0;
+  background: var(--col-bg);
+  border-radius: var(--radius-lg);
+  padding: 11px;
+  display: flex;
+  flex-direction: column;
+}
+
+.hx-board-col__header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 7px 12px;
+}
+
+.hx-board-col__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hx-board-col__name {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.hx-board-col__count {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--app-bg);
+  border-radius: 20px;
+  padding: 1px 9px;
+  margin-left: auto;
+}
+
+.hx-board-col__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--col-gap);
+  min-height: 90px;
+  padding: 4px;
+  border-radius: calc(var(--radius-lg) - 6px);
+  background: transparent;
+  outline: 2px dashed transparent;
+  outline-offset: -2px;
+  transition: background 0.15s, outline-color 0.15s;
+}
+
+.hx-board-col__body--over {
+  background: var(--accent-soft);
+  outline-color: var(--accent);
+}
+
+.hx-board-col__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-size: 12px;
+  color: var(--text-soft);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+}

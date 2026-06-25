@@ -15,6 +15,7 @@ class ProcedureStep(Base):
     title = Column(String(150), nullable=False)
     description = Column(Text, nullable=False)
     estimated_duration = Column(Integer, nullable=True)
+    status = Column(String(20), nullable=False, default="todo", server_default="todo")
 
     version = relationship("ProcedureVersion", back_populates="steps")
     documents = relationship("Document", secondary=step_document, lazy="selectin")

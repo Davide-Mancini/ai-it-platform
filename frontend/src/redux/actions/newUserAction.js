@@ -1,11 +1,11 @@
 export const REGISTER = "REGISTER";
 export const FAILED = "FAILED";
 
-export const newUserAction = (nome, cognome, email, password) => {
+const newUserAction = (first_name, last_name, email, password) => {
   return async (dispatch) =>
-    await fetch("http://127.0.0.1:8000", {
+    await fetch("http://127.0.0.1:8000/api/auth/users/", {
       method: "POST",
-      body: JSON.stringify({ nome, cognome, email, password }),
+      body: JSON.stringify({ first_name, last_name, email, password }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -35,3 +35,4 @@ export const newUserAction = (nome, cognome, email, password) => {
         console.log(err);
       });
 };
+export default newUserAction;

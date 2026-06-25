@@ -1,0 +1,109 @@
+.pai-docs {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.pai-docs__sidebar { width: 190px; flex-shrink: 0; }
+.pai-docs__cats { padding: 14px; }
+.pai-docs__cats-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 8px;
+}
+.pai-docs__cat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #64748B;
+  transition: background .1s;
+}
+.pai-docs__cat-item:hover { background: #F8FAFC; }
+.pai-docs__cat-item--active {
+  background: #F1F5F9;
+  font-weight: 600;
+  color: #0F172A;
+}
+.pai-docs__cat-count { font-size: 11px; color: #94A3B8; }
+
+.pai-docs__main { flex: 1; }
+.pai-docs__table { overflow: hidden; }
+.pai-docs__table-header {
+  display: grid;
+  grid-template-columns: 1fr 80px 140px 60px;
+  padding: 10px 16px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  gap: 8px;
+}
+.pai-docs__loading,
+.pai-docs__empty {
+  font-size: 13px;
+  color: #94A3B8;
+  text-align: center;
+  padding: 24px;
+}
+.pai-docs__row {
+  display: grid;
+  grid-template-columns: 1fr 80px 140px 60px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #F8FAFC;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background .1s;
+}
+.pai-docs__row:last-child { border-bottom: none; }
+.pai-docs__row:hover { background: #F8FAFC; }
+.pai-docs__row-name { display: flex; align-items: center; gap: 10px; }
+.pai-docs__ext-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.pai-docs__doc-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+}
+.pai-docs__doc-sub {
+  font-size: 11px;
+  color: #94A3B8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+.pai-docs__row-type { font-size: 12px; color: #64748B; font-weight: 600; }
+.pai-docs__row-date { font-size: 12px; color: #94A3B8; }
+.pai-docs__row-actions { display: flex; gap: 5px; }
+.pai-docs__action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pai-docs__action-btn:hover { background: #F8FAFC; }

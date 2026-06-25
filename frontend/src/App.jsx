@@ -1,14 +1,57 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import './App.css'
-import ProvaRegistrazione from "./components/provaregistrazione";
+import "./style/auth.css";
+import { useState, useEffect, useCallback } from "react";
+import AuthPage from "./components/AuthPage";
+import ProcedAIPage from "./components/ProcedAIPage";
+
+const API_BASE = "http://localhost:8000";
 
 function App() {
+  const [token, setToken] = useState(() => localStorage.getItem("heximus_token"));
+  const [userInfo, setUserInfo] = useState(null);
 
-  return (
-    <>
-     <ProvaRegistrazione></ProvaRegistrazione>
-    </>
-  )
+  const handleAuth = (accessToken) => {
+    localStorage.setItem("heximus_token", accessToken);
+    setToken(accessToken);
+  };
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("heximus_token");
+    setToken(null);
+    setUserInfo(null);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!token) {
+        if (!cancelled) setUserInfo(null);
+        return;
+      }
+      try {
+        const r = await fetch(`${API_BASE}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (cancelled) return;
+        if (r.ok) {
+          const data = await r.json();
+          if (!cancelled) setUserInfo(data);
+        } else {
+          if (!cancelled) handleLogout();
+        }
+      } catch {
+        if (!cancelled) handleLogout();
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [token, handleLogout]);
+
+
+  return token ? (
+    <ProcedAIPage token={token} onLogout={handleLogout} userInfo={userInfo} />
+  ) : (
+    <AuthPage onAuth={handleAuth} />
+  );
 }
 
-export default App
+export default App;

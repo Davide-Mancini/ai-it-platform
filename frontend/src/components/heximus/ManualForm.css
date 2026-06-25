@@ -1,0 +1,137 @@
+.hx-manual-form {
+  width: 520px;
+}
+
+.hx-manual-form__header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px !important;
+}
+
+.hx-manual-form__close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+  flex-shrink: 0;
+}
+
+.hx-manual-form__close:hover {
+  background: var(--hover);
+}
+
+.hx-manual-form__body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Form fields */
+.hx-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hx-form-field__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+}
+
+.hx-form-field__input,
+.hx-form-field__textarea {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--app-bg);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.hx-form-field__textarea {
+  font-size: 13.5px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.hx-form-field__input:focus,
+.hx-form-field__textarea:focus {
+  border-color: var(--accent);
+}
+
+.hx-form-field__input::placeholder,
+.hx-form-field__textarea::placeholder {
+  color: var(--text-soft);
+}
+
+/* Error */
+.hx-manual-form__error {
+  font-size: 13px;
+  color: #d4607a;
+  padding: 9px 13px;
+  background: #fbe9ee;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+/* Actions */
+.hx-manual-form__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+/* Shared button styles */
+.hx-btn {
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s, filter 0.15s;
+}
+
+.hx-btn--ghost {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.hx-btn--ghost:hover {
+  background: var(--hover);
+}
+
+.hx-btn--primary {
+  border: none;
+  background: var(--accent-text);
+  color: #fff;
+  padding: 9px 20px;
+  font-weight: 700;
+}
+
+.hx-btn--primary:hover {
+  filter: brightness(1.08);
+}
+
+.hx-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
