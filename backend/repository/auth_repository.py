@@ -16,3 +16,12 @@ def get_all_users(db:Session):
    
 def get_user_by_id(db:Session, user_id:str):
     return db.query(models.User).filter(models.User.id==user_id).first()
+
+def set_user_active(db: Session, user_id: str, is_active: bool):
+    user = get_user_by_id(db, user_id)
+    if not user:
+        return None
+    user.is_active = is_active
+    db.commit()
+    db.refresh(user)
+    return user

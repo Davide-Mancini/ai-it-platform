@@ -14,9 +14,12 @@ function Avatar({ firstName, lastName }) {
 
 function RoleBadge({ role }) {
   const map = {
-    Admin:       { color: "#DC2626", bg: "#FEF2F2" },
-    "IT Manager":{ color: "#7C3AED", bg: "#F5F3FF" },
-    Utente:      { color: "#2563EB", bg: "#EFF6FF" },
+    Admin:       { color: "#DC2626", bg: "#dc262625" },
+    "IT Manager":{ color: "#7C3AED", bg: "#7c3aed28" },
+    Engineer:      { color: "#2563EB", bg: "#2564eb2d" },
+    Sales:      { color: "#eb25e1", bg: "#eb25e11e" },
+    Auditor:      { color: "#ebcd25", bg: "#ebcd251f" },
+    Customer:      { color: "#25ebe1", bg: "#25ebe12f" }
   };
   const s = map[role] || { color: "#64748B", bg: "#F1F5F9" };
   return (
@@ -26,15 +29,22 @@ function RoleBadge({ role }) {
   );
 }
 
-function EditModal({ user, roles, onClose, onSave, saving, error }) {
+function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error }) {
   const [form, setForm] = useState({
     first_name:  user.first_name,
     last_name:   user.last_name,
     email:       user.email,
     role_id:     roles.find(r => r.name === user.role)?.id || "",
   });
+  const [toggling, setToggling] = useState(false);
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+
+  const handleToggle = async () => {
+    setToggling(true);
+    try { await onToggleActive(user.id, !user.is_active); }
+    finally { setToggling(false); }
+  };
 
   return (
     <div className="pai-overlay" onClick={onClose}>
@@ -77,6 +87,24 @@ function EditModal({ user, roles, onClose, onSave, saving, error }) {
             </select>
           </div>
 
+          {/* Toggle stato account */}
+          <div className="pai-users__active-row">
+            <div>
+              <div className="pai-users__active-label">Stato account</div>
+              <div className="pai-users__active-sub">
+                {user.is_active ? "L'utente può accedere alla piattaforma" : "L'utente non può accedere alla piattaforma"}
+              </div>
+            </div>
+            <button
+              className={`pai-users__toggle${user.is_active ? " pai-users__toggle--on" : ""}`}
+              onClick={handleToggle}
+              disabled={toggling}
+              title={user.is_active ? "Disattiva account" : "Attiva account"}
+            >
+              <span className="pai-users__toggle-knob" />
+            </button>
+          </div>
+
           {error && <div className="pai-users__edit-error">{error}</div>}
 
           <div className="pai-users__edit-actions">
@@ -91,7 +119,7 @@ function EditModal({ user, roles, onClose, onSave, saving, error }) {
   );
 }
 
-export default function UsersPage({ users, roles, loading, onSave }) {
+export default function UsersPage({ users, roles, loading, onSave, onToggleActive }) {
   const [search, setSearch]       = useState("");
   const [editingUser, setEditing] = useState(null);
   const [saving, setSaving]       = useState(false);
@@ -173,8 +201,8 @@ export default function UsersPage({ users, roles, loading, onSave }) {
                   <td><RoleBadge role={u.role} /></td>
                   <td>
                     <span className="pai-chip" style={{
-                      color: u.is_active ? "#059669" : "#64748B",
-                      background: u.is_active ? "#ECFDF5" : "#F1F5F9",
+                      color: u.is_active ? "#059669" : "#FD2828",
+                      background: u.is_active ? "#ECFDF5" : "#FDF2F2",
                       fontSize: 11,
                     }}>
                       {u.is_active ? "Attivo" : "Inattivo"}
@@ -202,6 +230,7 @@ export default function UsersPage({ users, roles, loading, onSave }) {
           roles={roles}
           onClose={() => setEditing(null)}
           onSave={handleSave}
+          onToggleActive={onToggleActive}
           saving={saving}
           error={saveError}
         />

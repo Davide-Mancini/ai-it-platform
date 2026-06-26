@@ -139,3 +139,56 @@
   font-size: 13px; color: #DC2626; background: #FEF2F2; padding: 9px 12px; border-radius: 7px;
 }
 .pai-users__edit-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── Riga stato account con toggle ──────────────────────── */
+.pai-users__active-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: #F8FAFC;
+  border: 1px solid #E9EEF4;
+  border-radius: 10px;
+}
+.pai-users__active-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+  margin-bottom: 2px;
+}
+.pai-users__active-sub {
+  font-size: 11px;
+  color: #94A3B8;
+}
+
+/* Toggle switch */
+.pai-users__toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 99px;
+  background: #CBD5E1;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background .2s;
+  padding: 0;
+}
+.pai-users__toggle--on { background: #2563EB; }
+.pai-users__toggle:disabled { opacity: .6; cursor: not-allowed; }
+.pai-users__toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: transform .2s;
+  display: block;
+}
+.pai-users__toggle--on .pai-users__toggle-knob {
+  transform: translateX(20px);
+}

@@ -52,6 +52,12 @@ class UserUpdate(BaseModel):
 
     model_config = {"from_attributes": True}
 
+# Schema per attivazione/disattivazione account
+class UserActiveUpdate(BaseModel):
+    is_active: bool
+
+    model_config = {"from_attributes": True}
+
 # Schema per i ruoli
 class RoleOut(BaseModel):
     id: UUID

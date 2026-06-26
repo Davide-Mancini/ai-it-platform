@@ -5,7 +5,7 @@ import { MOCK_NOTIFICATIONS } from "./procedai/constants";
 import { fetchProcedures, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure } from "../redux/actions/proceduresActions";
 import { fetchAllTasks, createTask, updateTaskStatus } from "../redux/actions/tasksActions";
 import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
-import { fetchUsers, fetchRoles, updateUser } from "../redux/actions/usersActions";
+import { fetchUsers, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
 
 import Sidebar         from "./procedai/Sidebar";
 import TopBar          from "./procedai/TopBar";
@@ -310,6 +310,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
               roles={roles}
               loading={loadingUsers}
               onSave={handleSaveUser}
+              onToggleActive={(userId, isActive) => dispatch(toggleUserActive(token, userId, isActive))}
             />
           )}
         </div>

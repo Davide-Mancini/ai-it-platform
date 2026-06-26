@@ -9,6 +9,7 @@ import schemas
 from db.database import get_db
 from services import auth_service
 from repository import auth_repository
+from services import auth_service
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -80,6 +81,21 @@ def update_user(
     db.commit()
     db.refresh(user_to_modify)
     return user_to_modify
+
+# Attiva/disattiva account utente — solo admin
+@router.patch("/users/{user_id}/active", response_model=schemas.UserOut)
+def set_user_active(
+    user_id: str,
+    data: schemas.UserActiveUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role.name != "Admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Operazione non autorizzata. Solo per admin")
+    user = auth_service.set_user_active(db, user_id, data.is_active)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Utente {user_id} non trovato")
+    return user
 
 # Lista ruoli disponibili — solo admin
 @router.get("/roles/", response_model=List[schemas.RoleOut])
