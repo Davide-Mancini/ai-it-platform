@@ -1,5 +1,0 @@
-.hx-board {
-  display: flex;
-  gap: var(--board-gap);
-  align-items: flex-start;
-}

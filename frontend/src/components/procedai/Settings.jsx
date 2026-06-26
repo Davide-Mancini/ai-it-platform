@@ -19,7 +19,7 @@ export default function Settings({ userInfo }) {
   const roleName = userInfo?.role?.name || userInfo?.role || "Utente";
 
   return (
-    <div className="pai-view">
+    <div className="pai-view d-flex flex-column align-items-center">
       <div className="pai-settings__title">Impostazioni</div>
 
       <div className="pai-settings__sections">

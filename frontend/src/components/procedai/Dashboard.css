@@ -176,3 +176,22 @@
   color: #94A3B8;
   margin-top: 2px;
 }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Stat cards: 2×2 invece di 4 in riga */
+  .pai-dashboard__stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  /* Le 3 card sotto diventano verticali */
+  .pai-dashboard__grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .pai-dashboard__stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .pai-stat-card__value { font-size: 24px; }
+}

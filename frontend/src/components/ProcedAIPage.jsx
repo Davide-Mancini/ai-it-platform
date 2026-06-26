@@ -1,152 +1,80 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { MOCK_NOTIFICATIONS } from "./procedai/constants";
-import Sidebar       from "./procedai/Sidebar";
-import TopBar        from "./procedai/TopBar";
-import Dashboard     from "./procedai/Dashboard";
-import ProcedureList from "./procedai/ProcedureList";
+
+import { fetchProcedures, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure } from "../redux/actions/proceduresActions";
+import { fetchAllTasks, createTask, updateTaskStatus } from "../redux/actions/tasksActions";
+import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
+import { fetchUsers, fetchRoles, updateUser } from "../redux/actions/usersActions";
+
+import Sidebar         from "./procedai/Sidebar";
+import TopBar          from "./procedai/TopBar";
+import Dashboard       from "./procedai/Dashboard";
+import ProcedureList   from "./procedai/ProcedureList";
 import ProcedureDetail from "./procedai/ProcedureDetail";
-import TaskBoard     from "./procedai/TaskBoard";
-import Documents     from "./procedai/Documents";
-import Team          from "./procedai/Team";
-import Notifications from "./procedai/Notifications";
-import Settings      from "./procedai/Settings";
-import CreateModal   from "./procedai/CreateModal";
-import ManualForm    from "./procedai/ManualForm";
-import AIChat        from "./procedai/AIChat";
+import TaskBoard       from "./procedai/TaskBoard";
+import Documents       from "./procedai/Documents";
+import Team            from "./procedai/Team";
+import Notifications   from "./procedai/Notifications";
+import Settings        from "./procedai/Settings";
+import UsersPage       from "./procedai/UsersPage";
+import CreateModal     from "./procedai/CreateModal";
+import ManualForm      from "./procedai/ManualForm";
+import AIChat          from "./procedai/AIChat";
 import "./procedai/ProcedAIPage.css";
 
 const API_BASE = "http://localhost:8000";
 
 export default function ProcedAIPage({ token, onLogout, userInfo }) {
-  // ── Navigation ─────────────────────────────────────────────────────────
-  const [view, setView] = useState("dashboard");
+  const dispatch = useDispatch();
 
-  // ── Procedures ─────────────────────────────────────────────────────────
-  const [procedures, setProcedures] = useState([]);
-  const [loadingProc, setLoadingProc] = useState(true);
+  // ── Stato Redux ─────────────────────────────────────────────────────────
+  const { list: procedures, loading: loadingProc, stepsById, loadingSteps, togglingStepId } = useSelector(s => s.procedures);
+  const { list: tasks,      loading: loadingTasks }  = useSelector(s => s.tasks);
+  const { list: documents,  loading: loadingDocs  }  = useSelector(s => s.documents);
+  const { list: users,      roles, loading: loadingUsers } = useSelector(s => s.users);
+
+  // ── Stato UI locale ─────────────────────────────────────────────────────
+  const [view, setView]                     = useState("dashboard");
   const [selectedProcId, setSelectedProcId] = useState(null);
+  const [notifications, setNotifications]   = useState(MOCK_NOTIFICATIONS);
 
-  // ── Steps (for selected procedure) ─────────────────────────────────────
-  const [steps, setSteps] = useState([]);
-  const [loadingSteps, setLoadingSteps] = useState(false);
-  const [togglingStepId, setTogglingStepId] = useState(null);
-
-  // ── Tasks ───────────────────────────────────────────────────────────────
-  const [tasks, setTasks] = useState([]);
-  const [loadingTasks, setLoadingTasks] = useState(false);
-
-  // ── Documents ───────────────────────────────────────────────────────────
-  const [documents, setDocuments] = useState([]);
-  const [loadingDocs, setLoadingDocs] = useState(false);
-
-  // ── Notifications ───────────────────────────────────────────────────────
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
-
-  // ── Create flow ─────────────────────────────────────────────────────────
+  // Create flow
   const [showCreateChoice, setShowCreateChoice] = useState(false);
-  const [showManual, setShowManual] = useState(false);
-  const [manualForm, setManualForm] = useState({ title: "", description: "" });
-  const [manualLoading, setManualLoading] = useState(false);
-  const [manualError, setManualError] = useState("");
+  const [showManual, setShowManual]             = useState(false);
+  const [manualForm, setManualForm]             = useState({ title: "", description: "" });
+  const [manualLoading, setManualLoading]       = useState(false);
+  const [manualError, setManualError]           = useState("");
 
-  // ── AI chat ─────────────────────────────────────────────────────────────
+  // AI chat
   const [aiChatOpen, setAiChatOpen] = useState(false);
   const [aiMessages, setAiMessages] = useState([]);
-  const [aiInput, setAiInput] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
+  const [aiInput, setAiInput]       = useState("");
+  const [aiLoading, setAiLoading]   = useState(false);
 
-  // ── API helper ──────────────────────────────────────────────────────────
-  const apiFetch = useCallback((path, opts = {}) =>
-    fetch(`${API_BASE}${path}`, {
-      ...opts,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        ...(opts.headers || {}),
-      },
-    }), [token]);
+  const isAdmin = userInfo?.role?.name === "Admin" || userInfo?.role === "Admin";
 
-  // ── Load procedures ─────────────────────────────────────────────────────
-  const loadProcedures = useCallback(async () => {
-    try {
-      const res = await apiFetch("/api/procedures/");
-      if (!res.ok) return;
-      const data = await res.json();
-      // Attach steps cache as _steps (populated lazily)
-      setProcedures(prev => {
-        const prevById = Object.fromEntries(prev.map(p => [p.id, p]));
-        return data.map(p => ({ ...p, _steps: prevById[p.id]?._steps || [] }));
-      });
-    } finally {
-      setLoadingProc(false);
-    }
-  }, [apiFetch]);
-
-  // ── Load all tasks ──────────────────────────────────────────────────────
-  const loadTasks = useCallback(async () => {
-    setLoadingTasks(true);
-    try {
-      const res = await apiFetch("/api/tasks/");
-      if (res.ok) setTasks(await res.json());
-    } finally {
-      setLoadingTasks(false);
-    }
-  }, [apiFetch]);
-
-  // ── Load documents ──────────────────────────────────────────────────────
-  const loadDocuments = useCallback(async () => {
-    setLoadingDocs(true);
-    try {
-      const res = await apiFetch("/api/documents/documents");
-      if (res.ok) setDocuments(await res.json());
-    } finally {
-      setLoadingDocs(false);
-    }
-  }, [apiFetch]);
-
-  // ── Load steps for selected procedure ────────────────────────────────────
-  const loadSteps = useCallback(async (procId) => {
-    if (!procId) return;
-    setLoadingSteps(true);
-    setSteps([]);
-    try {
-      const res = await apiFetch(`/api/procedures/${procId}/steps`);
-      if (res.ok) {
-        const data = await res.json();
-        setSteps(data);
-        // Cache steps on the procedure object for dashboard progress bars
-        setProcedures(prev => prev.map(p => p.id === procId ? { ...p, _steps: data } : p));
-      }
-    } finally {
-      setLoadingSteps(false);
-    }
-  }, [apiFetch]);
-
-  // ── Initial load ────────────────────────────────────────────────────────
+  // ── Caricamento iniziale ─────────────────────────────────────────────────
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const res = await apiFetch("/api/procedures/");
-      if (cancelled || !res.ok) return;
-      const data = await res.json();
-      setProcedures(data.map(p => ({ ...p, _steps: [] })));
-      setLoadingProc(false);
-    })();
-    return () => { cancelled = true; };
-  }, [apiFetch]);
+    dispatch(fetchProcedures(token));
+    dispatch(fetchAllTasks(token));
+    dispatch(fetchDocuments(token));
+  }, [dispatch, token]);
 
+  // Carica utenti e ruoli solo per admin
   useEffect(() => {
-    loadTasks();
-    loadDocuments();
-  }, [loadTasks, loadDocuments]);
+    if (isAdmin) {
+      dispatch(fetchUsers(token));
+      dispatch(fetchRoles(token));
+    }
+  }, [dispatch, token, isAdmin]);
 
-  // ── Load steps when procedure selected ──────────────────────────────────
+  // ── Carica gli step quando si seleziona una procedura ───────────────────
   useEffect(() => {
-    if (selectedProcId) loadSteps(selectedProcId);
-    else setSteps([]);
-  }, [selectedProcId, loadSteps]);
+    if (selectedProcId) dispatch(fetchSteps(token, selectedProcId));
+  }, [dispatch, token, selectedProcId]);
 
-  // ── Navigation helpers ──────────────────────────────────────────────────
+  // ── Navigazione ──────────────────────────────────────────────────────────
   const handleViewChange = (v) => {
     setView(v);
     setSelectedProcId(null);
@@ -162,7 +90,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     setView("procedures");
   };
 
-  // ── Create handlers ─────────────────────────────────────────────────────
+  // ── Creazione procedura ──────────────────────────────────────────────────
   const openCreate = () => { setShowCreateChoice(true); setShowManual(false); };
 
   const handleChoiceManual = () => { setShowCreateChoice(false); setShowManual(true); };
@@ -190,82 +118,43 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     setManualLoading(true);
     setManualError("");
     try {
-      const res = await apiFetch("/api/procedures/", {
-        method: "POST",
-        body: JSON.stringify({ title: manualForm.title, description: manualForm.description }),
-      });
-      if (res.ok) {
-        const newProc = await res.json();
-        setProcedures(prev => [{ ...newProc, _steps: [] }, ...prev]);
-        closeModals();
-        handleProcedureClick(newProc.id);
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setManualError(err.detail || "Errore durante la creazione.");
-      }
+      const newProc = await dispatch(createProcedure(token, manualForm));
+      closeModals();
+      handleProcedureClick(newProc.id);
+    } catch (e) {
+      setManualError(e.message);
     } finally {
       setManualLoading(false);
     }
   };
 
-  // ── Step toggle ─────────────────────────────────────────────────────────
-  const handleStepToggle = async (stepId, newStatus) => {
-    setTogglingStepId(stepId);
-    try {
-      const res = await apiFetch(`/api/procedures/steps/${stepId}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setSteps(prev => prev.map(s => s.id === updated.id ? updated : s));
-        setProcedures(prev => prev.map(p =>
-          p.id === selectedProcId
-            ? { ...p, _steps: (p._steps || []).map(s => s.id === updated.id ? updated : s) }
-            : p
-        ));
-      }
-    } finally {
-      setTogglingStepId(null);
-    }
+  // ── Modifica / elimina procedura (admin) ────────────────────────────────
+  const handleEditProcedure = async (id, form) => {
+    await dispatch(updateProcedure(token, id, form));
   };
 
-  // ── Create task ─────────────────────────────────────────────────────────
+  const handleDeleteProcedure = async (id) => {
+    await dispatch(deleteProcedure(token, id));
+  };
+
+  // ── Step toggle ──────────────────────────────────────────────────────────
+  const handleStepToggle = (stepId, newStatus) => {
+    dispatch(toggleStepStatus(token, stepId, newStatus, selectedProcId));
+  };
+
+  // ── Task ─────────────────────────────────────────────────────────────────
+  const handleTaskStatusChange = (taskId, newStatus) => {
+    dispatch(updateTaskStatus(token, taskId, newStatus));
+  };
+
   const handleCreateTask = async (title, procedureId) => {
-    const res = await apiFetch(`/api/tasks/procedures/${procedureId}/tasks`, {
-      method: "POST",
-      body: JSON.stringify({ title }),
-    });
-    if (res.ok) {
-      const newTask = await res.json();
-      setTasks(prev => [...prev, newTask]);
-    } else {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || "Errore durante la creazione del task.");
-    }
+    await dispatch(createTask(token, procedureId, title));
   };
 
-  // ── Task status change ─────────────────────────────────────────────────
-  const handleTaskStatusChange = async (taskId, newStatus) => {
-    // Optimistic update
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
-    try {
-      await apiFetch(`/api/tasks/tasks/${taskId}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status: newStatus }),
-      });
-    } catch {
-      loadTasks(); // rollback
-    }
-  };
-
-  // ── AI chat handlers ────────────────────────────────────────────────────
+  // ── AI chat ──────────────────────────────────────────────────────────────
   const toggleAIChat = () => {
     if (!aiChatOpen && aiMessages.length === 0) {
-      setAiMessages([{
-        role: "ai",
-        text: "Ciao! Descrivimi la procedura che vuoi creare e la genererò automaticamente.",
-      }]);
+      setAiMessages([{ role: "ai", text: "Ciao! Descrivimi la procedura che vuoi creare e la genererò automaticamente." }]);
     }
     setAiChatOpen(prev => !prev);
   };
@@ -277,8 +166,9 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     setAiInput("");
     setAiLoading(true);
     try {
-      const res = await apiFetch("/api/ai/generate", {
+      const res = await fetch(`${API_BASE}/api/ai/generate`, {
         method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ prompt }),
       });
       if (res.ok) {
@@ -306,33 +196,31 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
 
   const acceptRec = async (rec) => {
     try {
-      const res = await apiFetch(`/api/ai/recommendations/${rec.id}/accept`, { method: "POST" });
-      if (res.ok) {
-        setAiMessages(prev => [...prev, { role: "ai", text: "Procedura salvata! La trovi nella lista procedure." }]);
-        await loadProcedures();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setAiMessages(prev => [...prev, { role: "ai", isError: true, text: err.detail || "Errore durante l'accettazione." }]);
-      }
-    } catch {
-      setAiMessages(prev => [...prev, { role: "ai", isError: true, text: "Errore di rete." }]);
+      await dispatch(acceptRecommendation(token, rec));
+      setAiMessages(prev => [...prev, { role: "ai", text: "Procedura salvata! La trovi nella lista procedure." }]);
+    } catch (e) {
+      setAiMessages(prev => [...prev, { role: "ai", isError: true, text: e.message }]);
     }
   };
 
   const rejectRec = async (rec) => {
-    try {
-      await apiFetch(`/api/ai/recommendations/${rec.id}/reject`, { method: "POST" });
-      setAiMessages(prev => [...prev, { role: "ai", text: "Procedura scartata." }]);
-    } catch { /* ok */ }
+    await dispatch(rejectRecommendation(token, rec));
+    setAiMessages(prev => [...prev, { role: "ai", text: "Procedura scartata." }]);
+  };
+
+  // ── Gestione utenti (admin) ──────────────────────────────────────────────
+  const handleSaveUser = async (userId, form) => {
+    await dispatch(updateUser(token, userId, form));
   };
 
   const markAllNotificationsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-  // ── Derived ─────────────────────────────────────────────────────────────
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // ── Dati derivati ────────────────────────────────────────────────────────
+  const unreadCount  = notifications.filter(n => !n.read).length;
   const selectedProc = procedures.find(p => p.id === selectedProcId);
+  const currentSteps = stepsById[selectedProcId] || [];
 
   return (
     <div className="pai-root">
@@ -357,6 +245,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
             <Dashboard
               procedures={procedures}
               tasks={tasks}
+              stepsById={stepsById}
               onProcedureClick={handleProcedureClick}
               onViewChange={handleViewChange}
             />
@@ -365,15 +254,18 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
           {view === "procedures" && (
             <ProcedureList
               procedures={procedures}
+              isAdmin={isAdmin}
               onProcedureClick={handleProcedureClick}
               onCreateClick={openCreate}
+              onEditProcedure={handleEditProcedure}
+              onDeleteProcedure={handleDeleteProcedure}
             />
           )}
 
           {view === "procedure-detail" && selectedProc && (
             <ProcedureDetail
               procedure={selectedProc}
-              steps={steps}
+              steps={currentSteps}
               tasks={tasks}
               loadingSteps={loadingSteps}
               togglingStepId={togglingStepId}
@@ -392,7 +284,13 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
           )}
 
           {view === "documents" && (
-            <Documents documents={documents} loading={loadingDocs} />
+            <Documents
+              documents={documents}
+              loading={loadingDocs}
+              isAdmin={isAdmin}
+              onUpdateDocument={(id, data) => dispatch(updateDocument(token, id, data))}
+              onDeleteDocument={(id) => dispatch(deleteDocument(token, id))}
+            />
           )}
 
           {view === "team" && <Team />}
@@ -405,16 +303,20 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
           )}
 
           {view === "settings" && <Settings userInfo={userInfo} />}
+
+          {view === "users" && isAdmin && (
+            <UsersPage
+              users={users}
+              roles={roles}
+              loading={loadingUsers}
+              onSave={handleSaveUser}
+            />
+          )}
         </div>
       </div>
 
-      {/* Modals */}
       {showCreateChoice && (
-        <CreateModal
-          onManual={handleChoiceManual}
-          onAI={handleChoiceAI}
-          onClose={closeModals}
-        />
+        <CreateModal onManual={handleChoiceManual} onAI={handleChoiceAI} onClose={closeModals} />
       )}
       {showManual && (
         <ManualForm
@@ -427,7 +329,6 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
         />
       )}
 
-      {/* AI Chat FAB */}
       <AIChat
         isOpen={aiChatOpen}
         onToggle={toggleAIChat}

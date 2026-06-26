@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import newUserAction from "../redux/actions/newUserAction";
+import Heximus_Logo_AI_Platform from "./assets/Heximus_Logo_AI_Platform_NoBG.png"
 
 const API_BASE = "http://localhost:8000";
 
@@ -101,20 +102,16 @@ function AuthPage({ onAuth }) {
   };
 
   return (
-    <div className="auth-wrapper">
+    <div className="auth-wrapper pt-0">
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
 
-            <div className="text-center mb-4">
-              <div className="auth-logo mb-3">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <rect width="48" height="48" rx="12" fill="#0d6efd" />
-                  <path d="M14 24h6l4-10 4 20 4-10h6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+            <div className="text-center">
+              <div className="auth-logo">
+                <img src={Heximus_Logo_AI_Platform} alt="" className=" w-100" />
               </div>
-              <h4 className="text-white fw-bold mb-1">Heximus</h4>
-              <p className="text-white-50 small mb-0">AI IT Platform — Accedi o crea un account</p>
+             
             </div>
 
             <div className="card auth-card border-0">

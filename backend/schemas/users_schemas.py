@@ -42,3 +42,20 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+# Schema per aggiornamento utente da parte dell'admin
+class UserUpdate(BaseModel):
+    first_name: str = Field(min_length=1, max_length=50)
+    last_name: str = Field(min_length=1, max_length=50)
+    email: EmailStr
+    role_id: UUID
+
+    model_config = {"from_attributes": True}
+
+# Schema per i ruoli
+class RoleOut(BaseModel):
+    id: UUID
+    name: str
+    description: str | None = None
+
+    model_config = {"from_attributes": True}

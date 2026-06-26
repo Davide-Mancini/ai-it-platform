@@ -30,3 +30,9 @@ def get_all(
     db:Session
 ):
     return documents_repository.get_all(db)
+
+def update_document(db: Session, id: UUID, data: dict):
+    return documents_repository.update_document(db, id, data)
+
+def delete_document(db: Session, id: UUID):
+    return documents_repository.delete_document(db, id)

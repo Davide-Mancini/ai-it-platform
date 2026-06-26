@@ -119,3 +119,12 @@
   box-shadow: 0 32px 80px rgba(0,0,0,.28);
   animation: fadeUp .2s ease;
 }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .pai-content { padding: 16px 18px; }
+}
+@media (max-width: 768px) {
+  .pai-content { padding: 12px; }
+  .pai-modal-box { width: calc(100vw - 32px) !important; border-radius: 14px; }
+}

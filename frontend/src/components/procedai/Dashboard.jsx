@@ -32,7 +32,7 @@ function CheckIcon() {
   );
 }
 
-export default function Dashboard({ procedures, tasks, onProcedureClick, onViewChange }) {
+export default function Dashboard({ procedures, tasks, stepsById = {}, onProcedureClick, onViewChange }) {
   const activeProcedures = procedures.filter(p => p._status === "active" || !p._status);
   const doneTasks = tasks.filter(t => t.status === "done").length;
   const openTasks = tasks.filter(t => t.status !== "done").length;
@@ -90,7 +90,7 @@ export default function Dashboard({ procedures, tasks, onProcedureClick, onViewC
             <div className="pai-dashboard__empty">Nessuna procedura. Creane una!</div>
           )}
           {procedures.slice(0, 5).map(p => {
-            const steps = p._steps || [];
+            const steps = stepsById[p.id] || [];
             const done = steps.filter(s => s.status === "done").length;
             const total = steps.length;
             const pct = total > 0 ? Math.round((done / total) * 100) : 0;

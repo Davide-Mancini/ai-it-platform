@@ -29,9 +29,14 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return auth_service.create_user(user, db)
    
 
-#Recupero la lsta di tutti gli utenti nel db
+# Lista utenti — solo admin
 @router.get("/users/", response_model=List[schemas.UserOut])
-def get_users(db: Session = Depends(get_db)):
+def get_users(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if current_user.role.name != "Admin":
+        raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
     return auth_service.get_users(db)
 
 #funzione per il login verifica credenziali e genera token di accesso
@@ -52,23 +57,36 @@ def get_me(current_user: models.User = Depends(get_current_user)):
         "role": current_user.role,
     }
 
-#rotta per modificare ruolo solo se admin
-@router.patch("/users/{user_id}/role")
-def update_user_role(
+# Aggiorna un utente (nome, cognome, email, ruolo) — solo admin
+@router.patch("/users/{user_id}", response_model=schemas.UserOut)
+def update_user(
     user_id: str,
-    new_role_id: str,
-    current_user: User= Depends(get_current_user),
-    db:Session=Depends(get_db)
+    data: schemas.UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     if current_user.role.name != "Admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Operazione non autorizzata. Solo per admin"
-        )
-        
-    user_to_modify= auth_repository.get_user_by_id(db, user_id)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Operazione non autorizzata. Solo per admin")
+    user_to_modify = auth_repository.get_user_by_id(db, user_id)
     if not user_to_modify:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Utente con id {user_id} non trovato")
-    user_to_modify.role_id=new_role_id
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Utente {user_id} non trovato")
+    existing = db.query(models.User).filter(models.User.email == data.email, models.User.id != user_to_modify.id).first()
+    if existing:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email già in uso da un altro utente")
+    user_to_modify.first_name = data.first_name
+    user_to_modify.last_name  = data.last_name
+    user_to_modify.email      = data.email
+    user_to_modify.role_id    = data.role_id
     db.commit()
-    return{'message': "Ruolo aggiornato"}
+    db.refresh(user_to_modify)
+    return user_to_modify
+
+# Lista ruoli disponibili — solo admin
+@router.get("/roles/", response_model=List[schemas.RoleOut])
+def get_roles(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role.name != "Admin":
+        raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
+    return db.query(models.Role).all()

@@ -14,3 +14,21 @@ def get_by_id(db:Session, id: UUID):
 
 def get_all(db: Session):
     return db.query(models.Document).all()
+
+def update_document(db: Session, id: UUID, data: dict):
+    doc = get_by_id(db, id)
+    if not doc:
+        return None
+    for key, value in data.items():
+        if value is not None:
+            setattr(doc, key, value)
+    db.commit()
+    db.refresh(doc)
+    return doc
+
+def delete_document(db: Session, id: UUID):
+    doc = get_by_id(db, id)
+    if doc:
+        db.delete(doc)
+        db.commit()
+    return doc

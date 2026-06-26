@@ -1,4 +1,4 @@
-import { MOCK_NOTIFICATIONS } from "./constants";
+
 import "./Notifications.css";
 
 const TYPE_ICON = {
@@ -22,7 +22,7 @@ export default function Notifications({ notifications, onMarkAllRead }) {
   const unread = notifications.filter(n => !n.read).length;
   return (
     <div className="pai-view">
-      <div className="pai-notif__header">
+      <div className="pai-notif__header ">
         <div>
           <div className="pai-notif__title">Notifiche</div>
           <div className="pai-notif__sub">{unread} non lette</div>

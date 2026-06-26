@@ -3,10 +3,13 @@
   gap: 14px;
   height: calc(100vh - 156px);
   align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 6px;
 }
 
 .pai-kanban-col {
-  flex: 1;
+  flex: 1 0 220px;
+  min-width: 220px;
   background: #F8FAFC;
   border-radius: 12px;
   display: flex;
@@ -189,3 +192,16 @@
   transition: border-color .15s;
 }
 .pai-field__select:focus { border-color: #2563EB; background: white; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .pai-kanban {
+    overflow-x: auto;
+    padding-bottom: 12px;
+  }
+  .pai-kanban-col {
+    min-width: 240px;
+    flex: 0 0 240px;
+  }
+  .pai-task-form { width: calc(100vw - 100px); }
+}
