@@ -1,4 +1,3 @@
-
 import "./Notifications.css";
 
 const TYPE_ICON = {
@@ -18,11 +17,19 @@ function Icon({ path, size = 16, color = "currentColor" }) {
   );
 }
 
-export default function Notifications({ notifications, onMarkAllRead }) {
-  const unread = notifications.filter(n => !n.read).length;
+function relativeTime(isoString) {
+  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+  if (diff < 60)  return "Adesso";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min fa`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ore fa`;
+  return `${Math.floor(diff / 86400)} giorni fa`;
+}
+
+export default function Notifications({ notifications, onMarkRead, onMarkAllRead }) {
+  const unread = notifications.filter(n => !n.is_read).length;
   return (
     <div className="pai-view">
-      <div className="pai-notif__header ">
+      <div className="pai-notif__header">
         <div>
           <div className="pai-notif__title">Notifiche</div>
           <div className="pai-notif__sub">{unread} non lette</div>
@@ -35,19 +42,29 @@ export default function Notifications({ notifications, onMarkAllRead }) {
       </div>
 
       <div className="pai-card pai-notif__list">
+        {notifications.length === 0 && (
+          <div style={{ padding: "24px", textAlign: "center", color: "#94A3B8", fontSize: 13 }}>
+            Nessuna notifica
+          </div>
+        )}
         {notifications.map(n => {
           const ti = TYPE_ICON[n.type] || TYPE_ICON.system;
           return (
-            <div key={n.id} className={`pai-notif-row${!n.read ? " pai-notif-row--unread" : ""}`}>
+            <div
+              key={n.id}
+              className={`pai-notif-row${!n.is_read ? " pai-notif-row--unread" : ""}`}
+              onClick={() => !n.is_read && onMarkRead(n.id)}
+              style={{ cursor: !n.is_read ? "pointer" : "default" }}
+            >
               <div className="pai-notif-row__icon" style={{ background: ti.bg, color: ti.color }}>
                 <Icon path={ti.path} size={16} color={ti.color} />
               </div>
               <div className="pai-notif-row__body">
                 <div className="pai-notif-row__title">{n.title}</div>
                 <div className="pai-notif-row__msg">{n.message}</div>
-                <div className="pai-notif-row__time">{n.time}</div>
+                <div className="pai-notif-row__time">{relativeTime(n.created_at)}</div>
               </div>
-              {!n.read && <div className="pai-notif-row__dot" />}
+              {!n.is_read && <div className="pai-notif-row__dot" />}
             </div>
           );
         })}

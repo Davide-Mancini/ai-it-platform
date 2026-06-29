@@ -28,3 +28,13 @@ class AuditLogOut(AuditLogBase):
 
     class Config:
         from_attributes = True
+
+# Schema leggero per la dashboard — include nome utente, niente dati sensibili
+class ActivityOut(BaseModel):
+    id: str
+    action: str
+    target_type: Optional[str] = None
+    created_at: str
+    user_first_name: Optional[str] = None
+    user_last_name: Optional[str] = None
+    user_email: Optional[str] = None

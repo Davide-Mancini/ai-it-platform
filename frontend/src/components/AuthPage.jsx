@@ -122,6 +122,7 @@ function AuthPage({ onAuth }) {
                     <button
                       className={`nav-link ${activeTab === "login" ? "active" : ""}`}
                       onClick={() => { setActiveTab("login"); setLoginError(""); }}
+                      
                     >
                       Accedi
                     </button>
@@ -164,17 +165,20 @@ function AuthPage({ onAuth }) {
                     )}
                     <button
                       type="submit"
-                      className="btn btn-primary w-100 auth-btn"
+                      className="btn w-100 auth-btn text-light"
                       disabled={loginLoading}
+                      style={{"backgroundColor":"#397BC0"}}
                     >
                       {loginLoading ? "Accesso in corso…" : "Accedi"}
                     </button>
-                    <p className="text-center text-muted small mt-3 mb-0">
+                    <div className=" d-flex justify-content-center align-items-center mt-3">
+                    <p className="text-center text-muted small mb-0 me-1">
                       Non hai un account?{" "}
-                      <button type="button" className="btn btn-link btn-sm p-0 text-decoration-none" onClick={() => setActiveTab("register")}>
+                    </p>
+                      <button type="button" style={{"color":"#397BC0"}} className="btn btn-link btn-sm p-0 " onClick={() => setActiveTab("register")}>
                         Registrati
                       </button>
-                    </p>
+                    </div>
                   </form>
                 )}
 
@@ -240,15 +244,18 @@ function AuthPage({ onAuth }) {
                       type="submit"
                       className="btn btn-primary w-100 auth-btn"
                       disabled={registerLoading}
+                      style={{"backgroundColor":"#397BC0"}}
                     >
                       {registerLoading ? "Registrazione…" : "Crea Account"}
                     </button>
-                    <p className="text-center text-muted small mt-3 mb-0">
+                    <div className=" d-flex justify-content-center align-items-center mt-3">
+                    <p className="text-center text-muted small me-1 mb-0">
                       Hai già un account?{" "}
-                      <button type="button" className="btn btn-link btn-sm p-0 text-decoration-none" onClick={() => setActiveTab("login")}>
+                    </p>
+                      <button type="button" style={{"color":"#397BC0"}} className="btn btn-link btn-sm p-0  " onClick={() => setActiveTab("login")}>
                         Accedi
                       </button>
-                    </p>
+                      </div>
                   </form>
                 )}
 

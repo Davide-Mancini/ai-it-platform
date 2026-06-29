@@ -24,7 +24,7 @@ def create_procedure(
     
     log_action(
             db, current_user, "PROCEDURE CREATED", ip_address, user_agent,
-            "Procedure", current_user.id
+            "Procedure", new_procedure.id
         )
     db.commit()
     #Aggiungo la procedura creata al db
@@ -63,7 +63,7 @@ def update_procedure(
     #salvo modifche nel db
     log_action(
             db, current_user, "PROCEDURE UPDATED", ip_address, user_agent,
-            "Procedure", current_user.id
+            "Procedure", db_procedure.id
         )
   
     db.commit()
@@ -88,7 +88,7 @@ def delete_procedure(
     
     log_action(
             db, current_user, "PROCEDURE DELETED", ip_address, user_agent,
-            "Procedure", current_user.id
+            "Procedure", id
         )
     db.commit()
     return {"detail": f"Procedura con ID {id} eliminata con successo"}

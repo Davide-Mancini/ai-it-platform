@@ -1,7 +1,7 @@
 import "./TopBar.css";
 
 const TITLES = {
-  dashboard:        { t: "Dashboard",           s: "Buongiorno 👋" },
+  dashboard:        { t: "Dashboard",           s: "Buongiorno " },
   procedures:       { t: "Procedure",           s: null },
   "procedure-detail": { t: "Dettaglio Procedura", s: null },
   tasks:            { t: "Task Board",          s: null },
@@ -39,7 +39,7 @@ export default function TopBar({ view, userInfo, unreadCount, onViewChange }) {
     <header className="pai-topbar">
       <div className="pai-topbar__left">
         <div className="pai-topbar__title">{cv.t}</div>
-        {cv.s && <div className="pai-topbar__sub">{cv.s.replace("👋", `${displayName.split(" ")[0]} 👋`)}</div>}
+        {cv.s && <div className="pai-topbar__sub">{cv.s+`${displayName.split(" ")[0]}!`+` :)`}</div>}
       </div>
 
       <div className="pai-topbar__right">

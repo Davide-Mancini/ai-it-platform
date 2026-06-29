@@ -1,13 +1,14 @@
 from fastapi import  HTTPException, status,Response
 from fastapi.security import  OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from services.audit_logger import log_action
 from security.security import get_password_hash, create_access_token, verify_password
 import models
 import schemas
 from repository import auth_repository
 from models import Role
-
+from mail_sender import send_simple_message
 
 def create_user(user: schemas.UserCreate, db: Session):
     #Qui creo una variabile che contiene il risultato del controllo sulla email
@@ -29,7 +30,12 @@ def create_user(user: schemas.UserCreate, db: Session):
         hashed_password=hashed_password,
         role_id= default_role.id
     )
-    auth_repository.save_new_user(db, new_user)
+    try:
+        auth_repository.save_new_user(db, new_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Email già registrata")
+    send_simple_message(user.email,user.first_name)
     return new_user
 
 
@@ -55,6 +61,11 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenziali non valide"
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account non attivo. Impossibile accedere."
         )
     #genero un token utilizzando la funzione importata da security, includendo l'email dell'utente come dato nel token
     access_token = create_access_token(data={"sub": user.email})

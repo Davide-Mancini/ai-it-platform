@@ -5,10 +5,11 @@ const headers = (token, json = false) => ({
   ...(json ? { "Content-Type": "application/json" } : {}),
 });
 
-export const TASKS_LOADING         = "TASKS_LOADING";
-export const TASKS_SUCCESS         = "TASKS_SUCCESS";
-export const TASK_ADD              = "TASK_ADD";
-export const TASK_STATUS_UPDATE    = "TASK_STATUS_UPDATE";
+export const TASKS_LOADING      = "TASKS_LOADING";
+export const TASKS_SUCCESS      = "TASKS_SUCCESS";
+export const TASK_ADD           = "TASK_ADD";
+export const TASK_STATUS_UPDATE = "TASK_STATUS_UPDATE";
+export const TASK_ASSIGN_UPDATE = "TASK_ASSIGN_UPDATE";
 
 export const fetchAllTasks = (token) => async (dispatch) => {
   dispatch({ type: TASKS_LOADING });
@@ -43,5 +44,34 @@ export const updateTaskStatus = (token, taskId, newStatus) => async (dispatch) =
     });
   } catch {
     dispatch(fetchAllTasks(token));
+  }
+};
+
+export const assignUserToTask = (token, taskId, userId) => async (dispatch) => {
+  const res = await fetch(`${API_BASE}/api/tasks/tasks/${taskId}/assign`, {
+    method: "POST",
+    headers: headers(token, true),
+    body: JSON.stringify({ user_id: userId }),
+  });
+  if (res.ok) {
+    const updatedTask = await res.json();
+    dispatch({ type: TASK_ASSIGN_UPDATE, payload: updatedTask });
+  } else {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Errore assegnazione task");
+  }
+};
+
+export const unassignUserFromTask = (token, taskId, userId) => async (dispatch) => {
+  const res = await fetch(`${API_BASE}/api/tasks/tasks/${taskId}/assign/${userId}`, {
+    method: "DELETE",
+    headers: headers(token),
+  });
+  if (res.ok) {
+    const updatedTask = await res.json();
+    dispatch({ type: TASK_ASSIGN_UPDATE, payload: updatedTask });
+  } else {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Errore rimozione assegnazione");
   }
 };

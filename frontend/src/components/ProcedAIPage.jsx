@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { MOCK_NOTIFICATIONS } from "./procedai/constants";
 
 import { fetchProcedures, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure } from "../redux/actions/proceduresActions";
-import { fetchAllTasks, createTask, updateTaskStatus } from "../redux/actions/tasksActions";
+import { fetchAllTasks, createTask, updateTaskStatus, assignUserToTask, unassignUserFromTask } from "../redux/actions/tasksActions";
 import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
 import { fetchUsers, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
+import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from "../redux/actions/notificationsActions";
+import { useNotificationsSSE } from "../hooks/useNotificationsSSE";
 
 import Sidebar         from "./procedai/Sidebar";
 import TopBar          from "./procedai/TopBar";
@@ -33,11 +34,13 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
   const { list: tasks,      loading: loadingTasks }  = useSelector(s => s.tasks);
   const { list: documents,  loading: loadingDocs  }  = useSelector(s => s.documents);
   const { list: users,      roles, loading: loadingUsers } = useSelector(s => s.users);
+  const { list: notifications } = useSelector(s => s.notifications);
+
+  useNotificationsSSE(token);
 
   // ── Stato UI locale ─────────────────────────────────────────────────────
   const [view, setView]                     = useState("dashboard");
   const [selectedProcId, setSelectedProcId] = useState(null);
-  const [notifications, setNotifications]   = useState(MOCK_NOTIFICATIONS);
 
   // Create flow
   const [showCreateChoice, setShowCreateChoice] = useState(false);
@@ -54,11 +57,24 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
 
   const isAdmin = userInfo?.role?.name === "Admin" || userInfo?.role === "Admin";
 
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [collaborators, setCollaborators]   = useState([]);
+
   // ── Caricamento iniziale ─────────────────────────────────────────────────
   useEffect(() => {
     dispatch(fetchProcedures(token));
     dispatch(fetchAllTasks(token));
     dispatch(fetchDocuments(token));
+    dispatch(fetchNotifications(token));
+    const h = { Authorization: `Bearer ${token}` };
+    fetch("http://localhost:8000/api/audit/recent?limit=10", { headers: h })
+      .then(r => r.ok ? r.json() : [])
+      .then(setRecentActivity)
+      .catch(() => {});
+    fetch("http://localhost:8000/api/team/collaborators", { headers: h })
+      .then(r => r.ok ? r.json() : [])
+      .then(setCollaborators)
+      .catch(() => {});
   }, [dispatch, token]);
 
   // Carica utenti e ruoli solo per admin
@@ -151,6 +167,14 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     await dispatch(createTask(token, procedureId, title));
   };
 
+  const handleAssignUser = (taskId, userId) => {
+    dispatch(assignUserToTask(token, taskId, userId));
+  };
+
+  const handleUnassignUser = (taskId, userId) => {
+    dispatch(unassignUserFromTask(token, taskId, userId));
+  };
+
   // ── AI chat ──────────────────────────────────────────────────────────────
   const toggleAIChat = () => {
     if (!aiChatOpen && aiMessages.length === 0) {
@@ -213,12 +237,11 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     await dispatch(updateUser(token, userId, form));
   };
 
-  const markAllNotificationsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
+  const handleMarkNotificationRead = (id) => dispatch(markNotificationRead(token, id));
+  const handleMarkAllNotificationsRead = () => dispatch(markAllNotificationsRead(token));
 
   // ── Dati derivati ────────────────────────────────────────────────────────
-  const unreadCount  = notifications.filter(n => !n.read).length;
+  const unreadCount  = notifications.filter(n => !n.is_read).length;
   const selectedProc = procedures.find(p => p.id === selectedProcId);
   const currentSteps = stepsById[selectedProcId] || [];
 
@@ -246,6 +269,8 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
               procedures={procedures}
               tasks={tasks}
               stepsById={stepsById}
+              recentActivity={recentActivity}
+              notifications={notifications}
               onProcedureClick={handleProcedureClick}
               onViewChange={handleViewChange}
             />
@@ -280,6 +305,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
               procedures={procedures}
               onStatusChange={handleTaskStatusChange}
               onCreateTask={handleCreateTask}
+              isAdmin={isAdmin}
+              users={users}
+              onAssignUser={handleAssignUser}
+              onUnassignUser={handleUnassignUser}
             />
           )}
 
@@ -293,12 +322,13 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
             />
           )}
 
-          {view === "team" && <Team />}
+          {view === "team" && <Team collaborators={collaborators} />}
 
           {view === "notifications" && (
             <Notifications
               notifications={notifications}
-              onMarkAllRead={markAllNotificationsRead}
+              onMarkRead={handleMarkNotificationRead}
+              onMarkAllRead={handleMarkAllNotificationsRead}
             />
           )}
 

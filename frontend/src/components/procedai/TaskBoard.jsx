@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import "./TaskBoard.css";
 
 const COLS = [
@@ -7,13 +8,123 @@ const COLS = [
   { id: "done",        label: "Completati", dot: "#059669" },
 ];
 
-function TaskCard({ task, procedures, colId, onStatusChange }) {
+function UserAvatar({ user, onRemove }) {
+  const initials = `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      className={`pai-task-avatar${onRemove ? " pai-task-avatar--removable" : ""}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {initials}
+      {hovered && (
+        <div className="pai-task-avatar__tooltip">
+          {user.first_name} {user.last_name}
+        </div>
+      )}
+      {onRemove && (
+        <button
+          className="pai-task-avatar__remove"
+          onClick={e => { e.stopPropagation(); onRemove(); }}
+        >
+          ×
+        </button>
+      )}
+    </div>
+  );
+}
+
+function AssignDropdown({ task, users, onAssign }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef(null);
+  const assignedIds = new Set((task.assigned_users || []).map(u => u.id));
+  const unassigned = users.filter(u => !assignedIds.has(u.id));
+
+  const handleOpen = (e) => {
+    e.stopPropagation();
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setOpen(o => !o);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+
+  return (
+    <div className="pai-assign-wrap">
+      <button
+        ref={btnRef}
+        className="pai-task-card__assign-btn"
+        onClick={handleOpen}
+        title="Assegna utente"
+      >
+        <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+          <line x1={12} y1={5} x2={12} y2={19} /><line x1={5} y1={12} x2={19} y2={12} />
+        </svg>
+      </button>
+
+      {open && createPortal(
+        <div
+          className="pai-assign-dropdown"
+          style={{ position: "fixed", top: pos.top, left: pos.left }}
+          onClick={e => e.stopPropagation()}
+        >
+          {unassigned.length > 0 ? (
+            unassigned.map(u => (
+              <div
+                key={u.id}
+                className="pai-assign-dropdown__item pai-assign-dropdown__item--add"
+                onClick={() => { onAssign(task.id, u.id); setOpen(false); }}
+              >
+                {u.first_name} {u.last_name}
+              </div>
+            ))
+          ) : (
+            <div className="pai-assign-dropdown__empty">Tutti gli utenti sono già assegnati</div>
+          )}
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+function TaskCard({ task, procedures, colId, onStatusChange, isAdmin, users, onAssignUser, onUnassignUser }) {
   const proc = procedures.find(p => p.id === task.procedure_id);
   return (
     <div className="pai-task-card">
       <div className="pai-task-card__title">{task.title}</div>
       {proc && <div className="pai-task-card__proc">{proc.title}</div>}
+
+      {(task.assigned_users || []).length > 0 && (
+        <div className="pai-task-card__avatars">
+          {(task.assigned_users || []).map(u => (
+            <UserAvatar
+              key={u.id}
+              user={u}
+              onRemove={isAdmin ? () => onUnassignUser(task.id, u.id) : undefined}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="pai-task-card__footer">
+        {isAdmin && (
+          <AssignDropdown
+            task={task}
+            users={users}
+            onAssign={onAssignUser}
+            onUnassign={onUnassignUser}
+          />
+        )}
         <div className="pai-task-card__spacer" />
         {colId !== "done" && (
           <button
@@ -36,7 +147,7 @@ function TaskCard({ task, procedures, colId, onStatusChange }) {
   );
 }
 
-function Column({ col, tasks, procedures, onStatusChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick }) {
+function Column({ col, tasks, procedures, onStatusChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick, isAdmin, users, onAssignUser, onUnassignUser }) {
   const [over, setOver] = useState(false);
   const colTasks = tasks.filter(t => t.status === col.id);
 
@@ -71,7 +182,16 @@ function Column({ col, tasks, procedures, onStatusChange, draggedId, onDragStart
             onDragEnd={onDragEnd}
             className={`pai-task-card-wrap${draggedId === t.id ? " pai-task-card-wrap--dragging" : ""}`}
           >
-            <TaskCard task={t} procedures={procedures} colId={col.id} onStatusChange={onStatusChange} />
+            <TaskCard
+              task={t}
+              procedures={procedures}
+              colId={col.id}
+              onStatusChange={onStatusChange}
+              isAdmin={isAdmin}
+              users={users}
+              onAssignUser={onAssignUser}
+              onUnassignUser={onUnassignUser}
+            />
           </div>
         ))}
         {colTasks.length === 0 && (
@@ -151,7 +271,7 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
   );
 }
 
-export default function TaskBoard({ tasks, procedures, onStatusChange, onCreateTask }) {
+export default function TaskBoard({ tasks, procedures, onStatusChange, onCreateTask, isAdmin, users, onAssignUser, onUnassignUser }) {
   const [draggedId, setDraggedId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
@@ -186,6 +306,10 @@ export default function TaskBoard({ tasks, procedures, onStatusChange, onCreateT
             onDragEnd={() => setDraggedId(null)}
             onDrop={handleDrop}
             onAddClick={() => setShowCreate(true)}
+            isAdmin={isAdmin}
+            users={users}
+            onAssignUser={onAssignUser}
+            onUnassignUser={onUnassignUser}
           />
         ))}
       </div>

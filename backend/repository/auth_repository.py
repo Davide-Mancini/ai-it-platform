@@ -4,7 +4,7 @@ import models
 
 # creo le funzioni per comunicare con il db, come le interfacce repository in springboot
 def get_user_by_email(db:Session, user_email:str):
-    return db.query(models.User).filter(models.User.email == user_email).first()
+    return db.query(models.User).filter(models.User.email.ilike(user_email)).first()
 
 def save_new_user(db:Session, new_user: models.User):
     db.add(new_user)

@@ -7,6 +7,10 @@
 
 .pai-stat-card {
   padding: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 .pai-stat-card__icon {
   width: 40px;

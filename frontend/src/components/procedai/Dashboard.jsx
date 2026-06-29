@@ -1,5 +1,40 @@
-import { MOCK_NOTIFICATIONS } from "./constants";
 import "./Dashboard.css";
+
+const ACTION_LABELS = {
+  "PROCEDURE CREATED": "ha creato una nuova procedura",
+  "PROCEDURE UPDATED": "ha modificato una procedura",
+  "PROCEDURE DELETED": "ha eliminato una procedura",
+  "TASK CREATED":      "ha creato un nuovo task",
+  "TASK UPDATED":      "ha aggiornato un task",
+  "USER LOGIN":        "ha effettuato l'accesso",
+};
+
+function relativeTime(isoString) {
+  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+  if (diff < 60)    return "Adesso";
+  if (diff < 3600)  return `${Math.floor(diff / 60)} min fa`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ore fa`;
+  return `${Math.floor(diff / 86400)} giorni fa`;
+}
+
+function actorInitials(entry) {
+  if (entry.user_first_name && entry.user_last_name)
+    return `${entry.user_first_name[0]}${entry.user_last_name[0]}`.toUpperCase();
+  if (entry.user_email) return entry.user_email[0].toUpperCase();
+  return "?";
+}
+
+function actorName(entry) {
+  if (entry.user_first_name) return entry.user_first_name;
+  if (entry.user_email) return entry.user_email.split("@")[0];
+  return "Utente";
+}
+
+const AVATAR_COLORS = ["#2563EB", "#7C3AED", "#059669", "#D97706", "#DC2626"];
+function avatarColor(entry) {
+  const key = entry.user_email || entry.id;
+  return AVATAR_COLORS[key.charCodeAt(0) % AVATAR_COLORS.length];
+}
 
 function Icon({ path, size = 18, color = "currentColor" }) {
   return (
@@ -32,11 +67,11 @@ function CheckIcon() {
   );
 }
 
-export default function Dashboard({ procedures, tasks, stepsById = {}, onProcedureClick, onViewChange }) {
+export default function Dashboard({ procedures, tasks, stepsById = {}, recentActivity = [], notifications = [], onProcedureClick, onViewChange }) {
   const activeProcedures = procedures.filter(p => p._status === "active" || !p._status);
   const doneTasks = tasks.filter(t => t.status === "done").length;
   const openTasks = tasks.filter(t => t.status !== "done").length;
-  const unread = MOCK_NOTIFICATIONS.filter(n => !n.read).length;
+  const unread = notifications.filter(n => !n.is_read).length;
 
   const STATS = [
     {
@@ -59,12 +94,6 @@ export default function Dashboard({ procedures, tasks, stepsById = {}, onProcedu
       iconPath: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
       color: "#059669", bg: "#ECFDF5",
     },
-  ];
-
-  const recentActivity = [
-    { initials: "SB", color: "#7C3AED", name: "Sara", action: "ha completato uno step della procedura", time: "12 min fa" },
-    { initials: "LV", color: "#059669", name: "Luca",  action: "ha caricato un nuovo documento",         time: "2 ore fa"  },
-    { initials: "MR", color: "#2563EB", name: "Marco", action: "ha creato una nuova procedura",           time: "3 ore fa"  },
   ];
 
   return (
@@ -148,16 +177,21 @@ export default function Dashboard({ procedures, tasks, stepsById = {}, onProcedu
         {/* Activity */}
         <div className="pai-card pai-dashboard__activity">
           <div className="pai-dashboard__card-title" style={{ padding: "18px 18px 14px" }}>Attività recente</div>
-          {recentActivity.map((a, i) => (
-            <div key={i} className="pai-dashboard__act-row">
-              <div className="pai-dashboard__act-avatar" style={{ background: a.color }}>{a.initials}</div>
+          {recentActivity.length === 0 && (
+            <div className="pai-dashboard__empty">Nessuna attività recente.</div>
+          )}
+          {recentActivity.map(a => (
+            <div key={a.id} className="pai-dashboard__act-row">
+              <div className="pai-dashboard__act-avatar" style={{ background: avatarColor(a) }}>
+                {actorInitials(a)}
+              </div>
               <div className="pai-dashboard__act-text">
-                <span className="pai-dashboard__act-name">{a.name} </span>
-                <span className="pai-dashboard__act-action">{a.action}</span>
-                <div className="pai-dashboard__act-time">{a.time}</div>
+                <span className="pai-dashboard__act-name">{actorName(a)} </span>
+                <span className="pai-dashboard__act-action">{ACTION_LABELS[a.action] || a.action.toLowerCase()}</span>
+                <div className="pai-dashboard__act-time">{relativeTime(a.created_at)}</div>
               </div>
             </div>
-          ))}
+          )).slice(0,-5)}
         </div>
       </div>
     </div>
