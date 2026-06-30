@@ -53,6 +53,16 @@ def update_task_status(
     return task_service.update_task_status(task_id, status_update, ip_address, user_agent, db, current_user)
 
 
+@router.patch("/tasks/{task_id}/priority", response_model=schemas.TaskOut)
+def update_task_priority(
+    task_id: str,
+    priority_update: schemas.TaskUpdatePriority,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return task_service.update_task_priority(task_id, priority_update, db, current_user)
+
+
 @router.post("/tasks/{task_id}/assign", response_model=schemas.TaskOut)
 def assign_user_to_task(
     task_id: str,

@@ -47,11 +47,19 @@ function App() {
   }, [token, handleLogout]);
 
 
-  return token ? (
-    <ProcedAIPage token={token} onLogout={handleLogout} userInfo={userInfo} />
-  ) : (
-    <AuthPage onAuth={handleAuth} />
-  );
+  const refreshUserInfo = useCallback(async () => {
+    if (!token) return;
+    try {
+      const r = await fetch(`${API_BASE}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (r.ok) setUserInfo(await r.json());
+    } catch { /* ignore */ }
+  }, [token]);
+
+  if (!token) return <AuthPage onAuth={handleAuth} />;
+
+  return <ProcedAIPage token={token} onLogout={handleLogout} userInfo={userInfo} onProfileUpdate={refreshUserInfo} />;
 }
 
 export default App;

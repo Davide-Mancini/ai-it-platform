@@ -8,6 +8,78 @@ const COLS = [
   { id: "done",        label: "Completati", dot: "#059669" },
 ];
 
+const PRIORITIES = [
+  { id: "low",      label: "Basso",   color: "#64748B", bg: "#F1F5F9" },
+  { id: "medium",   label: "Medio",   color: "#2563EB", bg: "#EFF6FF" },
+  { id: "high",     label: "Alto",    color: "#D97706", bg: "#FEF3C7" },
+  { id: "critical", label: "Critico", color: "#DC2626", bg: "#FEF2F2" },
+];
+
+function PriorityBadge({ priority, onChangePriority }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos]   = useState({ top: 0, left: 0 });
+  const ref = useRef(null);
+  const cfg = PRIORITIES.find(p => p.id === priority) || PRIORITIES[0];
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setOpen(o => !o);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+
+  return (
+    <>
+      <span
+        ref={ref}
+        className="pai-task-priority pai-task-priority--clickable"
+        style={{ color: cfg.color, background: cfg.bg }}
+        onClick={handleClick}
+        title="Cambia priorità"
+      >
+        {cfg.label}
+        <svg width={8} height={8} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" style={{ marginLeft: 3 }}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </span>
+
+      {open && createPortal(
+        <div
+          className="pai-priority-dropdown"
+          style={{ position: "fixed", top: pos.top, left: pos.left }}
+          onClick={e => e.stopPropagation()}
+        >
+          {PRIORITIES.map(p => (
+            <div
+              key={p.id}
+              className={`pai-priority-dropdown__item${p.id === priority ? " pai-priority-dropdown__item--active" : ""}`}
+              onClick={() => { onChangePriority(p.id); setOpen(false); }}
+            >
+              <span className="pai-priority-dropdown__dot" style={{ background: p.color }} />
+              {p.label}
+            </div>
+          ))}
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 function UserAvatar({ user, onRemove }) {
   const initials = `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
   const [hovered, setHovered] = useState(false);
@@ -97,11 +169,22 @@ function AssignDropdown({ task, users, onAssign }) {
   );
 }
 
-function TaskCard({ task, procedures, colId, onStatusChange, isAdmin, users, onAssignUser, onUnassignUser }) {
+function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, isAdmin, users, onAssignUser, onUnassignUser }) {
   const proc = procedures.find(p => p.id === task.procedure_id);
   return (
     <div className="pai-task-card">
       <div className="pai-task-card__title">{task.title}</div>
+
+      <div className="pai-task-card__meta">
+        <PriorityBadge
+          priority={task.priority || "low"}
+          onChangePriority={(p) => onPriorityChange(task.id, p)}
+        />
+        {task.created_at && (
+          <span className="pai-task-card__date">{formatDate(task.created_at)}</span>
+        )}
+      </div>
+
       {proc && <div className="pai-task-card__proc">{proc.title}</div>}
 
       {(task.assigned_users || []).length > 0 && (
@@ -147,7 +230,7 @@ function TaskCard({ task, procedures, colId, onStatusChange, isAdmin, users, onA
   );
 }
 
-function Column({ col, tasks, procedures, onStatusChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick, isAdmin, users, onAssignUser, onUnassignUser }) {
+function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick, isAdmin, users, onAssignUser, onUnassignUser }) {
   const [over, setOver] = useState(false);
   const colTasks = tasks.filter(t => t.status === col.id);
 
@@ -187,6 +270,7 @@ function Column({ col, tasks, procedures, onStatusChange, draggedId, onDragStart
               procedures={procedures}
               colId={col.id}
               onStatusChange={onStatusChange}
+              onPriorityChange={onPriorityChange}
               isAdmin={isAdmin}
               users={users}
               onAssignUser={onAssignUser}
@@ -203,14 +287,15 @@ function Column({ col, tasks, procedures, onStatusChange, draggedId, onDragStart
 }
 
 function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
-  const [title, setTitle] = useState("");
-  const [procId, setProcId] = useState(procedures[0]?.id || "");
-  const [error, setError] = useState("");
+  const [title, setTitle]       = useState("");
+  const [procId, setProcId]     = useState(procedures[0]?.id || "");
+  const [priority, setPriority] = useState("low");
+  const [error, setError]       = useState("");
 
   const handleSubmit = () => {
     if (!title.trim()) { setError("Il titolo è obbligatorio."); return; }
     if (!procId) { setError("Seleziona una procedura."); return; }
-    onSubmit(title.trim(), procId);
+    onSubmit(title.trim(), procId, priority);
   };
 
   return (
@@ -241,20 +326,37 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
             />
           </div>
 
-          <div className="pai-field">
-            <label className="pai-field__label">PROCEDURA *</label>
-            <select
-              className="pai-field__select"
-              value={procId}
-              onChange={e => setProcId(e.target.value)}
-            >
-              {procedures.length === 0 && (
-                <option value="">Nessuna procedura disponibile</option>
-              )}
-              {procedures.map(p => (
-                <option key={p.id} value={p.id}>{p.title}</option>
-              ))}
-            </select>
+          <div className="pai-task-form__row">
+            <div className="pai-field" style={{ flex: 1 }}>
+              <label className="pai-field__label">PRIORITÀ</label>
+              <select
+                className="pai-field__select"
+                value={priority}
+                onChange={e => setPriority(e.target.value)}
+              >
+                {PRIORITIES.map(p => (
+                  <option key={p.id} value={p.id}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="pai-field" style={{ flex: 2 }}>
+              <label className="pai-field__label">PROCEDURA *</label>
+              <select
+                className="pai-field__select"
+                value={procId}
+                onChange={e => setProcId(e.target.value)}
+              >
+                {procedures.length === 0 && (
+                  <option value="">Nessuna procedura disponibile</option>
+                )}
+                {procedures.map(p => (
+                  <option key={p.id} value={p.id} title={p.title}>
+                    {p.title.length > 45 ? p.title.slice(0, 45) + "…" : p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {error && <div className="pai-task-form__error">{error}</div>}
@@ -271,7 +373,7 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
   );
 }
 
-export default function TaskBoard({ tasks, procedures, onStatusChange, onCreateTask, isAdmin, users, onAssignUser, onUnassignUser }) {
+export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorityChange, onCreateTask, isAdmin, users, onAssignUser, onUnassignUser }) {
   const [draggedId, setDraggedId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
@@ -281,10 +383,10 @@ export default function TaskBoard({ tasks, procedures, onStatusChange, onCreateT
     setDraggedId(null);
   };
 
-  const handleSubmit = async (title, procId) => {
+  const handleSubmit = async (title, procId, priority) => {
     setCreateLoading(true);
     try {
-      await onCreateTask(title, procId);
+      await onCreateTask(title, procId, priority);
       setShowCreate(false);
     } finally {
       setCreateLoading(false);
@@ -301,6 +403,7 @@ export default function TaskBoard({ tasks, procedures, onStatusChange, onCreateT
             tasks={tasks}
             procedures={procedures}
             onStatusChange={onStatusChange}
+            onPriorityChange={onPriorityChange}
             draggedId={draggedId}
             onDragStart={setDraggedId}
             onDragEnd={() => setDraggedId(null)}

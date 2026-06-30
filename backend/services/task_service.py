@@ -52,6 +52,7 @@ def create_task_for_procedure(
     new_task = models.Task(
         title=task_data.title,
         status=task_data.status,
+        priority=task_data.priority,
         procedure_id=procedure_id
     )
     log_action(
@@ -90,6 +91,19 @@ def update_task_status(
         "Tasks", db_task.procedure_id
     )
     task_repository.update_task_status(db, db_task, status_update)
+    return db_task
+
+
+def update_task_priority(
+    task_id: str,
+    priority_update: schemas.TaskUpdatePriority,
+    db: Session,
+    current_user: models.User,
+):
+    db_task = task_repository.get_task_by_id(db, task_id)
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Task non trovato")
+    task_repository.update_task_priority(db, db_task, priority_update.priority)
     return db_task
 
 

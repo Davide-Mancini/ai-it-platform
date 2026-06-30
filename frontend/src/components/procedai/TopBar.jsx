@@ -1,23 +1,24 @@
+import { useLocation, useNavigate } from "react-router-dom";
 import "./TopBar.css";
 
-const TITLES = {
-  dashboard:        { t: "Dashboard",           s: "Buongiorno " },
-  procedures:       { t: "Procedure",           s: null },
-  "procedure-detail": { t: "Dettaglio Procedura", s: null },
-  tasks:            { t: "Task Board",          s: null },
-  documents:        { t: "Documenti & Policy",  s: null },
-  team:             { t: "Team",               s: null },
-  notifications:    { t: "Notifiche",          s: null },
-  settings:         { t: "Impostazioni",       s: null },
+const PATH_TITLES = {
+  "/dashboard":     { t: "Dashboard",          s: "Buongiorno " },
+  "/procedures":    { t: "Procedure",          s: null },
+  "/tasks":         { t: "Task Board",         s: null },
+  "/documents":     { t: "Documenti & Policy", s: null },
+  "/team":          { t: "Team",               s: null },
+  "/notifications": { t: "Notifiche",          s: null },
+  "/settings":      { t: "Impostazioni",       s: null },
+  "/users":         { t: "Utenti",             s: null },
 };
 
-function SearchIcon() {
+/* function SearchIcon() {
   return (
     <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <circle cx={11} cy={11} r={8} /><line x1={21} y1={21} x2={16.65} y2={16.65} />
     </svg>
   );
-}
+} */
 function BellIcon() {
   return (
     <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -26,8 +27,14 @@ function BellIcon() {
   );
 }
 
-export default function TopBar({ view, userInfo, unreadCount, onViewChange }) {
-  const cv = TITLES[view] || TITLES.dashboard;
+export default function TopBar({ userInfo, unreadCount, isProcedureDetail = false }) {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const cv = isProcedureDetail
+    ? { t: "Dettaglio Procedura", s: null }
+    : PATH_TITLES[pathname] || PATH_TITLES["/dashboard"];
+
   const displayName = userInfo
     ? [userInfo.first_name, userInfo.last_name].filter(Boolean).join(" ") || userInfo.email
     : "Utente";
@@ -39,21 +46,21 @@ export default function TopBar({ view, userInfo, unreadCount, onViewChange }) {
     <header className="pai-topbar">
       <div className="pai-topbar__left">
         <div className="pai-topbar__title">{cv.t}</div>
-        {cv.s && <div className="pai-topbar__sub">{cv.s+`${displayName.split(" ")[0]}!`+` :)`}</div>}
+        {cv.s && <div className="pai-topbar__sub">{cv.s + `${displayName.split(" ")[0]}!` + ` :)`}</div>}
       </div>
 
       <div className="pai-topbar__right">
-        <div className="pai-topbar__search">
+        {/* <div className="pai-topbar__search">
           <SearchIcon />
           <input className="pai-topbar__search-input" type="text" placeholder="Cerca..." />
-        </div>
+        </div> */}
 
-        <div className="pai-topbar__notif-wrap" onClick={() => onViewChange("notifications")}>
+        <div className="pai-topbar__notif-wrap" onClick={() => navigate("/notifications")}>
           <button className="pai-topbar__notif-btn"><BellIcon /></button>
           {unreadCount > 0 && <span className="pai-topbar__notif-dot">{unreadCount}</span>}
         </div>
 
-        <div className="pai-topbar__avatar">{initials}</div>
+        <div className="pai-topbar__avatar" onClick={() => navigate("/settings")}>{initials}</div>
       </div>
     </header>
   );

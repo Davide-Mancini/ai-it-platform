@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import { fetchProcedures, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure } from "../redux/actions/proceduresActions";
-import { fetchAllTasks, createTask, updateTaskStatus, assignUserToTask, unassignUserFromTask } from "../redux/actions/tasksActions";
+import { fetchAllTasks, createTask, updateTaskStatus, updateTaskPriority, assignUserToTask, unassignUserFromTask } from "../redux/actions/tasksActions";
 import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
 import { fetchUsers, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from "../redux/actions/notificationsActions";
@@ -26,20 +27,22 @@ import "./procedai/ProcedAIPage.css";
 
 const API_BASE = "http://localhost:8000";
 
-export default function ProcedAIPage({ token, onLogout, userInfo }) {
+export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdate }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   // ── Stato Redux ─────────────────────────────────────────────────────────
-  const { list: procedures, loading: loadingProc, stepsById, loadingSteps, togglingStepId } = useSelector(s => s.procedures);
-  const { list: tasks,      loading: loadingTasks }  = useSelector(s => s.tasks);
-  const { list: documents,  loading: loadingDocs  }  = useSelector(s => s.documents);
-  const { list: users,      roles, loading: loadingUsers } = useSelector(s => s.users);
+  const { list: procedures, stepsById, loadingSteps, togglingStepId } = useSelector(s => s.procedures);
+  const { list: tasks }       = useSelector(s => s.tasks);
+  const { list: documents, loading: loadingDocs } = useSelector(s => s.documents);
+  const { list: users, roles, loading: loadingUsers } = useSelector(s => s.users);
   const { list: notifications } = useSelector(s => s.notifications);
 
   useNotificationsSSE(token);
 
   // ── Stato UI locale ─────────────────────────────────────────────────────
-  const [view, setView]                     = useState("dashboard");
+  // Dettaglio procedura: approccio originale con stato locale
   const [selectedProcId, setSelectedProcId] = useState(null);
 
   // Create flow
@@ -60,6 +63,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
   const [recentActivity, setRecentActivity] = useState([]);
   const [collaborators, setCollaborators]   = useState([]);
 
+  // Dati derivati per il dettaglio
+  const selectedProc = selectedProcId ? procedures.find(p => p.id === selectedProcId) : null;
+  const currentSteps = selectedProcId ? (stepsById[selectedProcId] || []) : [];
+
   // ── Caricamento iniziale ─────────────────────────────────────────────────
   useEffect(() => {
     dispatch(fetchProcedures(token));
@@ -67,17 +74,12 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     dispatch(fetchDocuments(token));
     dispatch(fetchNotifications(token));
     const h = { Authorization: `Bearer ${token}` };
-    fetch("http://localhost:8000/api/audit/recent?limit=10", { headers: h })
-      .then(r => r.ok ? r.json() : [])
-      .then(setRecentActivity)
-      .catch(() => {});
-    fetch("http://localhost:8000/api/team/collaborators", { headers: h })
-      .then(r => r.ok ? r.json() : [])
-      .then(setCollaborators)
-      .catch(() => {});
+    fetch(`${API_BASE}/api/audit/recent?limit=10`, { headers: h })
+      .then(r => r.ok ? r.json() : []).then(setRecentActivity).catch(() => {});
+    fetch(`${API_BASE}/api/team/collaborators`, { headers: h })
+      .then(r => r.ok ? r.json() : []).then(setCollaborators).catch(() => {});
   }, [dispatch, token]);
 
-  // Carica utenti e ruoli solo per admin
   useEffect(() => {
     if (isAdmin) {
       dispatch(fetchUsers(token));
@@ -85,39 +87,34 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     }
   }, [dispatch, token, isAdmin]);
 
-  // ── Carica gli step quando si seleziona una procedura ───────────────────
+  // Carica gli step quando si seleziona una procedura (approccio originale)
   useEffect(() => {
     if (selectedProcId) dispatch(fetchSteps(token, selectedProcId));
   }, [dispatch, token, selectedProcId]);
 
-  // ── Navigazione ──────────────────────────────────────────────────────────
-  const handleViewChange = (v) => {
-    setView(v);
-    setSelectedProcId(null);
-  };
+  // Reset selectedProcId quando si naviga fuori da /procedures
+  useEffect(() => {
+    if (pathname !== "/procedures") setSelectedProcId(null);
+  }, [pathname]);
 
+  // ── Navigazione ──────────────────────────────────────────────────────────
   const handleProcedureClick = (id) => {
     setSelectedProcId(id);
-    setView("procedure-detail");
+    navigate("/procedures");
   };
 
   const handleProcedureBack = () => {
     setSelectedProcId(null);
-    setView("procedures");
   };
 
   // ── Creazione procedura ──────────────────────────────────────────────────
   const openCreate = () => { setShowCreateChoice(true); setShowManual(false); };
-
   const handleChoiceManual = () => { setShowCreateChoice(false); setShowManual(true); };
 
   const handleChoiceAI = () => {
     setShowCreateChoice(false);
     if (aiMessages.length === 0) {
-      setAiMessages([{
-        role: "ai",
-        text: "Ciao! Descrivimi la procedura che vuoi creare e la genererò con tutti gli step.\n\nEs: \"Onboarding nuovo cliente\", \"Deploy in produzione\", \"Gestione ticket critico\"",
-      }]);
+      setAiMessages([{ role: "ai", text: "Ciao! Descrivimi la procedura che vuoi creare e la genererò con tutti gli step.\n\nEs: \"Onboarding nuovo cliente\", \"Deploy in produzione\", \"Gestione ticket critico\"" }]);
     }
     setAiChatOpen(true);
   };
@@ -144,14 +141,9 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     }
   };
 
-  // ── Modifica / elimina procedura (admin) ────────────────────────────────
-  const handleEditProcedure = async (id, form) => {
-    await dispatch(updateProcedure(token, id, form));
-  };
-
-  const handleDeleteProcedure = async (id) => {
-    await dispatch(deleteProcedure(token, id));
-  };
+  // ── Modifica / elimina procedura ─────────────────────────────────────────
+  const handleEditProcedure   = async (id, form) => await dispatch(updateProcedure(token, id, form));
+  const handleDeleteProcedure = async (id) => await dispatch(deleteProcedure(token, id));
 
   // ── Step toggle ──────────────────────────────────────────────────────────
   const handleStepToggle = (stepId, newStatus) => {
@@ -159,21 +151,11 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
   };
 
   // ── Task ─────────────────────────────────────────────────────────────────
-  const handleTaskStatusChange = (taskId, newStatus) => {
-    dispatch(updateTaskStatus(token, taskId, newStatus));
-  };
-
-  const handleCreateTask = async (title, procedureId) => {
-    await dispatch(createTask(token, procedureId, title));
-  };
-
-  const handleAssignUser = (taskId, userId) => {
-    dispatch(assignUserToTask(token, taskId, userId));
-  };
-
-  const handleUnassignUser = (taskId, userId) => {
-    dispatch(unassignUserFromTask(token, taskId, userId));
-  };
+  const handleTaskStatusChange   = (taskId, newStatus)   => dispatch(updateTaskStatus(token, taskId, newStatus));
+  const handleTaskPriorityChange = (taskId, newPriority) => dispatch(updateTaskPriority(token, taskId, newPriority));
+  const handleCreateTask = async (title, procedureId, priority) => await dispatch(createTask(token, procedureId, title, priority));
+  const handleAssignUser   = (taskId, userId) => dispatch(assignUserToTask(token, taskId, userId));
+  const handleUnassignUser = (taskId, userId) => dispatch(unassignUserFromTask(token, taskId, userId));
 
   // ── AI chat ──────────────────────────────────────────────────────────────
   const toggleAIChat = () => {
@@ -206,10 +188,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
         }]);
       } else {
         const err = await res.json().catch(() => ({}));
-        setAiMessages(prev => [...prev, {
-          role: "ai", isError: true,
-          text: err.detail || "Errore: verifica di avere il ruolo Admin o IT Manager.",
-        }]);
+        setAiMessages(prev => [...prev, { role: "ai", isError: true, text: err.detail || "Errore: verifica di avere il ruolo Admin o IT Manager." }]);
       }
     } catch {
       setAiMessages(prev => [...prev, { role: "ai", isError: true, text: "Errore di rete. Riprova." }]);
@@ -232,117 +211,125 @@ export default function ProcedAIPage({ token, onLogout, userInfo }) {
     setAiMessages(prev => [...prev, { role: "ai", text: "Procedura scartata." }]);
   };
 
-  // ── Gestione utenti (admin) ──────────────────────────────────────────────
-  const handleSaveUser = async (userId, form) => {
-    await dispatch(updateUser(token, userId, form));
+  // ── Refresh attività recente ─────────────────────────────────────────────
+  const handleRefreshActivity = async () => {
+    const r = await fetch(`${API_BASE}/api/audit/recent?limit=10`, { headers: { Authorization: `Bearer ${token}` } });
+    if (r.ok) setRecentActivity(await r.json());
   };
 
-  const handleMarkNotificationRead = (id) => dispatch(markNotificationRead(token, id));
-  const handleMarkAllNotificationsRead = () => dispatch(markAllNotificationsRead(token));
+  // ── Gestione utenti ──────────────────────────────────────────────────────
+  const handleSaveUser = async (userId, form) => await dispatch(updateUser(token, userId, form));
+  const handleMarkNotificationRead    = (id) => dispatch(markNotificationRead(token, id));
+  const handleMarkAllNotificationsRead = ()  => dispatch(markAllNotificationsRead(token));
 
   // ── Dati derivati ────────────────────────────────────────────────────────
-  const unreadCount  = notifications.filter(n => !n.is_read).length;
-  const selectedProc = procedures.find(p => p.id === selectedProcId);
-  const currentSteps = stepsById[selectedProcId] || [];
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  // ── Rendering basato su URL (React Router) + stato per il dettaglio ──────
+  const renderContent = () => {
+    if (pathname === "/procedures") {
+      // Dettaglio procedura: approccio originale con stato locale
+      if (selectedProcId && selectedProc) {
+        return (
+          <ProcedureDetail
+            procedure={selectedProc}
+            steps={currentSteps}
+            tasks={tasks}
+            loadingSteps={loadingSteps}
+            togglingStepId={togglingStepId}
+            onBack={handleProcedureBack}
+            onStepToggle={handleStepToggle}
+          />
+        );
+      }
+      return (
+        <ProcedureList
+          procedures={procedures}
+          isAdmin={isAdmin}
+          onProcedureClick={handleProcedureClick}
+          onCreateClick={openCreate}
+          onEditProcedure={handleEditProcedure}
+          onDeleteProcedure={handleDeleteProcedure}
+        />
+      );
+    }
+
+    if (pathname === "/tasks") return (
+      <TaskBoard
+        tasks={tasks}
+        procedures={procedures}
+        onStatusChange={handleTaskStatusChange}
+        onPriorityChange={handleTaskPriorityChange}
+        onCreateTask={handleCreateTask}
+        isAdmin={isAdmin}
+        users={users}
+        onAssignUser={handleAssignUser}
+        onUnassignUser={handleUnassignUser}
+      />
+    );
+
+    if (pathname === "/documents") return (
+      <Documents
+        documents={documents}
+        loading={loadingDocs}
+        isAdmin={isAdmin}
+        token={token}
+        onUpdateDocument={(id, data) => dispatch(updateDocument(token, id, data))}
+        onDeleteDocument={(id) => dispatch(deleteDocument(token, id))}
+      />
+    );
+
+    if (pathname === "/team") return <Team collaborators={collaborators} />;
+
+    if (pathname === "/notifications") return (
+      <Notifications
+        notifications={notifications}
+        onMarkRead={handleMarkNotificationRead}
+        onMarkAllRead={handleMarkAllNotificationsRead}
+      />
+    );
+
+    if (pathname === "/settings") return <Settings userInfo={userInfo} token={token} onProfileUpdate={onProfileUpdate} />;
+
+    if (pathname === "/users" && isAdmin) return (
+      <UsersPage
+        users={users}
+        roles={roles}
+        loading={loadingUsers}
+        onSave={handleSaveUser}
+        onToggleActive={(userId, isActive) => dispatch(toggleUserActive(token, userId, isActive))}
+      />
+    );
+
+    if (pathname === "/dashboard") return (
+      <Dashboard
+        procedures={procedures}
+        tasks={tasks}
+        stepsById={stepsById}
+        recentActivity={recentActivity}
+        notifications={notifications}
+        onProcedureClick={handleProcedureClick}
+        onViewChange={(v) => navigate(`/${v}`)}
+        onRefreshActivity={handleRefreshActivity}
+      />
+    );
+
+    return <Navigate to="/dashboard" replace />;
+  };
 
   return (
     <div className="pai-root">
-      <Sidebar
-        view={view}
-        onViewChange={handleViewChange}
-        userInfo={userInfo}
-        onLogout={onLogout}
-        unreadCount={unreadCount}
-      />
+      <Sidebar userInfo={userInfo} onLogout={onLogout} unreadCount={unreadCount} />
 
       <div className="pai-main">
         <TopBar
-          view={view}
           userInfo={userInfo}
           unreadCount={unreadCount}
-          onViewChange={handleViewChange}
+          isProcedureDetail={pathname === "/procedures" && !!selectedProcId}
         />
 
         <div className="pai-content">
-          {view === "dashboard" && (
-            <Dashboard
-              procedures={procedures}
-              tasks={tasks}
-              stepsById={stepsById}
-              recentActivity={recentActivity}
-              notifications={notifications}
-              onProcedureClick={handleProcedureClick}
-              onViewChange={handleViewChange}
-            />
-          )}
-
-          {view === "procedures" && (
-            <ProcedureList
-              procedures={procedures}
-              isAdmin={isAdmin}
-              onProcedureClick={handleProcedureClick}
-              onCreateClick={openCreate}
-              onEditProcedure={handleEditProcedure}
-              onDeleteProcedure={handleDeleteProcedure}
-            />
-          )}
-
-          {view === "procedure-detail" && selectedProc && (
-            <ProcedureDetail
-              procedure={selectedProc}
-              steps={currentSteps}
-              tasks={tasks}
-              loadingSteps={loadingSteps}
-              togglingStepId={togglingStepId}
-              onBack={handleProcedureBack}
-              onStepToggle={handleStepToggle}
-            />
-          )}
-
-          {view === "tasks" && (
-            <TaskBoard
-              tasks={tasks}
-              procedures={procedures}
-              onStatusChange={handleTaskStatusChange}
-              onCreateTask={handleCreateTask}
-              isAdmin={isAdmin}
-              users={users}
-              onAssignUser={handleAssignUser}
-              onUnassignUser={handleUnassignUser}
-            />
-          )}
-
-          {view === "documents" && (
-            <Documents
-              documents={documents}
-              loading={loadingDocs}
-              isAdmin={isAdmin}
-              onUpdateDocument={(id, data) => dispatch(updateDocument(token, id, data))}
-              onDeleteDocument={(id) => dispatch(deleteDocument(token, id))}
-            />
-          )}
-
-          {view === "team" && <Team collaborators={collaborators} />}
-
-          {view === "notifications" && (
-            <Notifications
-              notifications={notifications}
-              onMarkRead={handleMarkNotificationRead}
-              onMarkAllRead={handleMarkAllNotificationsRead}
-            />
-          )}
-
-          {view === "settings" && <Settings userInfo={userInfo} />}
-
-          {view === "users" && isAdmin && (
-            <UsersPage
-              users={users}
-              roles={roles}
-              loading={loadingUsers}
-              onSave={handleSaveUser}
-              onToggleActive={(userId, isActive) => dispatch(toggleUserActive(token, userId, isActive))}
-            />
-          )}
+          {renderContent()}
         </div>
       </div>
 

@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
-import newUserAction from "../redux/actions/newUserAction";
 import Heximus_Logo_AI_Platform from "./assets/Heximus_Logo_AI_Platform_NoBG.png"
 
 const API_BASE = "http://localhost:8000";
@@ -21,8 +19,6 @@ function AuthPage({ onAuth }) {
   });
   const [registerError, setRegisterError] = useState("");
   const [registerLoading, setRegisterLoading] = useState(false);
-
-  const dispatch = useDispatch();
 
   const handleLogin = async () => {
     if (!loginData.email || !loginData.password) {
@@ -72,8 +68,6 @@ function AuthPage({ onAuth }) {
     setRegisterLoading(true);
     setRegisterError("");
     try {
-      dispatch(newUserAction(registerData.first_name, registerData.last_name, registerData.email, registerData.password));
-
       const res = await fetch(`${API_BASE}/api/auth/users/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

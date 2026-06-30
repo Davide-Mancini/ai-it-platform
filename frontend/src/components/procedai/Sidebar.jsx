@@ -1,19 +1,20 @@
 import { useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 import { NAV_ITEMS } from "./constants";
 import "./Sidebar.css";
 import Heximus_Logo_AI_Platform from "../assets/Heximus_Logo_AI_Platform.png"
 
-function Icon({ path, size = 17, color = "currentColor" }) {
+function Icon({ path, size = 17 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
       style={{ display: "block", flexShrink: 0 }}>
       <path d={path} />
     </svg>
   );
 }
 
-export default function Sidebar({ view, onViewChange, userInfo, onLogout, unreadCount }) {
+export default function Sidebar({ userInfo, onLogout, unreadCount }) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 1024);
   const [showLogout, setShowLogout] = useState(false);
 
@@ -25,15 +26,11 @@ export default function Sidebar({ view, onViewChange, userInfo, onLogout, unread
     : "Utente";
   const roleName = userInfo?.role?.name || userInfo?.role || "Utente";
 
-  const isActive = (id) =>
-    view === id || (id === "procedures" && view === "procedure-detail");
-
   return (
     <aside className={`pai-sidebar${collapsed ? " pai-sidebar--collapsed" : ""}`}>
       {/* Logo + toggle */}
       <div className="pai-sidebar__logo">
-        <img src={Heximus_Logo_AI_Platform} alt="" className="pai-sidebar__logo-icon" />
-        
+        <Link to={"dashboard"}><img src={Heximus_Logo_AI_Platform} alt="" className="pai-sidebar__logo-icon" /></Link>
         <div className="pai-sidebar__logo-text">
           <div className="pai-sidebar__logo-name">Heximus</div>
           <div className="pai-sidebar__logo-sub">AI Platform</div>
@@ -57,24 +54,23 @@ export default function Sidebar({ view, onViewChange, userInfo, onLogout, unread
       <nav className="pai-sidebar__nav">
         <div className="pai-sidebar__section-label">Menu</div>
         {NAV_ITEMS.map(item => {
-          const active = isActive(item.id);
           const count = item.badge ? unreadCount : 0;
           return (
-            <div
+            <NavLink
               key={item.id}
-              className={`pai-sidebar__item${active ? " pai-sidebar__item--active" : ""}`}
-              onClick={() => onViewChange(item.id)}
+              to={`/${item.id}`}
+              className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
               title={collapsed ? item.label : undefined}
             >
               <div className="pai-sidebar__item-icon">
-                <Icon path={item.icon} size={17} color={active ? "white" : "#475569"} />
+                <Icon path={item.icon} size={17} />
                 {count > 0 && collapsed && <span className="pai-sidebar__dot" />}
               </div>
               <span className="pai-sidebar__item-label">{item.label}</span>
               {count > 0 && !collapsed && (
                 <span className="pai-sidebar__badge">{count}</span>
               )}
-            </div>
+            </NavLink>
           );
         })}
 
@@ -82,20 +78,19 @@ export default function Sidebar({ view, onViewChange, userInfo, onLogout, unread
         {roleName === "Admin" && (
           <>
             <div className="pai-sidebar__section-label" style={{ marginTop: 16 }}>Admin</div>
-            <div
-              className={`pai-sidebar__item${view === "users" ? " pai-sidebar__item--active" : ""}`}
-              onClick={() => onViewChange("users")}
+            <NavLink
+              to="/users"
+              className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
               title={collapsed ? "Utenti" : undefined}
             >
               <div className="pai-sidebar__item-icon">
                 <Icon
                   path="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
                   size={17}
-                  color={view === "users" ? "white" : "#475569"}
                 />
               </div>
               <span className="pai-sidebar__item-label">Utenti</span>
-            </div>
+            </NavLink>
           </>
         )}
       </nav>
@@ -112,8 +107,8 @@ export default function Sidebar({ view, onViewChange, userInfo, onLogout, unread
           <div className="pai-sidebar__user-name">{displayName}</div>
           <div className="pai-sidebar__user-role">{roleName}</div>
         </div>
-        <button className="pai-sidebar__logout" onClick={() => setShowLogout(true)} title="Logout">
-          <Icon path="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" size={14} color="#475569" />
+        <button className="pai-sidebar__logout" onClick={() => setShowLogout(true)} title="Logout" >
+          <Icon path="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" size={14} />
         </button>
       </div>
 
@@ -121,7 +116,7 @@ export default function Sidebar({ view, onViewChange, userInfo, onLogout, unread
         <div className="pai-logout-overlay" onClick={() => setShowLogout(false)}>
           <div className="pai-logout-modal" onClick={e => e.stopPropagation()}>
             <div className="pai-logout-modal__icon">
-              <Icon path="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" size={22} color="#2563EB" />
+              <Icon path="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" size={22} />
             </div>
             <div className="pai-logout-modal__title">Esci dall'account</div>
             <div className="pai-logout-modal__msg">Sei sicuro di voler uscire? Dovrai effettuare nuovamente l'accesso.</div>

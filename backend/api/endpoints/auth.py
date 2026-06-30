@@ -58,6 +58,27 @@ def get_me(current_user: models.User = Depends(get_current_user)):
         "role": current_user.role,
     }
 
+# Aggiorna il proprio profilo (nome, cognome, email)
+@router.patch("/me", response_model=schemas.UserOut)
+def update_me(
+    data: schemas.UserProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    existing = db.query(models.User).filter(
+        models.User.email == data.email,
+        models.User.id != current_user.id
+    ).first()
+    if existing:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email già in uso da un altro utente")
+    current_user.first_name = data.first_name
+    current_user.last_name  = data.last_name
+    current_user.email      = data.email
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
 # Aggiorna un utente (nome, cognome, email, ruolo) — solo admin
 @router.patch("/users/{user_id}", response_model=schemas.UserOut)
 def update_user(

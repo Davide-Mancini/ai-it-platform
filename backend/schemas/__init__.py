@@ -1,6 +1,6 @@
-from .users_schemas import UserBase, UserCreate, UserOut, UserLogin, Token, UserUpdate, RoleOut, UserActiveUpdate
+from .users_schemas import UserBase, UserCreate, UserOut, UserLogin, Token, UserUpdate, UserProfileUpdate, RoleOut, UserActiveUpdate
 from .procedures_schemas import ProcedureBase, ProcedureCreate, ProcedureOut
-from .tasks_schemas import TaskBase, TaskCreate, TaskUpdateStatus, TaskOut, TaskAssign
+from .tasks_schemas import TaskBase, TaskCreate, TaskUpdateStatus, TaskUpdatePriority, TaskOut, TaskAssign
 from .ai_schemas import AIRequest, AIProcedureResponse, AIRecommendationOut, AIStepStructure
 from .customers_schemas import CustomerBase,CustomerCreate,CustomerOut,CustomerUpdate
 from .procedure_steps_schemas import ProcedureStepCreate,ProcedureStepBase,ProcedureStepOut

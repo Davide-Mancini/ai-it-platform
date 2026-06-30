@@ -5,11 +5,12 @@ const headers = (token, json = false) => ({
   ...(json ? { "Content-Type": "application/json" } : {}),
 });
 
-export const TASKS_LOADING      = "TASKS_LOADING";
-export const TASKS_SUCCESS      = "TASKS_SUCCESS";
-export const TASK_ADD           = "TASK_ADD";
-export const TASK_STATUS_UPDATE = "TASK_STATUS_UPDATE";
-export const TASK_ASSIGN_UPDATE = "TASK_ASSIGN_UPDATE";
+export const TASKS_LOADING        = "TASKS_LOADING";
+export const TASKS_SUCCESS        = "TASKS_SUCCESS";
+export const TASK_ADD             = "TASK_ADD";
+export const TASK_STATUS_UPDATE   = "TASK_STATUS_UPDATE";
+export const TASK_PRIORITY_UPDATE = "TASK_PRIORITY_UPDATE";
+export const TASK_ASSIGN_UPDATE   = "TASK_ASSIGN_UPDATE";
 
 export const fetchAllTasks = (token) => async (dispatch) => {
   dispatch({ type: TASKS_LOADING });
@@ -19,11 +20,11 @@ export const fetchAllTasks = (token) => async (dispatch) => {
   }
 };
 
-export const createTask = (token, procedureId, title) => async (dispatch) => {
+export const createTask = (token, procedureId, title, priority = "low") => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/tasks/procedures/${procedureId}/tasks`, {
     method: "POST",
     headers: headers(token, true),
-    body: JSON.stringify({ title }),
+    body: JSON.stringify({ title, priority }),
   });
   if (res.ok) {
     const task = await res.json();
@@ -41,6 +42,19 @@ export const updateTaskStatus = (token, taskId, newStatus) => async (dispatch) =
       method: "PATCH",
       headers: headers(token, true),
       body: JSON.stringify({ status: newStatus }),
+    });
+  } catch {
+    dispatch(fetchAllTasks(token));
+  }
+};
+
+export const updateTaskPriority = (token, taskId, newPriority) => async (dispatch) => {
+  dispatch({ type: TASK_PRIORITY_UPDATE, payload: { taskId, priority: newPriority } });
+  try {
+    await fetch(`${API_BASE}/api/tasks/tasks/${taskId}/priority`, {
+      method: "PATCH",
+      headers: headers(token, true),
+      body: JSON.stringify({ priority: newPriority }),
     });
   } catch {
     dispatch(fetchAllTasks(token));

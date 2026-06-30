@@ -1,5 +1,6 @@
 from uuid import UUID
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -15,12 +16,16 @@ class UserMinimal(BaseModel):
 class TaskBase(BaseModel):
     title: str
     status: str = "pending"
+    priority: str = "low"
 
 class TaskCreate(TaskBase):
     pass
 
 class TaskUpdateStatus(BaseModel):
     status: str
+
+class TaskUpdatePriority(BaseModel):
+    priority: str
 
 class TaskAssign(BaseModel):
     user_id: UUID
@@ -29,6 +34,7 @@ class TaskOut(TaskBase):
     id: UUID
     procedure_id: UUID
     assigned_users: List[UserMinimal] = []
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

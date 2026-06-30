@@ -81,7 +81,7 @@ def get_steps_for_procedure(
     )
     if not latest_version:
         return []
-    return sorted(latest_version.steps, key=lambda s: s.step_number)
+    return sorted(latest_version.steps, key=lambda s: s.step_number or 0)
 
 
 @router.patch("/steps/{step_id}/status", response_model=schemas.ProcedureStepOut)

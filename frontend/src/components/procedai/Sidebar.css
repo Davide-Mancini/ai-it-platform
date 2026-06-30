@@ -135,6 +135,7 @@
   user-select: none;
   position: relative;
   white-space: nowrap;
+  text-decoration: none;
 }
 .pai-sidebar__item:hover {
   background: rgba(255,255,255,.05);
@@ -278,7 +279,7 @@
   font-weight: 500;
 }
 .pai-sidebar__logout {
-  background: transparent;
+  background: #f1eeee;
   border: none;
   cursor: pointer;
   padding: 4px;
@@ -298,7 +299,7 @@
   pointer-events: none;
   transition: opacity .08s;
 }
-.pai-sidebar__logout:hover { background: rgba(255,255,255,.06); }
+.pai-sidebar__logout:hover { background: rgb(204, 191, 191)}
 
 /* ── Logout confirmation modal ──────────────────────────── */
 .pai-logout-overlay {

@@ -113,6 +113,60 @@
   line-height: 1.45;
   margin-bottom: 5px;
 }
+.pai-task-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+.pai-task-priority {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+.pai-task-priority--clickable {
+  cursor: pointer;
+  transition: filter .12s;
+}
+.pai-task-priority--clickable:hover { filter: brightness(.93); }
+
+.pai-priority-dropdown {
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  min-width: 130px;
+  padding: 5px 0;
+}
+.pai-priority-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #0F172A;
+  cursor: pointer;
+  transition: background .1s;
+}
+.pai-priority-dropdown__item:hover { background: #F8FAFC; }
+.pai-priority-dropdown__item--active { font-weight: 700; background: #F0F7FF; }
+.pai-priority-dropdown__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pai-task-card__date {
+  font-size: 10px;
+  color: #94A3B8;
+}
 .pai-task-card__proc {
   font-size: 10px;
   color: #94A3B8;
@@ -316,6 +370,7 @@
 .pai-task-form__error {
   font-size: 13px; color: #DC2626; background: #FEF2F2; padding: 9px 12px; border-radius: 7px;
 }
+.pai-task-form__row { display: flex; gap: 12px; }
 .pai-task-form__actions { display: flex; gap: 10px; justify-content: flex-end; }
 .pai-field__select {
   width: 100%;

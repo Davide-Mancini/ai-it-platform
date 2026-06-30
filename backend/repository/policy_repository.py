@@ -15,3 +15,10 @@ class PolicyRepository:
     @staticmethod
     def get_active_policies(db: Session):
         return db.query(Policy).filter(Policy.is_active == True).all()
+
+    @staticmethod
+    def create(db: Session, policy: Policy) -> Policy:
+        db.add(policy)
+        db.commit()
+        db.refresh(policy)
+        return policy

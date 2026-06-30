@@ -52,6 +52,14 @@ class UserUpdate(BaseModel):
 
     model_config = {"from_attributes": True}
 
+# Schema per aggiornamento profilo personale (senza role_id)
+class UserProfileUpdate(BaseModel):
+    first_name: str = Field(min_length=1, max_length=50)
+    last_name: str = Field(min_length=1, max_length=50)
+    email: EmailStr
+
+    model_config = {"from_attributes": True}
+
 # Schema per attivazione/disattivazione account
 class UserActiveUpdate(BaseModel):
     is_active: bool

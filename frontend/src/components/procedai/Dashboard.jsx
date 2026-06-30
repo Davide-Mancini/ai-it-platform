@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./Dashboard.css";
 
 const ACTION_LABELS = {
@@ -6,7 +7,8 @@ const ACTION_LABELS = {
   "PROCEDURE DELETED": "ha eliminato una procedura",
   "TASK CREATED":      "ha creato un nuovo task",
   "TASK UPDATED":      "ha aggiornato un task",
-  "USER LOGIN":        "ha effettuato l'accesso",
+  "LOGIN":        "ha effettuato l'accesso",
+  "AI_RECOMMENDATION_ACCEPTED":        "ha accettato una raccomandazione AI",
 };
 
 function relativeTime(isoString) {
@@ -25,7 +27,7 @@ function actorInitials(entry) {
 }
 
 function actorName(entry) {
-  if (entry.user_first_name) return entry.user_first_name;
+  if (entry.user_first_name) return entry.user_first_name + " " + entry.user_last_name;
   if (entry.user_email) return entry.user_email.split("@")[0];
   return "Utente";
 }
@@ -67,7 +69,15 @@ function CheckIcon() {
   );
 }
 
-export default function Dashboard({ procedures, tasks, stepsById = {}, recentActivity = [], notifications = [], onProcedureClick, onViewChange }) {
+export default function Dashboard({ procedures, tasks, stepsById = {}, recentActivity = [], notifications = [], onProcedureClick, onViewChange, onRefreshActivity }) {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefreshActivity = async () => {
+    if (!onRefreshActivity || refreshing) return;
+    setRefreshing(true);
+    try { await onRefreshActivity(); } finally { setRefreshing(false); }
+  };
+
   const activeProcedures = procedures.filter(p => p._status === "active" || !p._status);
   const doneTasks = tasks.filter(t => t.status === "done").length;
   const openTasks = tasks.filter(t => t.status !== "done").length;
@@ -176,7 +186,20 @@ export default function Dashboard({ procedures, tasks, stepsById = {}, recentAct
 
         {/* Activity */}
         <div className="pai-card pai-dashboard__activity">
-          <div className="pai-dashboard__card-title" style={{ padding: "18px 18px 14px" }}>Attività recente</div>
+          <div className="pai-dashboard__card-title" style={{ padding: "18px 18px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span>Attività recente</span>
+            <button
+              className={`pai-dashboard__refresh-btn${refreshing ? " pai-dashboard__refresh-btn--spinning" : ""}`}
+              onClick={handleRefreshActivity}
+              title="Aggiorna attività"
+              disabled={refreshing}
+            >
+              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            </button>
+          </div>
           {recentActivity.length === 0 && (
             <div className="pai-dashboard__empty">Nessuna attività recente.</div>
           )}
@@ -186,7 +209,7 @@ export default function Dashboard({ procedures, tasks, stepsById = {}, recentAct
                 {actorInitials(a)}
               </div>
               <div className="pai-dashboard__act-text">
-                <span className="pai-dashboard__act-name">{actorName(a)} </span>
+                <span className="pai-dashboard__act-name">{actorName(a)} </span> <br />
                 <span className="pai-dashboard__act-action">{ACTION_LABELS[a.action] || a.action.toLowerCase()}</span>
                 <div className="pai-dashboard__act-time">{relativeTime(a.created_at)}</div>
               </div>
