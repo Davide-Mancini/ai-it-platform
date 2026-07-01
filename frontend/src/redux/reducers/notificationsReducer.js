@@ -3,6 +3,8 @@ import {
   NOTIFICATION_RECEIVED,
   NOTIFICATION_READ,
   NOTIFICATIONS_ALL_READ,
+  NOTIFICATION_DELETED,
+  NOTIFICATIONS_ALL_DELETED,
 } from "../actions/notificationsActions";
 
 const initialState = { list: [] };
@@ -24,6 +26,12 @@ export const notificationsReducer = (state = initialState, action) => {
 
     case NOTIFICATIONS_ALL_READ:
       return { list: state.list.map(n => ({ ...n, is_read: true })) };
+
+    case NOTIFICATION_DELETED:
+      return { list: state.list.filter(n => n.id !== action.payload) };
+
+    case NOTIFICATIONS_ALL_DELETED:
+      return { list: [] };
 
     default:
       return state;

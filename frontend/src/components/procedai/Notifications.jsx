@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./Notifications.css";
 
 const TYPE_ICON = {
@@ -17,6 +18,19 @@ function Icon({ path, size = 16, color = "currentColor" }) {
   );
 }
 
+function TrashIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      style={{ display: "block" }}>
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+    </svg>
+  );
+}
+
 function relativeTime(isoString) {
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
   if (diff < 60)  return "Adesso";
@@ -25,8 +39,20 @@ function relativeTime(isoString) {
   return `${Math.floor(diff / 86400)} giorni fa`;
 }
 
-export default function Notifications({ notifications, onMarkRead, onMarkAllRead }) {
+export default function Notifications({ notifications, onMarkRead, onMarkAllRead, onDelete, onDeleteAll }) {
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const unread = notifications.filter(n => !n.is_read).length;
+
+  const handleDeleteAll = () => {
+    if (confirmDeleteAll) {
+      onDeleteAll();
+      setConfirmDeleteAll(false);
+    } else {
+      setConfirmDeleteAll(true);
+      setTimeout(() => setConfirmDeleteAll(false), 3000);
+    }
+  };
+
   return (
     <div className="pai-view">
       <div className="pai-notif__header">
@@ -34,10 +60,22 @@ export default function Notifications({ notifications, onMarkRead, onMarkAllRead
           <div className="pai-notif__title">Notifiche</div>
           <div className="pai-notif__sub">{unread} non lette</div>
         </div>
-        {unread > 0 && (
-          <button className="pai-btn pai-btn--ghost" onClick={onMarkAllRead} style={{ fontSize: 12 }}>
-            Segna tutte come lette
-          </button>
+        {notifications.length > 0 && (
+          <div className="pai-notif__actions">
+            {unread > 0 && (
+              <button className="pai-btn pai-btn--ghost" onClick={onMarkAllRead} style={{ fontSize: 12 }}>
+                Segna tutte come lette
+              </button>
+            )}
+            <button
+              className={`pai-btn pai-notif__delete-all-btn${confirmDeleteAll ? " pai-notif__delete-all-btn--confirm" : ""}`}
+              onClick={handleDeleteAll}
+              title="Elimina tutte le notifiche"
+            >
+              <TrashIcon size={13} />
+              {confirmDeleteAll ? "Conferma eliminazione" : "Elimina tutte"}
+            </button>
+          </div>
         )}
       </div>
 
@@ -65,6 +103,13 @@ export default function Notifications({ notifications, onMarkRead, onMarkAllRead
                 <div className="pai-notif-row__time">{relativeTime(n.created_at)}</div>
               </div>
               {!n.is_read && <div className="pai-notif-row__dot" />}
+              <button
+                className="pai-notif-row__delete"
+                onClick={e => { e.stopPropagation(); onDelete(n.id); }}
+                title="Elimina notifica"
+              >
+                <TrashIcon size={13} />
+              </button>
             </div>
           );
         })}

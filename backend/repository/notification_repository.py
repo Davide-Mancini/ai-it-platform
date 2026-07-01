@@ -39,3 +39,19 @@ def mark_all_as_read(db: Session, user_id: UUID):
         models.Notification.is_read == False,
     ).update({"is_read": True})
     db.commit()
+
+
+def delete_notification(db: Session, notification_id: UUID, user_id: UUID) -> bool:
+    deleted = db.query(models.Notification).filter(
+        models.Notification.id == notification_id,
+        models.Notification.user_id == user_id,
+    ).delete()
+    db.commit()
+    return deleted > 0
+
+
+def delete_all_notifications(db: Session, user_id: UUID):
+    db.query(models.Notification).filter(
+        models.Notification.user_id == user_id,
+    ).delete()
+    db.commit()

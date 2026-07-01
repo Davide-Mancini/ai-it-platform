@@ -20,4 +20,5 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     procedures = relationship("Procedure", back_populates="author")
     assigned_tasks = relationship("Task", secondary=task_user_assignments, back_populates="assigned_users")
-    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    notifications      = relationship("Notification",      back_populates="user", cascade="all, delete-orphan")
+    push_subscriptions = relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")

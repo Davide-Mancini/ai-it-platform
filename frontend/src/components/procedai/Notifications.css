@@ -48,3 +48,54 @@
   flex-shrink: 0;
   margin-top: 6px;
 }
+
+.pai-notif-row__delete {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #CBD5E1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .15s, background .12s, color .12s;
+  margin-top: 2px;
+}
+.pai-notif-row:hover .pai-notif-row__delete { opacity: 1; }
+.pai-notif-row__delete:hover { background: #FEF2F2; color: #DC2626; }
+
+.pai-notif__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pai-notif__delete-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 6px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 7px;
+  background: white;
+  color: #94A3B8;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.pai-notif__delete-all-btn:hover { border-color: #FCA5A5; color: #DC2626; background: #FEF2F2; }
+.pai-notif__delete-all-btn--confirm {
+  border-color: #DC2626;
+  color: #DC2626;
+  background: #FEF2F2;
+  animation: pai-pulse .4s ease;
+}
+@keyframes pai-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.03); }
+}

@@ -10,6 +10,9 @@ from db.database import get_db
 from services import auth_service
 from repository import auth_repository
 from services import auth_service
+from mail_sender import send_custom_email
+from models.push_subscription import PushSubscription
+import os
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -127,3 +130,91 @@ def get_roles(
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
     return db.query(models.Role).all()
+
+
+# Invio email a utenti specifici o a tutti — solo admin
+@router.post("/send-bulk-email")
+def send_bulk_email(
+    data: schemas.BulkEmailRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role.name != "Admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Operazione non autorizzata. Solo per admin")
+
+    if data.user_ids:
+        recipients = db.query(models.User).filter(models.User.id.in_(data.user_ids), models.User.is_active == True).all()
+    else:
+        recipients = db.query(models.User).filter(models.User.is_active == True).all()
+
+    if not recipients:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nessun destinatario trovato")
+
+    sent, failed = 0, 0
+    for user in recipients:
+        try:
+            send_custom_email(user.email, data.subject, data.body_html)
+            sent += 1
+        except Exception:
+            failed += 1
+
+    return {"sent": sent, "failed": failed, "total": len(recipients)}
+
+
+# ── Web Push ──────────────────────────────────────────────────────────────────
+
+# Restituisce la VAPID public key al frontend.
+# Il frontend ne ha bisogno PRIMA di chiamare pushManager.subscribe():
+# la passa al Push Service (Google/Mozilla) come prova che appartiene al tuo server.
+@router.get("/push-vapid-key")
+def get_vapid_public_key(current_user: User = Depends(get_current_user)):
+    key = os.getenv("VAPID_PUBLIC_KEY")
+    if not key:
+        raise HTTPException(status_code=500, detail="VAPID non configurato sul server")
+    return {"public_key": key}
+
+
+# Salva la subscription nel DB quando l'utente attiva le notifiche push.
+# Il browser chiama questo endpoint subito dopo aver ottenuto la PushSubscription
+# dal Push Service. Il campo "endpoint" è unique: se l'utente si reiscrive
+# con lo stesso browser, aggiorniamo invece di inserire un duplicato.
+@router.post("/push-subscribe")
+def push_subscribe(
+    data: schemas.PushSubscribeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    existing = db.query(PushSubscription).filter(
+        PushSubscription.endpoint == data.endpoint
+    ).first()
+
+    if existing:
+        # Subscription già presente: aggiorna le chiavi (possono cambiare dopo un rinnovo)
+        existing.p256dh = data.p256dh
+        existing.auth   = data.auth
+    else:
+        db.add(PushSubscription(
+            user_id  = current_user.id,
+            endpoint = data.endpoint,
+            p256dh   = data.p256dh,
+            auth     = data.auth,
+        ))
+
+    db.commit()
+    return {"status": "subscribed"}
+
+
+# Elimina la subscription quando l'utente disattiva le notifiche push.
+# Identifichiamo la subscription dall'endpoint, che è univoco per browser.
+@router.delete("/push-unsubscribe")
+def push_unsubscribe(
+    data: schemas.PushSubscribeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    db.query(PushSubscription).filter(
+        PushSubscription.endpoint == data.endpoint,
+        PushSubscription.user_id  == current_user.id,
+    ).delete()
+    db.commit()
+    return {"status": "unsubscribed"}

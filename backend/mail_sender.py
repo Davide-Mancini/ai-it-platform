@@ -88,3 +88,52 @@ def send_simple_message(email, first_name):
 
     if not response.ok:
         print(f"[mail_sender] Errore Mailgun: {response.status_code} - {response.text}")
+
+
+def send_custom_email(email: str, subject: str, body_html: str):
+    api_key = os.getenv("MAILGUN_API_KEY")
+    domain = os.getenv("MAILGUN_DOMAIN", "sandbox348aae73e87f47aeb00f9f8252e1fdce.mailgun.org")
+
+    if not api_key:
+        print("[mail_sender] MAILGUN_API_KEY non configurata, mail non inviata")
+        return
+
+    wrapped_html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',Helvetica,Arial,sans-serif;background-color:#f8f9fa;color:#333333;">
+  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
+         style="max-width:600px;background-color:#ffffff;margin:20px auto;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+    <tr>
+      <td bgcolor="#367CC0" style="padding:20px;text-align:center;">
+        <img src="https://res.cloudinary.com/dyl6viqkf/image/upload/v1782799821/Heximus_Logo_AI_Platform_nhsevf.png"
+             alt="Heximus AI Platform" width="140" style="display:block;margin:0 auto;" />
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:35px 30px;">
+        {body_html}
+      </td>
+    </tr>
+    <tr>
+      <td bgcolor="#f8f9fa" style="padding:20px 30px;text-align:center;font-size:12px;color:#999999;border-top:1px solid #eeeeee;">
+        <p style="margin:0 0 4px 0;">&copy; 2026 Heximus AI Platform. Tutti i diritti riservati.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+    response = requests.post(
+        f"https://api.mailgun.net/v3/{domain}/messages",
+        auth=("api", api_key),
+        data={
+            "from": f"Heximus AI Platform <postmaster@{domain}>",
+            "to": email,
+            "subject": subject,
+            "html": wrapped_html,
+        },
+    )
+
+    if not response.ok:
+        print(f"[mail_sender] Errore Mailgun: {response.status_code} - {response.text}")

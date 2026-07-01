@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./Settings.css";
+import { usePushNotifications } from "../../hooks/usePushNotifications";
 
 const API_BASE = "http://localhost:8000";
 
@@ -22,6 +23,8 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState("");
   const [success, setSuccess]   = useState(false);
+  const [emailToggleError, setEmailToggleError] = useState(false);
+  const push = usePushNotifications(token);
   const [form, setForm] = useState({
     first_name: userInfo?.first_name || "",
     last_name:  userInfo?.last_name  || "",
@@ -153,17 +156,58 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
             <div className="pai-settings__section-title">Notifiche</div>
           </div>
           <SettingRow label="Notifiche email" desc="Ricevi aggiornamenti via email">
-            <label className="pai-settings__toggle">
-              <input type="checkbox" defaultChecked />
+            <label
+              className="pai-settings__toggle pai-settings__toggle--locked"
+              title="Le notifiche email non possono essere disattivate"
+            >
+              <input
+                type="checkbox"
+                checked={true}
+                onChange={() => {
+                  setEmailToggleError(true);
+                  setTimeout(() => setEmailToggleError(false), 5000);
+                }}
+              />
               <span className="pai-settings__toggle-slider" />
             </label>
           </SettingRow>
-          <SettingRow label="Notifiche push" desc="Notifiche nel browser">
-            <label className="pai-settings__toggle">
-              <input type="checkbox" />
+          {emailToggleError && (
+            <div className="pai-settings__error" style={{ marginTop: -4 }}>
+              Non è possibile disattivare le notifiche email: tutte le comunicazioni ufficiali verranno inviate esclusivamente tramite posta elettronica.
+            </div>
+          )}
+          <SettingRow
+            label="Notifiche push"
+            desc={
+              !("serviceWorker" in navigator) || !("PushManager" in window)
+                ? "Non supportate da questo browser"
+                : "Notifiche native anche a tab chiusa"
+            }
+          >
+            <label
+              className={`pai-settings__toggle${push.loading ? " pai-settings__toggle--locked" : ""}`}
+              title={
+                !("serviceWorker" in navigator) || !("PushManager" in window)
+                  ? "Il tuo browser non supporta le notifiche push"
+                  : push.loading
+                    ? "Caricamento…"
+                    : push.enabled ? "Clicca per disattivare" : "Clicca per attivare"
+              }
+            >
+              <input
+                type="checkbox"
+                checked={push.enabled}
+                disabled={push.loading || !("serviceWorker" in navigator) || !("PushManager" in window)}
+                onChange={() => push.enabled ? push.disable() : push.enable()}
+              />
               <span className="pai-settings__toggle-slider" />
             </label>
           </SettingRow>
+          {push.error && (
+            <div className="pai-settings__error" style={{ marginTop: -4 }}>
+              {push.error}
+            </div>
+          )}
         </div>
 
         {/* Applicazione */}

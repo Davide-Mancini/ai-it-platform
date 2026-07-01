@@ -89,6 +89,7 @@
   padding: 9px 12px;
   border-radius: 7px;
   margin-bottom: 8px;
+  max-width: 444px;
 }
 
 /* Toggle */
@@ -115,3 +116,4 @@
 }
 .pai-settings__toggle input:checked + .pai-settings__toggle-slider { background: #2563EB; }
 .pai-settings__toggle input:checked + .pai-settings__toggle-slider::before { transform: translateX(18px); }
+.pai-settings__toggle--locked { cursor: not-allowed; }

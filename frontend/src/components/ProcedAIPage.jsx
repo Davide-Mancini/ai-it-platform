@@ -6,7 +6,7 @@ import { fetchProcedures, createProcedure, fetchSteps, toggleStepStatus, acceptR
 import { fetchAllTasks, createTask, updateTaskStatus, updateTaskPriority, assignUserToTask, unassignUserFromTask } from "../redux/actions/tasksActions";
 import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
 import { fetchUsers, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
-import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from "../redux/actions/notificationsActions";
+import { fetchNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllNotifications } from "../redux/actions/notificationsActions";
 import { useNotificationsSSE } from "../hooks/useNotificationsSSE";
 
 import Sidebar         from "./procedai/Sidebar";
@@ -219,8 +219,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
 
   // ── Gestione utenti ──────────────────────────────────────────────────────
   const handleSaveUser = async (userId, form) => await dispatch(updateUser(token, userId, form));
-  const handleMarkNotificationRead    = (id) => dispatch(markNotificationRead(token, id));
-  const handleMarkAllNotificationsRead = ()  => dispatch(markAllNotificationsRead(token));
+  const handleMarkNotificationRead     = (id) => dispatch(markNotificationRead(token, id));
+  const handleMarkAllNotificationsRead = ()   => dispatch(markAllNotificationsRead(token));
+  const handleDeleteNotification       = (id) => dispatch(deleteNotification(token, id));
+  const handleDeleteAllNotifications   = ()   => dispatch(deleteAllNotifications(token));
 
   // ── Dati derivati ────────────────────────────────────────────────────────
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -286,6 +288,8 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         notifications={notifications}
         onMarkRead={handleMarkNotificationRead}
         onMarkAllRead={handleMarkAllNotificationsRead}
+        onDelete={handleDeleteNotification}
+        onDeleteAll={handleDeleteAllNotifications}
       />
     );
 
@@ -298,6 +302,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         loading={loadingUsers}
         onSave={handleSaveUser}
         onToggleActive={(userId, isActive) => dispatch(toggleUserActive(token, userId, isActive))}
+        token={token}
       />
     );
 

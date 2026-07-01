@@ -192,3 +192,156 @@
 .pai-users__toggle--on .pai-users__toggle-knob {
   transform: translateX(20px);
 }
+
+/* ── Toolbar actions ─────────────────────────────────────── */
+.pai-users__toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pai-users__send-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  background: #2563EB;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s;
+  flex-shrink: 0;
+}
+.pai-users__send-btn:hover { background: #1D4ED8; }
+
+/* ── Send email modal ────────────────────────────────────── */
+.pai-email-modal { width: 560px; }
+.pai-email-modal__body {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pai-email-modal__textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 10px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #0F172A;
+  resize: vertical;
+  outline: none;
+  transition: border-color .15s;
+  box-sizing: border-box;
+  background: #F8FAFC;
+}
+.pai-email-modal__textarea:focus { 
+  border-color: #2563EB;
+  background: white;
+}
+.pai-email-modal__recipients-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: #94A3B8;
+  margin-bottom: 8px;
+}
+.pai-email-modal__mode {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.pai-email-modal__mode-btn {
+  flex: 1;
+  padding: 8px 0;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  background: #F8FAFC;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.pai-email-modal__mode-btn--active {
+  border-color: #2563EB;
+  color: #2563EB;
+  background: #EFF6FF;
+}
+.pai-email-modal__user-list {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+.pai-email-modal__user-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: background .1s;
+  border-bottom: 1px solid #F1F5F9;
+}
+.pai-email-modal__user-item:last-child { border-bottom: none; }
+.pai-email-modal__user-item:hover { background: #F8FAFC; }
+.pai-email-modal__user-item input[type="checkbox"] { accent-color: #2563EB; cursor: pointer; }
+.pai-email-modal__role-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.pai-email-modal__role-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 99px;
+  background: #F8FAFC;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.pai-email-modal__role-chip:hover { border-color: #94A3B8; color: #0F172A; }
+.pai-email-modal__role-chip--active { font-weight: 700; }
+.pai-email-modal__role-count {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(0,0,0,.07);
+  border-radius: 99px;
+  padding: 1px 6px;
+  margin-left: 2px;
+}
+
+.pai-email-modal__user-name { font-size: 12px; font-weight: 600; color: #0F172A; }
+.pai-email-modal__user-email { font-size: 11px; color: #94A3B8; margin-left: auto; }
+.pai-email-modal__success {
+  font-size: 13px;
+  color: #059669;
+  background: #ECFDF5;
+  padding: 9px 12px;
+  border-radius: 7px;
+}
+.pai-email-modal__counter {
+  font-size: 11px;
+  color: #94A3B8;
+  text-align: right;
+}
+.pai-email-modal__user-role{
+  font-size: 10px;
+  color: #94A3B8;
+}

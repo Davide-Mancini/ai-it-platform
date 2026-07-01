@@ -1,4 +1,4 @@
-from .users_schemas import UserBase, UserCreate, UserOut, UserLogin, Token, UserUpdate, UserProfileUpdate, RoleOut, UserActiveUpdate
+from .users_schemas import UserBase, UserCreate, UserOut, UserLogin, Token, UserUpdate, UserProfileUpdate, RoleOut, UserActiveUpdate, BulkEmailRequest, PushSubscribeRequest
 from .procedures_schemas import ProcedureBase, ProcedureCreate, ProcedureOut
 from .tasks_schemas import TaskBase, TaskCreate, TaskUpdateStatus, TaskUpdatePriority, TaskOut, TaskAssign
 from .ai_schemas import AIRequest, AIProcedureResponse, AIRecommendationOut, AIStepStructure

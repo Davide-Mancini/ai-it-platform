@@ -66,6 +66,22 @@ class UserActiveUpdate(BaseModel):
 
     model_config = {"from_attributes": True}
 
+# Schema per salvataggio subscription push browser
+class PushSubscribeRequest(BaseModel):
+    endpoint: str
+    p256dh:   str
+    auth:     str
+
+    model_config = {"from_attributes": True}
+
+# Schema per invio email massivo da admin
+class BulkEmailRequest(BaseModel):
+    subject: str = Field(min_length=1, max_length=200)
+    body_html: str = Field(min_length=1)
+    user_ids: list[UUID] | None = None  # None = tutti gli utenti
+
+    model_config = {"from_attributes": True}
+
 # Schema per i ruoli
 class RoleOut(BaseModel):
     id: UUID

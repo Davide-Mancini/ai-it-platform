@@ -32,8 +32,8 @@
 }
 .pai-docs__cat-count { font-size: 11px; color: #94A3B8; }
 
-.pai-docs__main { flex: 1; }
-.pai-docs__table { overflow: hidden; }
+.pai-docs__main { flex: 1; width: 100%;}
+.pai-docs__table { overflow: hidden;  }
 .pai-docs__table-header {
   display: grid;
   grid-template-columns: 1fr 80px 140px 60px;
@@ -390,7 +390,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.pai-policy-row__doc {}
+
 .pai-policy-row__doc-badge {
   display: inline-flex;
   align-items: center;
@@ -606,6 +606,7 @@
   .pai-docs__sidebar {
     width: 100%;
   }
+  
   /* Categorie in riga orizzontale scrollabile */
   .pai-docs__cats {
     display: flex;
@@ -636,7 +637,9 @@
   .pai-docs__table-header,
   .pai-docs__row {
     grid-template-columns: 1fr 70px 44px;
+    padding-right: 24px;
   }
+
   .pai-docs__col-date { display: none; }
   .pai-docs__doc-sub { max-width: 180px; }
 }

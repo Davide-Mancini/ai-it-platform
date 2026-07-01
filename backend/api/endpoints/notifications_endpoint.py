@@ -81,3 +81,38 @@ def mark_all_read(
     current_user: models.User = Depends(get_current_user),
 ):
     notification_service.mark_all_as_read(db, current_user.id)
+
+
+@router.delete("/{notification_id}", status_code=204)
+def delete_notification(
+    notification_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    found = notification_service.delete_notification(db, notification_id, current_user.id)
+    if not found:
+        raise HTTPException(status_code=404, detail="Notifica non trovata")
+
+
+@router.delete("/", status_code=204)
+def delete_all_notifications(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    notification_service.delete_all_notifications(db, current_user.id)
+
+
+@router.post("/test-push")
+def test_push(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Endpoint di test: invia una notifica push a se stessi. Da rimuovere in produzione."""
+    notification_service.create_notification(
+        db,
+        current_user.id,
+        "🔔 Test notifica push",
+        "Se vedi questo messaggio, le Web Push funzionano correttamente!",
+        type="system",
+    )
+    return {"status": "push inviata"}
