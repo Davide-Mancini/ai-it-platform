@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Heximus_Logo_AI_Platform from "./assets/Heximus_Logo_AI_Platform_NoBG.png"
 
 const API_BASE = "http://localhost:8000";
 
 function AuthPage({ onAuth }) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("login");
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -22,7 +24,7 @@ function AuthPage({ onAuth }) {
 
   const handleLogin = async () => {
     if (!loginData.email || !loginData.password) {
-      setLoginError("Inserisci email e password.");
+      setLoginError(t("auth.err_email_password"));
       return;
     }
     setLoginLoading(true);
@@ -43,10 +45,10 @@ function AuthPage({ onAuth }) {
         onAuth(data.access_token);
       } else {
         const err = await res.json().catch(() => ({}));
-        setLoginError(err.detail || "Credenziali non valide. Riprova.");
+        setLoginError(err.detail || t("auth.err_invalid_credentials"));
       }
     } catch {
-      setLoginError("Errore di rete. Verifica che il server sia avviato.");
+      setLoginError(t("auth.err_network"));
     } finally {
       setLoginLoading(false);
     }
@@ -54,15 +56,15 @@ function AuthPage({ onAuth }) {
 
   const handleRegister = async () => {
     if (!registerData.first_name || !registerData.last_name || !registerData.email || !registerData.password) {
-      setRegisterError("Compila tutti i campi obbligatori.");
+      setRegisterError(t("auth.err_all_fields"));
       return;
     }
     if (registerData.password !== registerData.confirmPassword) {
-      setRegisterError("Le password non coincidono.");
+      setRegisterError(t("auth.err_password_mismatch"));
       return;
     }
     if (registerData.password.length < 8) {
-      setRegisterError("La password deve avere almeno 8 caratteri.");
+      setRegisterError(t("auth.err_password_short"));
       return;
     }
     setRegisterLoading(true);
@@ -86,10 +88,10 @@ function AuthPage({ onAuth }) {
         setRegisterError("");
       } else {
         const err = await res.json().catch(() => ({}));
-        setRegisterError(err.detail || "Errore durante la registrazione.");
+        setRegisterError(err.detail || t("auth.err_register_failed"));
       }
     } catch {
-      setRegisterError("Errore di rete. Verifica che il server sia avviato.");
+      setRegisterError(t("auth.err_network"));
     } finally {
       setRegisterLoading(false);
     }
@@ -105,7 +107,6 @@ function AuthPage({ onAuth }) {
               <div className="auth-logo">
                 <img src={Heximus_Logo_AI_Platform} alt="" className=" w-100" />
               </div>
-             
             </div>
 
             <div className="card auth-card border-0">
@@ -116,9 +117,8 @@ function AuthPage({ onAuth }) {
                     <button
                       className={`nav-link ${activeTab === "login" ? "active" : ""}`}
                       onClick={() => { setActiveTab("login"); setLoginError(""); }}
-                      
                     >
-                      Accedi
+                      {t("auth.login_tab")}
                     </button>
                   </li>
                   <li className="nav-item">
@@ -126,7 +126,7 @@ function AuthPage({ onAuth }) {
                       className={`nav-link ${activeTab === "register" ? "active" : ""}`}
                       onClick={() => { setActiveTab("register"); setRegisterError(""); }}
                     >
-                      Registrati
+                      {t("auth.register_tab")}
                     </button>
                   </li>
                 </ul>
@@ -135,17 +135,17 @@ function AuthPage({ onAuth }) {
                 {activeTab === "login" && (
                   <form onSubmit={e => { e.preventDefault(); handleLogin(); }}>
                     <div className="mb-3">
-                      <label className="form-label text-muted small fw-semibold">EMAIL</label>
+                      <label className="form-label text-muted small fw-semibold">{t("auth.email_label")}</label>
                       <input
                         type="email"
                         className="form-control auth-input"
-                        placeholder="mario.rossi@esempio.it"
+                        placeholder={t("auth.email_placeholder")}
                         value={loginData.email}
                         onChange={e => setLoginData({ ...loginData, email: e.target.value })}
                       />
                     </div>
                     <div className="mb-3">
-                      <label className="form-label text-muted small fw-semibold">PASSWORD</label>
+                      <label className="form-label text-muted small fw-semibold">{t("auth.password_label")}</label>
                       <input
                         type="password"
                         className="form-control auth-input"
@@ -161,16 +161,16 @@ function AuthPage({ onAuth }) {
                       type="submit"
                       className="btn w-100 auth-btn text-light"
                       disabled={loginLoading}
-                      style={{"backgroundColor":"#397BC0"}}
+                      style={{ backgroundColor: "#397BC0" }}
                     >
-                      {loginLoading ? "Accesso in corso…" : "Accedi"}
+                      {loginLoading ? t("auth.login_loading") : t("auth.login_btn")}
                     </button>
-                    <div className=" d-flex justify-content-center align-items-center mt-3">
-                    <p className="text-center text-muted small mb-0 me-1">
-                      Non hai un account?{" "}
-                    </p>
-                      <button type="button" style={{"color":"#397BC0"}} className="btn btn-link btn-sm p-0 " onClick={() => setActiveTab("register")}>
-                        Registrati
+                    <div className="d-flex justify-content-center align-items-center mt-3">
+                      <p className="text-center text-muted small mb-0 me-1">
+                        {t("auth.no_account")}{" "}
+                      </p>
+                      <button type="button" style={{ color: "#397BC0" }} className="btn btn-link btn-sm p-0" onClick={() => setActiveTab("register")}>
+                        {t("auth.register_tab")}
                       </button>
                     </div>
                   </form>
@@ -181,7 +181,7 @@ function AuthPage({ onAuth }) {
                   <form onSubmit={e => { e.preventDefault(); handleRegister(); }}>
                     <div className="row">
                       <div className="col-6 mb-3">
-                        <label className="form-label text-muted small fw-semibold">NOME</label>
+                        <label className="form-label text-muted small fw-semibold">{t("auth.first_name_label")}</label>
                         <input
                           type="text"
                           className="form-control auth-input"
@@ -191,7 +191,7 @@ function AuthPage({ onAuth }) {
                         />
                       </div>
                       <div className="col-6 mb-3">
-                        <label className="form-label text-muted small fw-semibold">COGNOME</label>
+                        <label className="form-label text-muted small fw-semibold">{t("auth.last_name_label")}</label>
                         <input
                           type="text"
                           className="form-control auth-input"
@@ -202,27 +202,27 @@ function AuthPage({ onAuth }) {
                       </div>
                     </div>
                     <div className="mb-3">
-                      <label className="form-label text-muted small fw-semibold">EMAIL</label>
+                      <label className="form-label text-muted small fw-semibold">{t("auth.email_label")}</label>
                       <input
                         type="email"
                         className="form-control auth-input"
-                        placeholder="mario.rossi@esempio.it"
+                        placeholder={t("auth.email_placeholder")}
                         value={registerData.email}
                         onChange={e => setRegisterData({ ...registerData, email: e.target.value })}
                       />
                     </div>
                     <div className="mb-3">
-                      <label className="form-label text-muted small fw-semibold">PASSWORD</label>
+                      <label className="form-label text-muted small fw-semibold">{t("auth.password_label")}</label>
                       <input
                         type="password"
                         className="form-control auth-input"
-                        placeholder="Minimo 8 caratteri"
+                        placeholder={t("auth.password_placeholder_min")}
                         value={registerData.password}
                         onChange={e => setRegisterData({ ...registerData, password: e.target.value })}
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="form-label text-muted small fw-semibold">CONFERMA PASSWORD</label>
+                      <label className="form-label text-muted small fw-semibold">{t("auth.confirm_password_label")}</label>
                       <input
                         type="password"
                         className="form-control auth-input"
@@ -238,18 +238,18 @@ function AuthPage({ onAuth }) {
                       type="submit"
                       className="btn btn-primary w-100 auth-btn"
                       disabled={registerLoading}
-                      style={{"backgroundColor":"#397BC0"}}
+                      style={{ backgroundColor: "#397BC0" }}
                     >
-                      {registerLoading ? "Registrazione…" : "Crea Account"}
+                      {registerLoading ? t("auth.register_loading") : t("auth.register_btn")}
                     </button>
-                    <div className=" d-flex justify-content-center align-items-center mt-3">
-                    <p className="text-center text-muted small me-1 mb-0">
-                      Hai già un account?{" "}
-                    </p>
-                      <button type="button" style={{"color":"#397BC0"}} className="btn btn-link btn-sm p-0  " onClick={() => setActiveTab("login")}>
-                        Accedi
+                    <div className="d-flex justify-content-center align-items-center mt-3">
+                      <p className="text-center text-muted small me-1 mb-0">
+                        {t("auth.have_account")}{" "}
+                      </p>
+                      <button type="button" style={{ color: "#397BC0" }} className="btn btn-link btn-sm p-0" onClick={() => setActiveTab("login")}>
+                        {t("auth.login_tab")}
                       </button>
-                      </div>
+                    </div>
                   </form>
                 )}
 

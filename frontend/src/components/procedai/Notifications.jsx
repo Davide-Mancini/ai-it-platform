@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./Notifications.css";
 
 const TYPE_ICON = {
@@ -31,15 +32,16 @@ function TrashIcon({ size = 14 }) {
   );
 }
 
-function relativeTime(isoString) {
+function relativeTime(isoString, t) {
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 60)  return "Adesso";
-  if (diff < 3600) return `${Math.floor(diff / 60)} min fa`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} ore fa`;
-  return `${Math.floor(diff / 86400)} giorni fa`;
+  if (diff < 60)    return t("time.now");
+  if (diff < 3600)  return t("time.minutes_ago", { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t("time.hours_ago",   { count: Math.floor(diff / 3600) });
+  return t("time.days_ago", { count: Math.floor(diff / 86400) });
 }
 
 export default function Notifications({ notifications, onMarkRead, onMarkAllRead, onDelete, onDeleteAll }) {
+  const { t } = useTranslation();
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const unread = notifications.filter(n => !n.is_read).length;
 
@@ -57,23 +59,23 @@ export default function Notifications({ notifications, onMarkRead, onMarkAllRead
     <div className="pai-view">
       <div className="pai-notif__header">
         <div>
-          <div className="pai-notif__title">Notifiche</div>
-          <div className="pai-notif__sub">{unread} non lette</div>
+          <div className="pai-notif__title">{t("notifications.title")}</div>
+          <div className="pai-notif__sub">{t("notifications.unread", { count: unread })}</div>
         </div>
         {notifications.length > 0 && (
           <div className="pai-notif__actions">
             {unread > 0 && (
               <button className="pai-btn pai-btn--ghost" onClick={onMarkAllRead} style={{ fontSize: 12 }}>
-                Segna tutte come lette
+                {t("notifications.mark_read")}
               </button>
             )}
             <button
               className={`pai-btn pai-notif__delete-all-btn${confirmDeleteAll ? " pai-notif__delete-all-btn--confirm" : ""}`}
               onClick={handleDeleteAll}
-              title="Elimina tutte le notifiche"
+              title={t("notifications.delete_one_title")}
             >
               <TrashIcon size={13} />
-              {confirmDeleteAll ? "Conferma eliminazione" : "Elimina tutte"}
+              {confirmDeleteAll ? t("notifications.delete_confirm") : t("notifications.delete_all")}
             </button>
           </div>
         )}
@@ -82,7 +84,7 @@ export default function Notifications({ notifications, onMarkRead, onMarkAllRead
       <div className="pai-card pai-notif__list">
         {notifications.length === 0 && (
           <div style={{ padding: "24px", textAlign: "center", color: "#94A3B8", fontSize: 13 }}>
-            Nessuna notifica
+            {t("notifications.empty")}
           </div>
         )}
         {notifications.map(n => {
@@ -100,13 +102,13 @@ export default function Notifications({ notifications, onMarkRead, onMarkAllRead
               <div className="pai-notif-row__body">
                 <div className="pai-notif-row__title">{n.title}</div>
                 <div className="pai-notif-row__msg">{n.message}</div>
-                <div className="pai-notif-row__time">{relativeTime(n.created_at)}</div>
+                <div className="pai-notif-row__time">{relativeTime(n.created_at, t)}</div>
               </div>
               {!n.is_read && <div className="pai-notif-row__dot" />}
               <button
                 className="pai-notif-row__delete"
                 onClick={e => { e.stopPropagation(); onDelete(n.id); }}
-                title="Elimina notifica"
+                title={t("notifications.delete_one_title")}
               >
                 <TrashIcon size={13} />
               </button>

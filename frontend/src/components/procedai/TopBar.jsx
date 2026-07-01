@@ -1,24 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./TopBar.css";
 
-const PATH_TITLES = {
-  "/dashboard":     { t: "Dashboard",          s: "Buongiorno " },
-  "/procedures":    { t: "Procedure",          s: null },
-  "/tasks":         { t: "Task Board",         s: null },
-  "/documents":     { t: "Documenti & Policy", s: null },
-  "/team":          { t: "Team",               s: null },
-  "/notifications": { t: "Notifiche",          s: null },
-  "/settings":      { t: "Impostazioni",       s: null },
-  "/users":         { t: "Utenti",             s: null },
-};
-
-/* function SearchIcon() {
-  return (
-    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx={11} cy={11} r={8} /><line x1={21} y1={21} x2={16.65} y2={16.65} />
-    </svg>
-  );
-} */
 function BellIcon() {
   return (
     <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -28,16 +11,31 @@ function BellIcon() {
 }
 
 export default function TopBar({ userInfo, unreadCount, isProcedureDetail = false }) {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  const PATH_TITLES = {
+    "/dashboard":     { key: "nav.dashboard",     greeting: true },
+    "/procedures":    { key: "nav.procedures",    greeting: false },
+    "/tasks":         { key: "nav.tasks",         greeting: false },
+    "/documents":     { key: "nav.documents",     greeting: false },
+    "/team":          { key: "nav.team",          greeting: false },
+    "/notifications": { key: "nav.notifications", greeting: false },
+    "/settings":      { key: "nav.settings",      greeting: false },
+    "/users":         { key: "nav.users",         greeting: false },
+  };
+
   const cv = isProcedureDetail
-    ? { t: "Dettaglio Procedura", s: null }
-    : PATH_TITLES[pathname] || PATH_TITLES["/dashboard"];
+    ? { title: t("topbar.procedure_detail"), greeting: false }
+    : (() => {
+        const entry = PATH_TITLES[pathname] || PATH_TITLES["/dashboard"];
+        return { title: t(entry.key), greeting: entry.greeting };
+      })();
 
   const displayName = userInfo
     ? [userInfo.first_name, userInfo.last_name].filter(Boolean).join(" ") || userInfo.email
-    : "Utente";
+    : "User";
   const initials = userInfo
     ? ((userInfo.first_name?.[0] || "") + (userInfo.last_name?.[0] || "")).toUpperCase() || userInfo.email?.[0]?.toUpperCase() || "U"
     : "U";
@@ -45,16 +43,13 @@ export default function TopBar({ userInfo, unreadCount, isProcedureDetail = fals
   return (
     <header className="pai-topbar">
       <div className="pai-topbar__left">
-        <div className="pai-topbar__title">{cv.t}</div>
-        {cv.s && <div className="pai-topbar__sub">{cv.s + `${displayName.split(" ")[0]}!` + ` :)`}</div>}
+        <div className="pai-topbar__title">{cv.title}</div>
+        {cv.greeting && (
+          <div className="pai-topbar__sub">{t("topbar.greeting")}{`${displayName.split(" ")[0]}! :)`}</div>
+        )}
       </div>
 
       <div className="pai-topbar__right">
-        {/* <div className="pai-topbar__search">
-          <SearchIcon />
-          <input className="pai-topbar__search-input" type="text" placeholder="Cerca..." />
-        </div> */}
-
         <div className="pai-topbar__notif-wrap" onClick={() => navigate("/notifications")}>
           <button className="pai-topbar__notif-btn"><BellIcon /></button>
           {unreadCount > 0 && <span className="pai-topbar__notif-dot">{unreadCount}</span>}

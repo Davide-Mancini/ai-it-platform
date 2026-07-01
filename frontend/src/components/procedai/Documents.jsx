@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import "./Documents.css";
 
 const API_BASE  = "http://localhost:8000";
@@ -18,7 +19,7 @@ function catColor(str) {
 }
 
 function formatDate(dt) {
-  return dt ? new Date(dt).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" }) : "—";
+  return dt ? new Date(dt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) : "—";
 }
 
 /* ── Icons ──────────────────────────────────────────────────────────────────── */
@@ -67,6 +68,7 @@ function CloseIcon() {
 
 /* ── Document view modal ─────────────────────────────────────────────────────── */
 function DocModal({ doc, onClose }) {
+  const { t } = useTranslation();
   const ext   = doc.file_type?.replace(".", "").toLowerCase() || "doc";
   const color = EXT_COLOR[ext] || "#475569";
   return (
@@ -79,7 +81,7 @@ function DocModal({ doc, onClose }) {
             </div>
             <div>
               <div className="pai-doc-modal__title">{doc.title}</div>
-              <div className="pai-doc-modal__meta">{ext.toUpperCase()} · Aggiornato il {formatDate(doc.updated_at || doc.created_at)}</div>
+              <div className="pai-doc-modal__meta">{ext.toUpperCase()} · {t("documents.updated_on")} {formatDate(doc.updated_at || doc.created_at)}</div>
             </div>
           </div>
           <button className="pai-doc-modal__close" onClick={onClose}><CloseIcon /></button>
@@ -89,7 +91,7 @@ function DocModal({ doc, onClose }) {
             ? doc.content.split("\n").map((line, i) =>
                 line.trim() ? <p key={i} className="pai-doc-modal__paragraph">{line}</p> : <div key={i} className="pai-doc-modal__spacer" />
               )
-            : <p className="pai-doc-modal__empty">Nessun contenuto disponibile per questo documento.</p>
+            : <p className="pai-doc-modal__empty">{t("documents.no_content")}</p>
           }
         </div>
       </div>
@@ -98,11 +100,12 @@ function DocModal({ doc, onClose }) {
 }
 
 function EditModal({ doc, onClose, onSave }) {
+  const { t } = useTranslation();
   const [form, setForm]     = useState({ title: doc.title, content: doc.content || "" });
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState("");
   const handleSave = async () => {
-    if (!form.title.trim()) { setError("Il titolo è obbligatorio."); return; }
+    if (!form.title.trim()) { setError(t("documents.err_title")); return; }
     setSaving(true); setError("");
     try { await onSave(form); onClose(); }
     catch (e) { setError(e.message); }
@@ -113,25 +116,25 @@ function EditModal({ doc, onClose, onSave }) {
       <div className="pai-modal-box pai-doc-edit-modal" onClick={e => e.stopPropagation()}>
         <div className="pai-doc-edit-modal__header">
           <div>
-            <div className="pai-doc-edit-modal__title">Modifica documento</div>
-            <div className="pai-doc-edit-modal__sub">Aggiorna titolo e contenuto</div>
+            <div className="pai-doc-edit-modal__title">{t("documents.edit_title")}</div>
+            <div className="pai-doc-edit-modal__sub">{t("documents.edit_sub")}</div>
           </div>
           <button className="pai-doc-edit-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
         <div className="pai-doc-edit-modal__body">
           <div className="pai-field">
-            <label className="pai-field__label">TITOLO *</label>
+            <label className="pai-field__label">{t("documents.field_title")}</label>
             <input className="pai-field__input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} autoFocus />
           </div>
           <div className="pai-field">
-            <label className="pai-field__label">CONTENUTO</label>
+            <label className="pai-field__label">{t("documents.field_content")}</label>
             <textarea className="pai-field__textarea pai-doc-edit-modal__textarea" value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} rows={10} />
           </div>
           {error && <div className="pai-doc-edit-modal__error">{error}</div>}
           <div className="pai-doc-edit-modal__actions">
-            <button className="pai-btn pai-btn--ghost" onClick={onClose}>Annulla</button>
+            <button className="pai-btn pai-btn--ghost" onClick={onClose}>{t("documents.cancel")}</button>
             <button className="pai-btn pai-btn--primary" onClick={handleSave} disabled={saving || !form.title.trim()}>
-              {saving ? "Salvataggio…" : "Salva modifiche"}
+              {saving ? t("documents.saving") : t("documents.save")}
             </button>
           </div>
         </div>
@@ -141,20 +144,21 @@ function EditModal({ doc, onClose, onSave }) {
 }
 
 function DeleteModal({ doc, onClose, onConfirm }) {
+  const { t } = useTranslation();
   const [deleting, setDeleting] = useState(false);
   const handleConfirm = async () => { setDeleting(true); try { await onConfirm(); } finally { setDeleting(false); } };
   return (
     <div className="pai-overlay" onClick={onClose}>
       <div className="pai-modal-box pai-doc-delete-modal" onClick={e => e.stopPropagation()}>
         <div className="pai-doc-delete-modal__icon"><TrashIcon size={22} /></div>
-        <div className="pai-doc-delete-modal__title">Elimina documento</div>
+        <div className="pai-doc-delete-modal__title">{t("documents.delete_title")}</div>
         <div className="pai-doc-delete-modal__msg">
-          Stai per eliminare <strong>"{doc.title}"</strong>.<br />Questa operazione è irreversibile.
+          {t("procedures.delete_msg_part1")} <strong>"{doc.title}"</strong>.<br />{t("documents.delete_msg_irreversible")}
         </div>
         <div className="pai-doc-delete-modal__actions">
-          <button className="pai-btn pai-btn--ghost" onClick={onClose}>Annulla</button>
+          <button className="pai-btn pai-btn--ghost" onClick={onClose}>{t("documents.cancel")}</button>
           <button className="pai-doc-delete-modal__confirm" onClick={handleConfirm} disabled={deleting}>
-            {deleting ? "Eliminazione…" : "Sì, elimina"}
+            {deleting ? t("documents.deleting") : t("documents.delete_confirm")}
           </button>
         </div>
       </div>
@@ -164,6 +168,7 @@ function DeleteModal({ doc, onClose, onConfirm }) {
 
 /* ── Create policy modal ─────────────────────────────────────────────────────── */
 function CreatePolicyModal({ token, documents, onClose, onCreated }) {
+  const { t } = useTranslation();
   const [form, setForm]         = useState({ title: "", description: "", category: "", document_id: "" });
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
@@ -176,10 +181,10 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
 
   const handleSubmit = async () => {
     if (!form.title.trim() || !form.description.trim() || !form.category.trim()) {
-      setError("Titolo, descrizione e categoria sono obbligatori."); return;
+      setError(t("documents.err_policy_fields")); return;
     }
     if (!form.document_id) {
-      setError("Seleziona un documento esistente da collegare alla policy."); return;
+      setError(t("documents.err_policy_doc")); return;
     }
     setLoading(true); setError("");
     try {
@@ -198,10 +203,10 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
         onClose();
       } else {
         const err = await res.json().catch(() => ({}));
-        setError(err.detail || "Errore durante la creazione.");
+        setError(err.detail || t("documents.err_policy_create"));
       }
     } catch {
-      setError("Errore di rete. Riprova.");
+      setError(t("documents.err_network"));
     } finally {
       setLoading(false);
     }
@@ -212,8 +217,8 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
       <div className="pai-modal-box pai-policy-form" onClick={e => e.stopPropagation()}>
         <div className="pai-policy-form__header">
           <div>
-            <div className="pai-policy-form__title">Nuova Policy</div>
-            <div className="pai-policy-form__sub">Crea una policy aziendale collegata a un documento esistente</div>
+            <div className="pai-policy-form__title">{t("documents.create_policy_title")}</div>
+            <div className="pai-policy-form__sub">{t("documents.create_policy_sub")}</div>
           </div>
           <button className="pai-doc-edit-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
@@ -221,7 +226,7 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
         <div className="pai-policy-form__body">
           <div className="pai-task-form__row">
             <div className="pai-field" style={{ flex: 2 }}>
-              <label className="pai-field__label">TITOLO *</label>
+              <label className="pai-field__label">{t("documents.field_title")}</label>
               <input
                 className="pai-field__input"
                 value={form.title}
@@ -232,7 +237,7 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
               />
             </div>
             <div className="pai-field" style={{ flex: 1 }}>
-              <label className="pai-field__label">CATEGORIA *</label>
+              <label className="pai-field__label">{t("documents.field_category")}</label>
               <input
                 className="pai-field__input"
                 value={form.category}
@@ -244,7 +249,7 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
           </div>
 
           <div className="pai-field">
-            <label className="pai-field__label">DESCRIZIONE *</label>
+            <label className="pai-field__label">{t("documents.field_description")}</label>
             <textarea
               className="pai-field__textarea"
               rows={3}
@@ -257,7 +262,7 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
 
           {/* Document selector */}
           <div className="pai-field">
-            <label className="pai-field__label">DOCUMENTO COLLEGATO *</label>
+            <label className="pai-field__label">{t("documents.field_linked_doc")}</label>
 
             {selectedDoc ? (
               <div className="pai-policy-form__selected-doc">
@@ -280,7 +285,7 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
               <>
                 <input
                   className="pai-field__input"
-                  placeholder="Cerca documento per titolo…"
+                  placeholder={t("documents.doc_search_placeholder")}
                   value={docSearch}
                   onChange={e => setDocSearch(e.target.value)}
                   disabled={loading}
@@ -289,8 +294,8 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
                   {filteredDocs.length === 0 && (
                     <div className="pai-policy-form__doc-empty">
                       {documents.length === 0
-                        ? "Nessun documento disponibile. Carica prima un documento."
-                        : "Nessun documento trovato con questa ricerca."}
+                        ? t("documents.doc_no_docs")
+                        : t("documents.doc_no_results")}
                     </div>
                   )}
                   {filteredDocs.map(doc => {
@@ -324,9 +329,9 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
           {error && <div className="pai-task-form__error">{error}</div>}
 
           <div className="pai-task-form__actions">
-            <button className="pai-btn pai-btn--ghost" onClick={onClose} disabled={loading}>Annulla</button>
+            <button className="pai-btn pai-btn--ghost" onClick={onClose} disabled={loading}>{t("documents.cancel")}</button>
             <button className="pai-btn pai-btn--primary" onClick={handleSubmit} disabled={loading}>
-              {loading ? "Creazione…" : "Crea Policy"}
+              {loading ? t("documents.creating") : t("documents.create_policy_btn")}
             </button>
           </div>
         </div>
@@ -337,6 +342,7 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
 
 /* ── Policy detail modal ─────────────────────────────────────────────────────── */
 function PolicyModal({ policy, linkedDoc, onClose }) {
+  const { t } = useTranslation();
   const cc = catColor(policy.category);
   return (
     <div className="pai-overlay" onClick={onClose}>
@@ -354,10 +360,10 @@ function PolicyModal({ policy, linkedDoc, onClose }) {
                 </span>
                 <span>·</span>
                 <span className={`pai-policy-row__status${policy.is_active ? " pai-policy-row__status--active" : ""}`} style={{ fontSize: 10 }}>
-                  {policy.is_active ? "Attiva" : "Inattiva"}
+                  {policy.is_active ? t("documents.policy_active") : t("documents.policy_inactive")}
                 </span>
                 <span>·</span>
-                <span>Creata il {formatDate(policy.created_at)}</span>
+                <span>{t("documents.policy_created_on")} {formatDate(policy.created_at)}</span>
               </div>
             </div>
           </div>
@@ -365,15 +371,13 @@ function PolicyModal({ policy, linkedDoc, onClose }) {
         </div>
 
         <div className="pai-doc-modal__body">
-          {/* Descrizione */}
           <div className="pai-policy-modal__section">
-            <div className="pai-policy-modal__section-label">Descrizione</div>
+            <div className="pai-policy-modal__section-label">{t("documents.policy_description")}</div>
             <p className="pai-doc-modal__paragraph">{policy.description}</p>
           </div>
 
-          {/* Documento collegato */}
           <div className="pai-policy-modal__section">
-            <div className="pai-policy-modal__section-label">Documento collegato</div>
+            <div className="pai-policy-modal__section-label">{t("documents.policy_linked_doc")}</div>
             {linkedDoc ? (
               <>
                 <div className="pai-policy-modal__doc-header">
@@ -388,7 +392,7 @@ function PolicyModal({ policy, linkedDoc, onClose }) {
                   })()}
                   <div>
                     <div className="pai-policy-modal__doc-title">{linkedDoc.title}</div>
-                    <div className="pai-policy-modal__doc-meta">Aggiornato il {formatDate(linkedDoc.updated_at || linkedDoc.created_at)}</div>
+                    <div className="pai-policy-modal__doc-meta">{t("documents.updated_on")} {formatDate(linkedDoc.updated_at || linkedDoc.created_at)}</div>
                   </div>
                 </div>
                 {linkedDoc.content ? (
@@ -401,13 +405,13 @@ function PolicyModal({ policy, linkedDoc, onClose }) {
                   </div>
                 ) : (
                   <p className="pai-doc-modal__empty" style={{ textAlign: "left", padding: "12px 0 0" }}>
-                    Nessun contenuto testuale disponibile per questo documento.
+                    {t("documents.policy_no_doc_content")}
                   </p>
                 )}
               </>
             ) : (
               <p className="pai-doc-modal__empty" style={{ textAlign: "left", padding: "12px 0 0" }}>
-                Nessun documento collegato a questa policy.
+                {t("documents.policy_no_linked_doc")}
               </p>
             )}
           </div>
@@ -419,6 +423,7 @@ function PolicyModal({ policy, linkedDoc, onClose }) {
 
 /* ── Policy row ──────────────────────────────────────────────────────────────── */
 function PolicyRow({ policy, documents, onSelect }) {
+  const { t } = useTranslation();
   const cc        = catColor(policy.category);
   const linkedDoc = documents.find(d => d.id === policy.document_id);
   return (
@@ -436,12 +441,12 @@ function PolicyRow({ policy, documents, onSelect }) {
               <FileIcon />
               {linkedDoc.title.length > 32 ? linkedDoc.title.slice(0, 32) + "…" : linkedDoc.title}
             </span>
-          : <span className="pai-policy-row__doc-badge pai-policy-row__doc-badge--none">Nessun documento</span>
+          : <span className="pai-policy-row__doc-badge pai-policy-row__doc-badge--none">{t("documents.policy_no_doc")}</span>
         }
       </div>
       <span className="pai-policy-row__date text-center">{formatDate(policy.created_at)}</span>
       <span className={`pai-policy-row__status${policy.is_active ? " pai-policy-row__status--active" : ""}`}>
-        {policy.is_active ? "Attiva" : "Inattiva"}
+        {policy.is_active ? t("documents.policy_active") : t("documents.policy_inactive")}
       </span>
     </div>
   );
@@ -449,6 +454,7 @@ function PolicyRow({ policy, documents, onSelect }) {
 
 /* ── Main component ──────────────────────────────────────────────────────────── */
 export default function Documents({ documents, loading, isAdmin, token, onUpdateDocument, onDeleteDocument }) {
+  const { t } = useTranslation();
   const [tab, setTab]       = useState("documents");
   const [selected, setSelected] = useState(null);
   const [editing, setEditing]   = useState(null);
@@ -471,8 +477,9 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
       .finally(() => setLoadingP(false));
   }, [token]);
 
-  const cats     = ["Tutte", ...new Set(documents.map(d => d.file_type || "Altro").filter(Boolean))];
-  const filtered = activeCat === "Tutte" ? documents : documents.filter(d => (d.file_type || "Altro") === activeCat);
+  const ALL_LABEL = t("documents.all_categories");
+  const cats     = [ALL_LABEL, ...new Set(documents.map(d => d.file_type || "Altro").filter(Boolean))];
+  const filtered = activeCat === ALL_LABEL ? documents : documents.filter(d => (d.file_type || "Altro") === activeCat);
 
   return (
     <div className="pai-view pai-docs-wrapper">
@@ -486,7 +493,7 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
           <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
           </svg>
-          Documenti
+          {t("documents.tab_docs")}
           <span className="pai-docs-tab__count">{documents.length}</span>
         </button>
         <button
@@ -494,7 +501,7 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
           onClick={() => setTab("policies")}
         >
           <ShieldIcon />
-          <span style={{ marginLeft: 6 }}>Policy</span>
+          <span style={{ marginLeft: 6 }}>{t("documents.tab_policies")}</span>
           <span className="pai-docs-tab__count">{policies.length}</span>
         </button>
       </div>
@@ -504,7 +511,7 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
         <div className="pai-docs">
           <div className="pai-docs__sidebar">
             <div className="pai-card pai-docs__cats">
-              <div className="pai-docs__cats-label">Categorie</div>
+              <div className="pai-docs__cats-label">{t("documents.categories")}</div>
               {cats.map(cat => (
                 <div
                   key={cat}
@@ -523,13 +530,13 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
           <div className="pai-docs__main">
             <div className="pai-card pai-docs__table">
               <div className="pai-docs__table-header">
-                <span>Nome documento</span>
-                <span className="pai-docs__col-type">Tipo</span>
-                <span className="pai-docs__col-date">Aggiornato</span>
-                <span>Azioni</span>
+                <span>{t("documents.col_name")}</span>
+                <span className="pai-docs__col-type">{t("documents.col_type")}</span>
+                <span className="pai-docs__col-date">{t("documents.col_updated")}</span>
+                <span>{t("documents.col_actions")}</span>
               </div>
-              {loading && <div className="pai-docs__loading">Caricamento documenti…</div>}
-              {!loading && filtered.length === 0 && <div className="pai-docs__empty">Nessun documento trovato.</div>}
+              {loading && <div className="pai-docs__loading">{t("documents.loading")}</div>}
+              {!loading && filtered.length === 0 && <div className="pai-docs__empty">{t("documents.empty")}</div>}
               {filtered.map(doc => {
                 const ext   = doc.file_type?.replace(".", "").toLowerCase() || "doc";
                 const color = EXT_COLOR[ext] || "#475569";
@@ -547,12 +554,12 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
                     <div className="pai-docs__row-actions" onClick={e => e.stopPropagation()}>
                       <button
                         className={`pai-docs__action-btn${!isAdmin ? " pai-docs__action-btn--disabled" : ""}`}
-                        title={isAdmin ? "Modifica" : "Solo gli amministratori possono modificare"}
+                        title={isAdmin ? t("common.edit") : t("documents.admin_only_edit")}
                         onClick={() => isAdmin && setEditing(doc)}
                       ><EditIcon /></button>
                       <button
                         className={`pai-docs__action-btn pai-docs__action-btn--danger${!isAdmin ? " pai-docs__action-btn--disabled" : ""}`}
-                        title={isAdmin ? "Elimina" : "Solo gli amministratori possono eliminare"}
+                        title={isAdmin ? t("common.delete") : t("documents.admin_only_delete")}
                         onClick={() => isAdmin && setDeleting(doc)}
                       ><TrashIcon /></button>
                     </div>
@@ -572,28 +579,28 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
               <div className="pai-policy-list-header">
                 <div className="pai-policy-list-header__left">
                   <ShieldIcon />
-                  <span>Policy aziendali</span>
+                  <span>{t("documents.policy_list_title")}</span>
                   <span className="pai-kanban-col__count" style={{ marginLeft: 6 }}>{policies.length}</span>
                 </div>
                 {isAdmin && (
                   <button className="pai-btn pai-btn--primary pai-btn--sm" onClick={() => setShowCP(true)}>
-                    <PlusIcon /> Nuova Policy
+                    <PlusIcon /> {t("documents.policy_new_btn")}
                   </button>
                 )}
               </div>
 
               <div className="pai-policy-table-header">
-                <span >Titolo / Descrizione</span>
-                <span className=" text-center">Categoria</span>
-                <span className=" text-center">Documento collegato</span>
-                <span className=" text-center">Data</span>
-                <span className=" text-center">Stato</span>
+                <span>{t("documents.policy_col_title")}</span>
+                <span className="text-center">{t("documents.policy_col_category")}</span>
+                <span className="text-center">{t("documents.policy_col_doc")}</span>
+                <span className="text-center">{t("documents.policy_col_date")}</span>
+                <span className="text-center">{t("documents.policy_col_status")}</span>
               </div>
 
-              {loadingPolicies && <div className="pai-docs__loading">Caricamento policy…</div>}
+              {loadingPolicies && <div className="pai-docs__loading">{t("documents.policy_loading")}</div>}
               {!loadingPolicies && policies.length === 0 && (
                 <div className="pai-docs__empty">
-                  Nessuna policy.{isAdmin ? " Creane una con il pulsante in alto." : ""}
+                  {isAdmin ? t("documents.policy_empty_admin") : t("documents.policy_empty")}
                 </div>
               )}
               {policies.map(p => (

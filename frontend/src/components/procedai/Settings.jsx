@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 import "./Settings.css";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 
@@ -17,7 +19,8 @@ function SettingRow({ label, desc, children }) {
 }
 
 export default function Settings({ userInfo, token, onProfileUpdate }) {
-  const roleName = userInfo?.role?.name || userInfo?.role || "Utente";
+  const { t } = useTranslation();
+  const roleName = userInfo?.role?.name || userInfo?.role || t("sidebar.role_fallback");
 
   const [editing, setEditing]   = useState(false);
   const [saving, setSaving]     = useState(false);
@@ -49,7 +52,7 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
 
   const handleSave = async () => {
     if (!form.first_name.trim() || !form.last_name.trim() || !form.email.trim()) {
-      setError("Tutti i campi sono obbligatori.");
+      setError(t("settings.err_all_fields"));
       return;
     }
     setSaving(true);
@@ -70,10 +73,10 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
         if (onProfileUpdate) await onProfileUpdate();
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.detail || "Errore durante il salvataggio.");
+        setError(data.detail || t("settings.err_save"));
       }
     } catch {
-      setError("Errore di rete. Riprova.");
+      setError(t("settings.err_network"));
     } finally {
       setSaving(false);
     }
@@ -88,63 +91,63 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
 
   return (
     <div className="pai-view d-flex flex-column align-items-center">
-      <div className="pai-settings__title">Impostazioni</div>
+      <div className="pai-settings__title">{t("settings.title")}</div>
 
       <div className="pai-settings__sections">
         {/* Profilo */}
         <div className="pai-card pai-settings__section">
           <div className="pai-settings__section-header">
-            <div className="pai-settings__section-title">Profilo</div>
+            <div className="pai-settings__section-title">{t("settings.profile_section")}</div>
             {!editing && (
               <button className="pai-settings__edit-btn" onClick={startEdit}>
                 <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                   <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
-                Modifica
+                {t("settings.edit_btn")}
               </button>
             )}
           </div>
 
           {success && (
-            <div className="pai-settings__success">Profilo aggiornato con successo.</div>
+            <div className="pai-settings__success">{t("settings.success")}</div>
           )}
           {error && (
             <div className="pai-settings__error">{error}</div>
           )}
 
-          <SettingRow label="Nome" desc="Il tuo nome">
+          <SettingRow label={t("settings.first_name_label")} desc={t("settings.first_name_desc")}>
             {editing
-              ? <input {...field("first_name")} placeholder="Nome" />
+              ? <input {...field("first_name")} placeholder={t("settings.first_name_placeholder")} />
               : <input className="pai-settings__input" value={userInfo?.first_name || "—"} readOnly />
             }
           </SettingRow>
 
-          <SettingRow label="Cognome" desc="Il tuo cognome">
+          <SettingRow label={t("settings.last_name_label")} desc={t("settings.last_name_desc")}>
             {editing
-              ? <input {...field("last_name")} placeholder="Cognome" />
+              ? <input {...field("last_name")} placeholder={t("settings.last_name_placeholder")} />
               : <input className="pai-settings__input" value={userInfo?.last_name || "—"} readOnly />
             }
           </SettingRow>
 
-          <SettingRow label="Email" desc="L'indirizzo email associato al tuo account">
+          <SettingRow label={t("settings.email_label")} desc={t("settings.email_desc")}>
             {editing
-              ? <input {...field("email")} type="email" placeholder="email@esempio.com" />
+              ? <input {...field("email")} type="email" placeholder={t("settings.email_placeholder")} />
               : <input className="pai-settings__input" value={userInfo?.email || "—"} readOnly />
             }
           </SettingRow>
 
-          <SettingRow label="Ruolo" desc="Il tuo ruolo nell'organizzazione">
+          <SettingRow label={t("settings.role_label")} desc={t("settings.role_desc")}>
             <span className="pai-chip" style={{ color: "#2563EB", background: "#EFF6FF" }}>{roleName}</span>
           </SettingRow>
 
           {editing && (
             <div className="pai-settings__form-actions">
               <button className="pai-btn pai-btn--ghost" onClick={cancelEdit} disabled={saving}>
-                Annulla
+                {t("settings.cancel")}
               </button>
               <button className="pai-btn pai-btn--primary" onClick={handleSave} disabled={saving}>
-                {saving ? "Salvataggio…" : "Salva modifiche"}
+                {saving ? t("settings.saving") : t("settings.save")}
               </button>
             </div>
           )}
@@ -153,12 +156,12 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
         {/* Notifiche */}
         <div className="pai-card pai-settings__section">
           <div className="pai-settings__section-header">
-            <div className="pai-settings__section-title">Notifiche</div>
+            <div className="pai-settings__section-title">{t("settings.notifications_section")}</div>
           </div>
-          <SettingRow label="Notifiche email" desc="Ricevi aggiornamenti via email">
+          <SettingRow label={t("settings.email_notif_label")} desc={t("settings.email_notif_desc")}>
             <label
               className="pai-settings__toggle pai-settings__toggle--locked"
-              title="Le notifiche email non possono essere disattivate"
+              title={t("settings.email_notif_locked_title")}
             >
               <input
                 type="checkbox"
@@ -173,25 +176,25 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
           </SettingRow>
           {emailToggleError && (
             <div className="pai-settings__error" style={{ marginTop: -4 }}>
-              Non è possibile disattivare le notifiche email: tutte le comunicazioni ufficiali verranno inviate esclusivamente tramite posta elettronica.
+              {t("settings.email_notif_err")}
             </div>
           )}
           <SettingRow
-            label="Notifiche push"
+            label={t("settings.push_notif_label")}
             desc={
               !("serviceWorker" in navigator) || !("PushManager" in window)
-                ? "Non supportate da questo browser"
-                : "Notifiche native anche a tab chiusa"
+                ? t("settings.push_not_supported")
+                : t("settings.push_notif_desc")
             }
           >
             <label
               className={`pai-settings__toggle${push.loading ? " pai-settings__toggle--locked" : ""}`}
               title={
                 !("serviceWorker" in navigator) || !("PushManager" in window)
-                  ? "Il tuo browser non supporta le notifiche push"
+                  ? t("settings.push_browser_title")
                   : push.loading
-                    ? "Caricamento…"
-                    : push.enabled ? "Clicca per disattivare" : "Clicca per attivare"
+                    ? t("settings.push_loading_title")
+                    : push.enabled ? t("settings.push_disable_title") : t("settings.push_enable_title")
               }
             >
               <input
@@ -210,12 +213,38 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
           )}
         </div>
 
+        {/* Lingua */}
+        <div className="pai-card pai-settings__section">
+          <div className="pai-settings__section-header">
+            <div className="pai-settings__section-title">{t("settings.language_section")}</div>
+          </div>
+          <SettingRow label={t("settings.language_label")} desc={t("settings.language_desc")}>
+            <div className="pai-settings__lang-switcher">
+              {[
+                { code: "it", label: "🇮🇹 Italiano" },
+                { code: "en", label: "🇬🇧 English" },
+              ].map(lang => (
+                <button
+                  key={lang.code}
+                  className={`pai-settings__lang-btn${i18n.language === lang.code ? " pai-settings__lang-btn--active" : ""}`}
+                  onClick={() => {
+                    i18n.changeLanguage(lang.code);
+                    localStorage.setItem("lang", lang.code);
+                  }}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          </SettingRow>
+        </div>
+
         {/* Applicazione */}
         <div className="pai-card pai-settings__section">
           <div className="pai-settings__section-header">
-            <div className="pai-settings__section-title">Applicazione</div>
+            <div className="pai-settings__section-title">{t("settings.app_section")}</div>
           </div>
-          <SettingRow label="Versione" desc="Versione dell'applicazione">
+          <SettingRow label={t("settings.version_label")} desc={t("settings.version_desc")}>
             <span className="pai-chip" style={{ color: "#475569", background: "#F1F5F9" }}>1.0.0</span>
           </SettingRow>
         </div>

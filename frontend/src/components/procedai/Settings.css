@@ -117,3 +117,27 @@
 .pai-settings__toggle input:checked + .pai-settings__toggle-slider { background: #2563EB; }
 .pai-settings__toggle input:checked + .pai-settings__toggle-slider::before { transform: translateX(18px); }
 .pai-settings__toggle--locked { cursor: not-allowed; }
+
+.pai-settings__lang-switcher {
+  display: flex;
+  gap: 6px;
+}
+.pai-settings__lang-btn {
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 1px solid #E2E8F0;
+  background: white;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  color: #64748B;
+  cursor: pointer;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.pai-settings__lang-btn:hover { border-color: #94A3B8; color: #0F172A; }
+.pai-settings__lang-btn--active {
+  border-color: #2563EB;
+  background: #EFF6FF;
+  color: #2563EB;
+  font-weight: 600;
+}

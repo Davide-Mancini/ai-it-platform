@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import "./ProcedureList.css";
 
 function Icon({ path, size = 16, color = "currentColor" }) {
@@ -13,6 +14,7 @@ function Icon({ path, size = 16, color = "currentColor" }) {
 
 /* ── Kebab menu ──────────────────────────────────────────────────────────── */
 function KebabMenu({ isAdmin, onEdit, onDelete }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -28,7 +30,7 @@ function KebabMenu({ isAdmin, onEdit, onDelete }) {
       <button
         className="pai-proc-menu__trigger"
         onClick={() => setOpen(v => !v)}
-        title="Opzioni"
+        title={t("procedures.options_title")}
       >
         <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor">
           <circle cx={12} cy={5}  r={1.5} />
@@ -43,20 +45,20 @@ function KebabMenu({ isAdmin, onEdit, onDelete }) {
             className={`pai-proc-menu__item${!isAdmin ? " pai-proc-menu__item--disabled" : ""}`}
             onClick={() => { if (isAdmin) { setOpen(false); onEdit(); } }}
             disabled={!isAdmin}
-            title={!isAdmin ? "Solo gli amministratori possono modificare le procedure" : undefined}
+            title={!isAdmin ? t("procedures.admin_only_edit") : undefined}
           >
             <Icon path="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" size={13} />
-            Modifica procedura
+            {t("procedures.edit_menu")}
             {!isAdmin && <span className="pai-proc-menu__lock">🔒</span>}
           </button>
           <button
             className={`pai-proc-menu__item pai-proc-menu__item--danger${!isAdmin ? " pai-proc-menu__item--disabled" : ""}`}
             onClick={() => { if (isAdmin) { setOpen(false); onDelete(); } }}
             disabled={!isAdmin}
-            title={!isAdmin ? "Solo gli amministratori possono eliminare le procedure" : undefined}
+            title={!isAdmin ? t("procedures.admin_only_delete") : undefined}
           >
             <Icon path="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" size={13} />
-            Elimina procedura
+            {t("procedures.delete_menu")}
             {!isAdmin && <span className="pai-proc-menu__lock">🔒</span>}
           </button>
         </div>
@@ -67,6 +69,7 @@ function KebabMenu({ isAdmin, onEdit, onDelete }) {
 
 /* ── Modale modifica ─────────────────────────────────────────────────────── */
 function EditModal({ procedure, onClose, onSave, saving, error }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ title: procedure.title, description: procedure.description || "" });
 
   return (
@@ -74,8 +77,8 @@ function EditModal({ procedure, onClose, onSave, saving, error }) {
       <div className="pai-modal-box pai-proc-edit-modal" onClick={e => e.stopPropagation()}>
         <div className="pai-proc-edit-modal__header">
           <div>
-            <div className="pai-proc-edit-modal__title">Modifica procedura</div>
-            <div className="pai-proc-edit-modal__sub">Aggiorna titolo e descrizione</div>
+            <div className="pai-proc-edit-modal__title">{t("procedures.edit_title")}</div>
+            <div className="pai-proc-edit-modal__sub">{t("procedures.edit_sub")}</div>
           </div>
           <button className="pai-proc-edit-modal__close" onClick={onClose}>
             <svg width={15} height={15} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round">
@@ -85,7 +88,7 @@ function EditModal({ procedure, onClose, onSave, saving, error }) {
         </div>
         <div className="pai-proc-edit-modal__body">
           <div className="pai-field">
-            <label className="pai-field__label">TITOLO *</label>
+            <label className="pai-field__label">{t("procedures.field_title")}</label>
             <input
               className="pai-field__input"
               value={form.title}
@@ -94,7 +97,7 @@ function EditModal({ procedure, onClose, onSave, saving, error }) {
             />
           </div>
           <div className="pai-field">
-            <label className="pai-field__label">DESCRIZIONE</label>
+            <label className="pai-field__label">{t("procedures.field_desc")}</label>
             <textarea
               className="pai-field__textarea"
               value={form.description}
@@ -104,9 +107,9 @@ function EditModal({ procedure, onClose, onSave, saving, error }) {
           </div>
           {error && <div className="pai-proc-edit-modal__error">{error}</div>}
           <div className="pai-proc-edit-modal__actions">
-            <button className="pai-btn pai-btn--ghost" onClick={onClose}>Annulla</button>
+            <button className="pai-btn pai-btn--ghost" onClick={onClose}>{t("procedures.cancel")}</button>
             <button className="pai-btn pai-btn--primary" onClick={() => onSave(form)} disabled={saving || !form.title.trim()}>
-              {saving ? "Salvataggio…" : "Salva modifiche"}
+              {saving ? t("procedures.saving") : t("procedures.save")}
             </button>
           </div>
         </div>
@@ -117,21 +120,22 @@ function EditModal({ procedure, onClose, onSave, saving, error }) {
 
 /* ── Modale conferma elimina ─────────────────────────────────────────────── */
 function DeleteModal({ procedure, onClose, onConfirm, deleting }) {
+  const { t } = useTranslation();
   return (
     <div className="pai-overlay" onClick={onClose}>
       <div className="pai-modal-box pai-proc-delete-modal" onClick={e => e.stopPropagation()}>
         <div className="pai-proc-delete-modal__icon">
           <Icon path="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" size={22} color="#DC2626" />
         </div>
-        <div className="pai-proc-delete-modal__title">Elimina procedura</div>
+        <div className="pai-proc-delete-modal__title">{t("procedures.delete_title")}</div>
         <div className="pai-proc-delete-modal__msg">
-          Stai per eliminare <strong>"{procedure.title}"</strong>.<br />
-          Questa operazione è irreversibile e rimuoverà anche tutti gli step associati.
+          {t("procedures.delete_msg_part1")} <strong>"{procedure.title}"</strong>.<br />
+          {t("procedures.delete_msg_part2")}
         </div>
         <div className="pai-proc-delete-modal__actions">
-          <button className="pai-btn pai-btn--ghost" onClick={onClose}>Annulla</button>
+          <button className="pai-btn pai-btn--ghost" onClick={onClose}>{t("procedures.cancel")}</button>
           <button className="pai-proc-delete-modal__confirm" onClick={onConfirm} disabled={deleting}>
-            {deleting ? "Eliminazione…" : "Sì, elimina"}
+            {deleting ? t("procedures.deleting") : t("procedures.delete_confirm")}
           </button>
         </div>
       </div>
@@ -141,6 +145,7 @@ function DeleteModal({ procedure, onClose, onConfirm, deleting }) {
 
 /* ── Componente principale ───────────────────────────────────────────────── */
 export default function ProcedureList({ procedures, isAdmin, onProcedureClick, onCreateClick, onEditProcedure, onDeleteProcedure }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [editTarget,   setEditTarget]   = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -153,7 +158,7 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
   );
 
   const formatDate = (dt) => dt
-    ? new Date(dt).toLocaleDateString("it-IT", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(dt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
     : "—";
 
   const handleSave = async (form) => {
@@ -189,14 +194,14 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
           </svg>
           <input
             className="pai-proc-list__search"
-            placeholder="Cerca procedure per titolo..."
+            placeholder={t("procedures.search_placeholder")}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
         <button className="pai-btn pai-btn--primary" onClick={onCreateClick}>
           <Icon path="M12 5v14M5 12h14" size={15} color="white" />
-          Nuova procedura
+          {t("procedures.new_btn")}
         </button>
       </div>
 
@@ -206,11 +211,11 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
           <div className="pai-proc-list__empty-icon">
             <Icon path="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" size={32} color="#CBD5E1" />
           </div>
-          <div className="pai-proc-list__empty-title">Nessuna procedura</div>
-          <div className="pai-proc-list__empty-sub">Crea la tua prima procedura per iniziare.</div>
+          <div className="pai-proc-list__empty-title">{t("procedures.empty_title")}</div>
+          <div className="pai-proc-list__empty-sub">{t("procedures.empty_sub")}</div>
           <button className="pai-btn pai-btn--primary" onClick={onCreateClick} style={{ marginTop: 16 }}>
             <Icon path="M12 5v14M5 12h14" size={15} color="white" />
-            Crea procedura
+            {t("procedures.create_btn")}
           </button>
         </div>
       ) : (
@@ -222,8 +227,8 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
               onClick={() => onProcedureClick(p.id)}
             >
               <div className="pai-proc-card__top">
-                <span className="pai-chip" style={{ color: "#475569", background: "#F1F5F9" }}>Procedura</span>
-                <span className="pai-chip" style={{ color: "#059669", background: "#ECFDF5" }}>Attiva</span>
+                <span className="pai-chip" style={{ color: "#475569", background: "#F1F5F9" }}>{t("procedures.tag")}</span>
+                <span className="pai-chip" style={{ color: "#059669", background: "#ECFDF5" }}>{t("procedures.tag_active")}</span>
                 <div style={{ flex: 1 }} />
                 <KebabMenu
                   isAdmin={isAdmin}

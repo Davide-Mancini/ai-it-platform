@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { NAV_ITEMS } from "./constants";
 import "./Sidebar.css";
 import Heximus_Logo_AI_Platform from "../assets/Heximus_Logo_AI_Platform.png"
@@ -15,6 +16,7 @@ function Icon({ path, size = 17 }) {
 }
 
 export default function Sidebar({ userInfo, onLogout, unreadCount }) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 1024);
   const [showLogout, setShowLogout] = useState(false);
 
@@ -23,8 +25,8 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
     : "U";
   const displayName = userInfo
     ? [userInfo.first_name, userInfo.last_name].filter(Boolean).join(" ") || userInfo.email
-    : "Utente";
-  const roleName = userInfo?.role?.name || userInfo?.role || "Utente";
+    : t("sidebar.user_fallback");
+  const roleName = userInfo?.role?.name || userInfo?.role || t("sidebar.role_fallback");
 
   return (
     <aside className={`pai-sidebar${collapsed ? " pai-sidebar--collapsed" : ""}`}>
@@ -38,7 +40,7 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
         <button
           className="pai-sidebar__toggle"
           onClick={() => setCollapsed(v => !v)}
-          title={collapsed ? "Espandi sidebar" : "Comprimi sidebar"}
+          title={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
         >
           <svg
             width={14} height={14} viewBox="0 0 24 24" fill="none"
@@ -52,7 +54,7 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
 
       {/* Nav */}
       <nav className="pai-sidebar__nav">
-        <div className="pai-sidebar__section-label">Menu</div>
+        <div className="pai-sidebar__section-label">{t("sidebar.menu")}</div>
         {NAV_ITEMS.map(item => {
           const count = item.badge ? unreadCount : 0;
           return (
@@ -60,13 +62,13 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
               key={item.id}
               to={`/${item.id}`}
               className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
-              title={collapsed ? item.label : undefined}
+              title={collapsed ? t(`nav.${item.id}`) : undefined}
             >
               <div className="pai-sidebar__item-icon">
                 <Icon path={item.icon} size={17} />
                 {count > 0 && collapsed && <span className="pai-sidebar__dot" />}
               </div>
-              <span className="pai-sidebar__item-label">{item.label}</span>
+              <span className="pai-sidebar__item-label">{t(`nav.${item.id}`)}</span>
               {count > 0 && !collapsed && (
                 <span className="pai-sidebar__badge">{count}</span>
               )}
@@ -77,11 +79,11 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
         {/* Voce admin-only */}
         {roleName === "Admin" && (
           <>
-            <div className="pai-sidebar__section-label" style={{ marginTop: 16 }}>Admin</div>
+            <div className="pai-sidebar__section-label" style={{ marginTop: 16 }}>{t("sidebar.admin")}</div>
             <NavLink
               to="/users"
               className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
-              title={collapsed ? "Utenti" : undefined}
+              title={collapsed ? t("nav.users") : undefined}
             >
               <div className="pai-sidebar__item-icon">
                 <Icon
@@ -89,7 +91,7 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
                   size={17}
                 />
               </div>
-              <span className="pai-sidebar__item-label">Utenti</span>
+              <span className="pai-sidebar__item-label">{t("nav.users")}</span>
             </NavLink>
           </>
         )}
@@ -107,7 +109,7 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
           <div className="pai-sidebar__user-name">{displayName}</div>
           <div className="pai-sidebar__user-role">{roleName}</div>
         </div>
-        <button className="pai-sidebar__logout" onClick={() => setShowLogout(true)} title="Logout" >
+        <button className="pai-sidebar__logout" onClick={() => setShowLogout(true)} title={t("logout_modal.confirm")} >
           <Icon path="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" size={14} />
         </button>
       </div>
@@ -118,11 +120,11 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
             <div className="pai-logout-modal__icon">
               <Icon path="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" size={22} />
             </div>
-            <div className="pai-logout-modal__title">Esci dall'account</div>
-            <div className="pai-logout-modal__msg">Sei sicuro di voler uscire? Dovrai effettuare nuovamente l'accesso.</div>
+            <div className="pai-logout-modal__title">{t("logout_modal.title")}</div>
+            <div className="pai-logout-modal__msg">{t("logout_modal.message")}</div>
             <div className="pai-logout-modal__actions">
-              <button className="pai-logout-modal__cancel" onClick={() => setShowLogout(false)}>Annulla</button>
-              <button className="pai-logout-modal__confirm" onClick={onLogout}>Esci</button>
+              <button className="pai-logout-modal__cancel" onClick={() => setShowLogout(false)}>{t("logout_modal.cancel")}</button>
+              <button className="pai-logout-modal__confirm" onClick={onLogout}>{t("logout_modal.confirm")}</button>
             </div>
           </div>
         </div>

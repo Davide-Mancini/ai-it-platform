@@ -1,21 +1,28 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import "./TaskBoard.css";
 
-const COLS = [
-  { id: "pending",     label: "Da fare",    dot: "#94A3B8" },
-  { id: "in_progress", label: "In corso",   dot: "#2563EB" },
-  { id: "done",        label: "Completati", dot: "#059669" },
-];
+function getPriorities(t) {
+  return [
+    { id: "low",      label: t("tasks.priority_low"),      color: "#64748B", bg: "#F1F5F9" },
+    { id: "medium",   label: t("tasks.priority_medium"),   color: "#2563EB", bg: "#EFF6FF" },
+    { id: "high",     label: t("tasks.priority_high"),     color: "#D97706", bg: "#FEF3C7" },
+    { id: "critical", label: t("tasks.priority_critical"), color: "#DC2626", bg: "#FEF2F2" },
+  ];
+}
 
-const PRIORITIES = [
-  { id: "low",      label: "Basso",   color: "#64748B", bg: "#F1F5F9" },
-  { id: "medium",   label: "Medio",   color: "#2563EB", bg: "#EFF6FF" },
-  { id: "high",     label: "Alto",    color: "#D97706", bg: "#FEF3C7" },
-  { id: "critical", label: "Critico", color: "#DC2626", bg: "#FEF2F2" },
-];
+function getCols(t) {
+  return [
+    { id: "pending",     label: t("tasks.col_pending"),     dot: "#94A3B8" },
+    { id: "in_progress", label: t("tasks.col_in_progress"), dot: "#2563EB" },
+    { id: "done",        label: t("tasks.col_done"),        dot: "#059669" },
+  ];
+}
 
 function PriorityBadge({ priority, onChangePriority }) {
+  const { t } = useTranslation();
+  const PRIORITIES = getPriorities(t);
   const [open, setOpen] = useState(false);
   const [pos, setPos]   = useState({ top: 0, left: 0 });
   const ref = useRef(null);
@@ -44,7 +51,7 @@ function PriorityBadge({ priority, onChangePriority }) {
         className="pai-task-priority pai-task-priority--clickable"
         style={{ color: cfg.color, background: cfg.bg }}
         onClick={handleClick}
-        title="Cambia priorità"
+        title={t("tasks.change_priority")}
       >
         {cfg.label}
         <svg width={8} height={8} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" style={{ marginLeft: 3 }}>
@@ -77,7 +84,7 @@ function PriorityBadge({ priority, onChangePriority }) {
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(dateStr).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function UserAvatar({ user, onRemove }) {
@@ -108,6 +115,7 @@ function UserAvatar({ user, onRemove }) {
 }
 
 function AssignDropdown({ task, users, onAssign }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef(null);
@@ -136,7 +144,7 @@ function AssignDropdown({ task, users, onAssign }) {
         ref={btnRef}
         className="pai-task-card__assign-btn"
         onClick={handleOpen}
-        title="Assegna utente"
+        title={t("tasks.assign_user")}
       >
         <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
           <line x1={12} y1={5} x2={12} y2={19} /><line x1={5} y1={12} x2={19} y2={12} />
@@ -160,7 +168,7 @@ function AssignDropdown({ task, users, onAssign }) {
               </div>
             ))
           ) : (
-            <div className="pai-assign-dropdown__empty">Tutti gli utenti sono già assegnati</div>
+            <div className="pai-assign-dropdown__empty">{t("tasks.all_assigned")}</div>
           )}
         </div>,
         document.body
@@ -170,6 +178,7 @@ function AssignDropdown({ task, users, onAssign }) {
 }
 
 function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, isAdmin, users, onAssignUser, onUnassignUser }) {
+  const { t } = useTranslation();
   const proc = procedures.find(p => p.id === task.procedure_id);
   return (
     <div className="pai-task-card">
@@ -214,7 +223,7 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
             className={`pai-task-card__btn${colId === "in_progress" ? " pai-task-card__btn--done" : ""}`}
             onClick={() => onStatusChange(task.id, colId === "pending" ? "in_progress" : "done")}
           >
-            {colId === "pending" ? "→ Inizia" : "✓ Done"}
+            {colId === "pending" ? t("tasks.start_btn") : t("tasks.done_btn")}
           </button>
         )}
         {colId === "done" && (
@@ -222,7 +231,7 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
             className="pai-task-card__btn pai-task-card__btn--undo"
             onClick={() => onStatusChange(task.id, "pending")}
           >
-            ↩ Riapri
+            {t("tasks.reopen_btn")}
           </button>
         )}
       </div>
@@ -231,8 +240,9 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
 }
 
 function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick, isAdmin, users, onAssignUser, onUnassignUser }) {
+  const { t } = useTranslation();
   const [over, setOver] = useState(false);
-  const colTasks = tasks.filter(t => t.status === col.id);
+  const colTasks = tasks.filter(task => task.status === col.id);
 
   return (
     <div
@@ -248,7 +258,7 @@ function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, drag
           <span className="pai-kanban-col__count">{colTasks.length}</span>
         </div>
         {col.id === "pending" && (
-          <button className="pai-kanban-col__add-btn" onClick={onAddClick} title="Nuovo task">
+          <button className="pai-kanban-col__add-btn" onClick={onAddClick} title={t("tasks.create_title")}>
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
               <line x1={12} y1={5} x2={12} y2={19} /><line x1={5} y1={12} x2={19} y2={12} />
             </svg>
@@ -257,16 +267,16 @@ function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, drag
       </div>
 
       <div className="pai-kanban-col__body">
-        {colTasks.map(t => (
+        {colTasks.map(task => (
           <div
-            key={t.id}
+            key={task.id}
             draggable
-            onDragStart={() => onDragStart(t.id)}
+            onDragStart={() => onDragStart(task.id)}
             onDragEnd={onDragEnd}
-            className={`pai-task-card-wrap${draggedId === t.id ? " pai-task-card-wrap--dragging" : ""}`}
+            className={`pai-task-card-wrap${draggedId === task.id ? " pai-task-card-wrap--dragging" : ""}`}
           >
             <TaskCard
-              task={t}
+              task={task}
               procedures={procedures}
               colId={col.id}
               onStatusChange={onStatusChange}
@@ -279,7 +289,7 @@ function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, drag
           </div>
         ))}
         {colTasks.length === 0 && (
-          <div className="pai-kanban-col__empty">Nessun task</div>
+          <div className="pai-kanban-col__empty">{t("tasks.no_tasks_col")}</div>
         )}
       </div>
     </div>
@@ -287,14 +297,16 @@ function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, drag
 }
 
 function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
+  const { t } = useTranslation();
+  const PRIORITIES = getPriorities(t);
   const [title, setTitle]       = useState("");
   const [procId, setProcId]     = useState(procedures[0]?.id || "");
   const [priority, setPriority] = useState("low");
   const [error, setError]       = useState("");
 
   const handleSubmit = () => {
-    if (!title.trim()) { setError("Il titolo è obbligatorio."); return; }
-    if (!procId) { setError("Seleziona una procedura."); return; }
+    if (!title.trim()) { setError(t("tasks.err_title")); return; }
+    if (!procId) { setError(t("tasks.err_procedure")); return; }
     onSubmit(title.trim(), procId, priority);
   };
 
@@ -303,8 +315,8 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
       <div className="pai-modal-box pai-task-form" onClick={e => e.stopPropagation()}>
         <div className="pai-task-form__header">
           <div>
-            <div className="pai-task-form__title">Nuovo task</div>
-            <div className="pai-task-form__sub">Associa il task a una procedura esistente</div>
+            <div className="pai-task-form__title">{t("tasks.create_title")}</div>
+            <div className="pai-task-form__sub">{t("tasks.create_sub")}</div>
           </div>
           <button className="pai-task-form__close" onClick={onClose}>
             <svg width={15} height={15} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round">
@@ -315,20 +327,20 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
 
         <div className="pai-task-form__body">
           <div className="pai-field">
-            <label className="pai-field__label">TITOLO *</label>
+            <label className="pai-field__label">{t("tasks.field_title")}</label>
             <input
               className="pai-field__input"
               value={title}
               onChange={e => setTitle(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") handleSubmit(); }}
-              placeholder="Es. Inviare documentazione al cliente"
+              placeholder={t("tasks.task_placeholder")}
               autoFocus
             />
           </div>
 
           <div className="pai-task-form__row">
             <div className="pai-field" style={{ flex: 1 }}>
-              <label className="pai-field__label">PRIORITÀ</label>
+              <label className="pai-field__label">{t("tasks.field_priority")}</label>
               <select
                 className="pai-field__select"
                 value={priority}
@@ -341,14 +353,14 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
             </div>
 
             <div className="pai-field" style={{ flex: 2 }}>
-              <label className="pai-field__label">PROCEDURA *</label>
+              <label className="pai-field__label">{t("tasks.field_procedure")}</label>
               <select
                 className="pai-field__select"
                 value={procId}
                 onChange={e => setProcId(e.target.value)}
               >
                 {procedures.length === 0 && (
-                  <option value="">Nessuna procedura disponibile</option>
+                  <option value="">{t("tasks.no_procedure")}</option>
                 )}
                 {procedures.map(p => (
                   <option key={p.id} value={p.id} title={p.title}>
@@ -362,9 +374,9 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
           {error && <div className="pai-task-form__error">{error}</div>}
 
           <div className="pai-task-form__actions">
-            <button className="pai-btn pai-btn--ghost" onClick={onClose}>Annulla</button>
+            <button className="pai-btn pai-btn--ghost" onClick={onClose}>{t("tasks.cancel")}</button>
             <button className="pai-btn pai-btn--primary" onClick={handleSubmit} disabled={loading || procedures.length === 0}>
-              {loading ? "Creazione…" : "Crea task"}
+              {loading ? t("tasks.creating") : t("tasks.create_btn")}
             </button>
           </div>
         </div>
@@ -374,6 +386,8 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
 }
 
 export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorityChange, onCreateTask, isAdmin, users, onAssignUser, onUnassignUser }) {
+  const { t } = useTranslation();
+  const COLS = getCols(t);
   const [draggedId, setDraggedId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
