@@ -2,6 +2,7 @@ from .users_schemas import UserBase, UserCreate, UserOut, UserLogin, Token, User
 from .procedures_schemas import ProcedureBase, ProcedureCreate, ProcedureOut
 from .tasks_schemas import TaskBase, TaskCreate, TaskUpdateStatus, TaskUpdatePriority, TaskOut, TaskAssign
 from .ai_schemas import AIRequest, AIProcedureResponse, AIRecommendationOut, AIStepStructure
+from .translation_schemas import IndexedTranslation, BatchProcedureTranslationResponse, StepTranslationBatchResponse
 from .customers_schemas import CustomerBase,CustomerCreate,CustomerOut,CustomerUpdate
 from .procedure_steps_schemas import ProcedureStepCreate,ProcedureStepBase,ProcedureStepOut
 from .procedure_version_schemas import ProcedureVersionBase,ProcedureVersionCreate,ProcedureVersionPut

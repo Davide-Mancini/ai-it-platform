@@ -10,6 +10,7 @@ import {
   STEP_TOGGLE_START,
   STEP_TOGGLE_SUCCESS,
   STEP_TOGGLE_DONE,
+  PROCEDURES_RESET_STEPS,
 } from "../actions/proceduresActions";
 
 const initialState = {
@@ -79,6 +80,9 @@ export const proceduresReducer = (state = initialState, action) => {
 
     case STEP_TOGGLE_DONE:
       return { ...state, togglingStepId: null };
+
+    case PROCEDURES_RESET_STEPS:
+      return { ...state, stepsById: {} };
 
     default:
       return state;

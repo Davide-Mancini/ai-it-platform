@@ -1,21 +1,35 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import models
 import schemas
 from db.database import get_db
 from api.endpoints.auth import get_current_user
-from services import task_service
+from services import task_service, translation_service
 
 router = APIRouter()
 
 
+def _translated_tasks_response(db: Session, tasks: list, lang: Optional[str]) -> list:
+    if not lang:
+        return tasks
+    translated_titles = translation_service.get_translated_tasks(db, tasks, lang)
+    results = []
+    for task in tasks:
+        out = schemas.TaskOut.model_validate(task).model_dump()
+        out["title"] = translated_titles[task.id]
+        results.append(out)
+    return results
+
+
 @router.get("/", response_model=List[schemas.TaskOut])
 def get_all_tasks(
+    lang: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return task_service.get_all_tasks(db, current_user)
+    tasks = task_service.get_all_tasks(db, current_user)
+    return _translated_tasks_response(db, tasks, lang)
 
 
 @router.post("/procedures/{procedure_id}/tasks", response_model=schemas.TaskOut)
@@ -34,10 +48,12 @@ def create_task_for_procedure(
 @router.get("/procedures/{procedure_id}/tasks", response_model=List[schemas.TaskOut])
 def get_tasks_for_procedure(
     procedure_id: str,
+    lang: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return task_service.get_tasks_for_procedure(procedure_id, db, current_user)
+    tasks = task_service.get_tasks_for_procedure(procedure_id, db, current_user)
+    return _translated_tasks_response(db, tasks, lang)
 
 
 @router.patch("/tasks/{task_id}/status", response_model=schemas.TaskOut)

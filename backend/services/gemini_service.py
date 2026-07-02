@@ -33,6 +33,12 @@ class RoleChecker:
 allow_it_creators = RoleChecker(["Admin", "IT Manager"])
 ai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
+LANGUAGE_NAMES = {"it": "italiano", "en": "inglese", "lt": "lituano"}
+
+
+def language_display_name(code: str) -> str:
+    return LANGUAGE_NAMES.get(code, code)
+
 
 def _build_kb_context(kb_items: list) -> str:
     if not kb_items:
@@ -101,7 +107,7 @@ def generate_procedure_with_ai(
         "Devi tassativamente suddividere la procedura in passaggi logici sequenziali (steps).\n"
         "Ogni step deve contenere un titolo chiaro, un numero progressivo (partendo da 1) e una descrizione "
         "tecnica accurata che includa eventuali comandi o azioni atomiche da compiere.\n"
-        "Rispondi esclusivamente in lingua italiana."
+        f"Rispondi esclusivamente in lingua {language_display_name(payload.language)}."
         + policy_context
         + kb_context
         + doc_context
@@ -135,7 +141,8 @@ def generate_procedure_with_ai(
             context_type="procedure_generation",
             input_data=payload.prompt,
             output_text=ai_response.model_dump_json(),
-            is_accepted=None
+            is_accepted=None,
+            language=payload.language
         )
         db.add(new_reccomendation)
         db.commit()

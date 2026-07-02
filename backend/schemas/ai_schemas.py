@@ -6,6 +6,7 @@ from typing import Optional, List
 
 class AIRequest(BaseModel):
     prompt: str
+    language: str = "it"
 
 
 class AIStepStructure(BaseModel):
@@ -31,4 +32,5 @@ class AIRecommendationOut(BaseModel):
     input_data: str
     output_text: str
     is_accepted: Optional[bool]
+    language: str = "it"
     created_at: datetime

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
-import { fetchProcedures, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure } from "../redux/actions/proceduresActions";
+import { fetchProcedures, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure, PROCEDURES_RESET_STEPS } from "../redux/actions/proceduresActions";
 import { fetchAllTasks, createTask, updateTaskStatus, updateTaskPriority, assignUserToTask, unassignUserFromTask } from "../redux/actions/tasksActions";
 import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
 import { fetchUsers, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
@@ -31,6 +32,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { i18n } = useTranslation();
 
   // ── Stato Redux ─────────────────────────────────────────────────────────
   const { list: procedures, stepsById, loadingSteps, togglingStepId } = useSelector(s => s.procedures);
@@ -69,8 +71,6 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
 
   // ── Caricamento iniziale ─────────────────────────────────────────────────
   useEffect(() => {
-    dispatch(fetchProcedures(token));
-    dispatch(fetchAllTasks(token));
     dispatch(fetchDocuments(token));
     dispatch(fetchNotifications(token));
     const h = { Authorization: `Bearer ${token}` };
@@ -79,6 +79,15 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
     fetch(`${API_BASE}/api/team/collaborators`, { headers: h })
       .then(r => r.ok ? r.json() : []).then(setCollaborators).catch(() => {});
   }, [dispatch, token]);
+
+  // Ricarica procedure, step e task quando cambia la lingua dell'interfaccia, cosi'
+  // title/description arrivano tradotti nella nuova lingua invece di restare
+  // nella cache della lingua precedente.
+  useEffect(() => {
+    dispatch({ type: PROCEDURES_RESET_STEPS });
+    dispatch(fetchProcedures(token, i18n.language));
+    dispatch(fetchAllTasks(token, i18n.language));
+  }, [dispatch, token, i18n.language]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -89,15 +98,15 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
 
   // Carica gli step quando si seleziona una procedura (approccio originale)
   useEffect(() => {
-    if (selectedProcId) dispatch(fetchSteps(token, selectedProcId));
-  }, [dispatch, token, selectedProcId]);
+    if (selectedProcId) dispatch(fetchSteps(token, selectedProcId, i18n.language));
+  }, [dispatch, token, selectedProcId, i18n.language]);
 
   // Carica gli step delle procedure recenti mostrate in dashboard
   useEffect(() => {
     procedures.slice(0, 5).forEach(p => {
-      if (!stepsById[p.id]) dispatch(fetchSteps(token, p.id));
+      if (!stepsById[p.id]) dispatch(fetchSteps(token, p.id, i18n.language));
     });
-  }, [dispatch, token, procedures]);
+  }, [dispatch, token, procedures, i18n.language]);
 
   // Reset selectedProcId quando si naviga fuori da /procedures
   useEffect(() => {
@@ -118,10 +127,11 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const openCreate = () => { setShowCreateChoice(true); setShowManual(false); };
   const handleChoiceManual = () => { setShowCreateChoice(false); setShowManual(true); };
 
+  const {t} = useTranslation();
   const handleChoiceAI = () => {
     setShowCreateChoice(false);
     if (aiMessages.length === 0) {
-      setAiMessages([{ role: "ai", text: "Ciao! Descrivimi la procedura che vuoi creare e la genererò con tutti gli step.\n\nEs: \"Onboarding nuovo cliente\", \"Deploy in produzione\", \"Gestione ticket critico\"" }]);
+      setAiMessages([{ role: "ai", text: t("ai.welcome_message") }]);
     }
     setAiChatOpen(true);
   };
@@ -138,7 +148,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
     setManualLoading(true);
     setManualError("");
     try {
-      const newProc = await dispatch(createProcedure(token, manualForm));
+      const newProc = await dispatch(createProcedure(token, { ...manualForm, language: i18n.language }));
       closeModals();
       handleProcedureClick(newProc.id);
     } catch (e) {
@@ -158,8 +168,8 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   };
 
   // ── Task ─────────────────────────────────────────────────────────────────
-  const handleTaskStatusChange   = (taskId, newStatus)   => dispatch(updateTaskStatus(token, taskId, newStatus));
-  const handleTaskPriorityChange = (taskId, newPriority) => dispatch(updateTaskPriority(token, taskId, newPriority));
+  const handleTaskStatusChange   = (taskId, newStatus)   => dispatch(updateTaskStatus(token, taskId, newStatus, i18n.language));
+  const handleTaskPriorityChange = (taskId, newPriority) => dispatch(updateTaskPriority(token, taskId, newPriority, i18n.language));
   const handleCreateTask = async (title, procedureId, priority) => await dispatch(createTask(token, procedureId, title, priority));
   const handleAssignUser   = (taskId, userId) => dispatch(assignUserToTask(token, taskId, userId));
   const handleUnassignUser = (taskId, userId) => dispatch(unassignUserFromTask(token, taskId, userId));
@@ -167,7 +177,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   // ── AI chat ──────────────────────────────────────────────────────────────
   const toggleAIChat = () => {
     if (!aiChatOpen && aiMessages.length === 0) {
-      setAiMessages([{ role: "ai", text: "Ciao! Descrivimi la procedura che vuoi creare e la genererò automaticamente." }]);
+      setAiMessages([{ role: "ai", text: t("ai.welcome_message") }]);
     }
     setAiChatOpen(prev => !prev);
   };
@@ -182,7 +192,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
       const res = await fetch(`${API_BASE}/api/ai/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, language: i18n.language }),
       });
       if (res.ok) {
         const rec = await res.json();
@@ -206,7 +216,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
 
   const acceptRec = async (rec) => {
     try {
-      await dispatch(acceptRecommendation(token, rec));
+      await dispatch(acceptRecommendation(token, rec, i18n.language));
       setAiMessages(prev => [...prev, { role: "ai", text: "Procedura salvata! La trovi nella lista procedure." }]);
     } catch (e) {
       setAiMessages(prev => [...prev, { role: "ai", isError: true, text: e.message }]);

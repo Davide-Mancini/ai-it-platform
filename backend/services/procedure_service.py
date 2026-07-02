@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from api.endpoints.auth import get_current_user
 from services.audit_logger import log_action
+from services import translation_service
 import models
 import schemas
 from db.database import get_db
@@ -19,7 +20,8 @@ def create_procedure(
     new_procedure = models.Procedure(
         title=procedure.title,
         description=procedure.description,
-        user_id=current_user.id
+        user_id=current_user.id,
+        language=procedure.language
     )
     
     log_action(
@@ -60,6 +62,8 @@ def update_procedure(
     #altrimenti aggiorno i campi con i dati forniti come parametro
     db_procedure.title = procedure_data.title
     db_procedure.description = procedure_data.description
+    #le traduzioni in cache non sono piu' valide dopo una modifica del testo sorgente
+    translation_service.invalidate_procedure_translations(db, db_procedure.id)
     #salvo modifche nel db
     log_action(
             db, current_user, "PROCEDURE UPDATED", ip_address, user_agent,

@@ -20,6 +20,12 @@ with engine.connect() as _conn:
     _conn.execute(text(
         "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"
     ))
+    _conn.execute(text(
+        "ALTER TABLE procedures ADD COLUMN IF NOT EXISTS language VARCHAR(5) NOT NULL DEFAULT 'it'"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE ai_recommendations ADD COLUMN IF NOT EXISTS language VARCHAR(5) NOT NULL DEFAULT 'it'"
+    ))
     _conn.commit()
 app = FastAPI(title="AI Assisted IT Platform API")
 

@@ -7,12 +7,13 @@ class ProcedureBase(BaseModel):
     description: str|None = None
 
 class ProcedureCreate(ProcedureBase):
-    pass
+    language: str = "it"
 
 class ProcedureOut(ProcedureBase):
     id: UUID
     created_at: datetime
     user_id: UUID
+    language: str = "it"
 
     class Config:
         from_attributes = True

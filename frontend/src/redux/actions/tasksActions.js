@@ -12,9 +12,10 @@ export const TASK_STATUS_UPDATE   = "TASK_STATUS_UPDATE";
 export const TASK_PRIORITY_UPDATE = "TASK_PRIORITY_UPDATE";
 export const TASK_ASSIGN_UPDATE   = "TASK_ASSIGN_UPDATE";
 
-export const fetchAllTasks = (token) => async (dispatch) => {
+export const fetchAllTasks = (token, lang) => async (dispatch) => {
   dispatch({ type: TASKS_LOADING });
-  const res = await fetch(`${API_BASE}/api/tasks/`, { headers: headers(token) });
+  const url = `${API_BASE}/api/tasks/${lang ? `?lang=${lang}` : ""}`;
+  const res = await fetch(url, { headers: headers(token) });
   if (res.ok) {
     dispatch({ type: TASKS_SUCCESS, payload: await res.json() });
   }
@@ -35,7 +36,7 @@ export const createTask = (token, procedureId, title, priority = "low") => async
   throw new Error(err.detail || "Errore creazione task");
 };
 
-export const updateTaskStatus = (token, taskId, newStatus) => async (dispatch) => {
+export const updateTaskStatus = (token, taskId, newStatus, lang) => async (dispatch) => {
   dispatch({ type: TASK_STATUS_UPDATE, payload: { taskId, status: newStatus } });
   try {
     await fetch(`${API_BASE}/api/tasks/tasks/${taskId}/status`, {
@@ -44,11 +45,11 @@ export const updateTaskStatus = (token, taskId, newStatus) => async (dispatch) =
       body: JSON.stringify({ status: newStatus }),
     });
   } catch {
-    dispatch(fetchAllTasks(token));
+    dispatch(fetchAllTasks(token, lang));
   }
 };
 
-export const updateTaskPriority = (token, taskId, newPriority) => async (dispatch) => {
+export const updateTaskPriority = (token, taskId, newPriority, lang) => async (dispatch) => {
   dispatch({ type: TASK_PRIORITY_UPDATE, payload: { taskId, priority: newPriority } });
   try {
     await fetch(`${API_BASE}/api/tasks/tasks/${taskId}/priority`, {
@@ -57,7 +58,7 @@ export const updateTaskPriority = (token, taskId, newPriority) => async (dispatc
       body: JSON.stringify({ priority: newPriority }),
     });
   } catch {
-    dispatch(fetchAllTasks(token));
+    dispatch(fetchAllTasks(token, lang));
   }
 };
 

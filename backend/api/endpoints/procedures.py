@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import models
 import schemas
 from db.database import get_db
 from api.endpoints.auth import get_current_user
-from services import procedure_service
+from services import procedure_service, translation_service
 
 router = APIRouter()
 
@@ -24,19 +24,40 @@ def create_procedure(
 #Recupero tutte le procedure
 @router.get("/", response_model=List[schemas.ProcedureOut])
 def get_all_procedures(
+    lang: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return db.query(models.Procedure).all()
+    procedures = db.query(models.Procedure).all()
+    if not lang:
+        return procedures
+    translated = translation_service.get_translated_procedures(db, procedures, lang)
+    results = []
+    for proc in procedures:
+        out = schemas.ProcedureOut.model_validate(proc).model_dump()
+        title, description = translated[proc.id]
+        out["title"] = title
+        out["description"] = description
+        results.append(out)
+    return results
 
 #Recupero una determinata procedura tramite id
 @router.get("/{id}", response_model=schemas.ProcedureOut)
 def get_procedure_by_id(
     id: str,
+    lang: Optional[str] = Query(None),
     db: Session= Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return procedure_service.get_procedure_by_id(db, id, current_user)
+    procedure = procedure_service.get_procedure_by_id(db, id, current_user)
+    if not lang or lang == procedure.language:
+        return procedure
+    translated = translation_service.get_translated_procedures(db, [procedure], lang)
+    out = schemas.ProcedureOut.model_validate(procedure).model_dump()
+    title, description = translated[procedure.id]
+    out["title"] = title
+    out["description"] = description
+    return out
 
 #Rotta che permette di aggiornare una procedura esistente
 @router.put("/{id}", response_model=schemas.ProcedureOut)
@@ -69,6 +90,7 @@ def delete_procedure(
 @router.get("/{procedure_id}/steps", response_model=List[schemas.ProcedureStepOut])
 def get_steps_for_procedure(
     procedure_id: str,
+    lang: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -81,7 +103,21 @@ def get_steps_for_procedure(
     )
     if not latest_version:
         return []
-    return sorted(latest_version.steps, key=lambda s: s.step_number or 0)
+    steps = sorted(latest_version.steps, key=lambda s: s.step_number or 0)
+
+    procedure = db.query(models.Procedure).filter(models.Procedure.id == procedure_id).first()
+    if not lang or not procedure or lang == procedure.language:
+        return steps
+
+    translated = translation_service.get_translated_steps(db, steps, lang)
+    results = []
+    for step in steps:
+        out = schemas.ProcedureStepOut.model_validate(step).model_dump()
+        title, description = translated[step.id]
+        out["title"] = title
+        out["description"] = description
+        results.append(out)
+    return results
 
 
 @router.patch("/steps/{step_id}/status", response_model=schemas.ProcedureStepOut)

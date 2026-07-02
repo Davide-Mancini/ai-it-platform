@@ -16,11 +16,13 @@ export const STEPS_SUCCESS           = "STEPS_SUCCESS";
 export const STEP_TOGGLE_START       = "STEP_TOGGLE_START";
 export const STEP_TOGGLE_SUCCESS     = "STEP_TOGGLE_SUCCESS";
 export const STEP_TOGGLE_DONE        = "STEP_TOGGLE_DONE";
+export const PROCEDURES_RESET_STEPS  = "PROCEDURES_RESET_STEPS";
 
-export const fetchProcedures = (token) => async (dispatch) => {
+export const fetchProcedures = (token, lang) => async (dispatch) => {
   dispatch({ type: PROCEDURES_LOADING });
   try {
-    const res = await fetch(`${API_BASE}/api/procedures/`, { headers: headers(token) });
+    const url = `${API_BASE}/api/procedures/${lang ? `?lang=${lang}` : ""}`;
+    const res = await fetch(url, { headers: headers(token) });
     if (res.ok) {
       dispatch({ type: PROCEDURES_SUCCESS, payload: await res.json() });
     } else {
@@ -31,11 +33,11 @@ export const fetchProcedures = (token) => async (dispatch) => {
   }
 };
 
-export const createProcedure = (token, { title, description }) => async (dispatch) => {
+export const createProcedure = (token, { title, description, language }) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/procedures/`, {
     method: "POST",
     headers: headers(token, true),
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify({ title, description, language }),
   });
   if (res.ok) {
     const newProc = await res.json();
@@ -74,9 +76,10 @@ export const deleteProcedure = (token, id) => async (dispatch) => {
   throw new Error(err.detail || "Errore durante l'eliminazione");
 };
 
-export const fetchSteps = (token, procedureId) => async (dispatch) => {
+export const fetchSteps = (token, procedureId, lang) => async (dispatch) => {
   dispatch({ type: STEPS_LOADING });
-  const res = await fetch(`${API_BASE}/api/procedures/${procedureId}/steps`, {
+  const url = `${API_BASE}/api/procedures/${procedureId}/steps${lang ? `?lang=${lang}` : ""}`;
+  const res = await fetch(url, {
     headers: headers(token),
   });
   if (res.ok) {
@@ -101,13 +104,13 @@ export const toggleStepStatus = (token, stepId, newStatus, procedureId) => async
   }
 };
 
-export const acceptRecommendation = (token, rec) => async (dispatch) => {
+export const acceptRecommendation = (token, rec, lang) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/ai/recommendations/${rec.id}/accept`, {
     method: "POST",
     headers: headers(token),
   });
   if (res.ok) {
-    await dispatch(fetchProcedures(token));
+    await dispatch(fetchProcedures(token, lang));
     return true;
   }
   const err = await res.json().catch(() => ({}));

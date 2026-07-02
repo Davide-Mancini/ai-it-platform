@@ -58,7 +58,8 @@ def accept_recommendation(
         new_procedure = models.Procedure(
             title=procedure_data.get("title"),
             description=procedure_data.get("description"),
-            user_id=recommendation.user_id
+            user_id=recommendation.user_id,
+            language=recommendation.language
         )
         db.add(new_procedure)
         db.flush()

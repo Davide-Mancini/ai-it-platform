@@ -9,6 +9,7 @@ from .customer import Customer
 from .procedure_version import ProcedureVersion
 from .step_document import step_document
 from .procedure_steps import ProcedureStep
+from .procedure_translation import ProcedureTranslation, ProcedureStepTranslation, TaskTranslation
 from .audit_log import AuditLog
 from .document import Document
 from .policy import Policy

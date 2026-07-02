@@ -13,6 +13,7 @@ class Procedure(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String, nullable=False)
     description = Column(Text)
+    language = Column(String(5), nullable=False, default="it", server_default="it")
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     # Relazione con User

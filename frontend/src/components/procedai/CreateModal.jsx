@@ -1,5 +1,5 @@
 import "./CreateModal.css";
-
+import { useTranslation } from "react-i18next";
 function SparkleIcon({ size = 20 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -32,25 +32,26 @@ function ChoiceCard({ icon, title, desc, badge, onClick, accent }) {
 }
 
 export default function CreateModal({ onManual, onAI, onClose }) {
+  const {t} = useTranslation();
   return (
     <div className="pai-overlay" onClick={onClose}>
       <div className="pai-modal-box pai-create-modal" onClick={e => e.stopPropagation()}>
         <div className="pai-create-modal__header">
-          <div className="pai-create-modal__title">Nuova procedura</div>
-          <div className="pai-create-modal__sub">Scegli come vuoi creare la procedura</div>
+          <div className="pai-create-modal__title">{t("procedures.modal_title")}</div>
+          <div className="pai-create-modal__sub">{t("procedures.modal_sub")}</div>
         </div>
 
         <div className="pai-create-modal__choices">
           <ChoiceCard
             icon={<PenIcon />}
-            title="Crea manualmente"
-            desc="Definisci titolo, descrizione e aggiunge gli step uno a uno."
+            title={t("procedures.new_manual_proc_title")}
+            desc={t("procedures.new_manual_proc_sub")}
             onClick={onManual}
           />
           <ChoiceCard
             icon={<SparkleIcon />}
-            title="Genera con AI"
-            desc="Descrivi la procedura in linguaggio naturale e l'AI la crea completa di step."
+            title={t("procedures.new_ai_proc_title")}
+            desc={t("procedures.new_ai_proc_sub")}
             badge="Gemini"
             accent
             onClick={onAI}

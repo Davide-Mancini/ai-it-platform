@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import "./AIChat.css";
-
+import { useTranslation } from "react-i18next";
 function SparkleIcon({ size = 17 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -36,6 +36,8 @@ export default function AIChat({ isOpen, onToggle, messages, input, onInputChang
   useEffect(() => {
     if (isOpen) endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
+
+  const {t} = useTranslation();
 
   return (
     <>
@@ -97,7 +99,7 @@ export default function AIChat({ isOpen, onToggle, messages, input, onInputChang
                 value={input}
                 onChange={e => onInputChange(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); } }}
-                placeholder="Descrivi la procedura… (Invio per inviare)"
+                placeholder={t("ai.chat_placeholder")}
                 rows={2}
               />
               <button className="pai-chat__send" onClick={onSend} disabled={loading || !input.trim()}>

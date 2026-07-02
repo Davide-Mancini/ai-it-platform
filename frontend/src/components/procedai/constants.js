@@ -38,14 +38,14 @@ export const NAV_ITEMS = [
 ];
 
 export const STEP_STATUS = {
-  todo: { label: "Da fare", color: "#94A3B8", bg: "#F1F5F9", text: "#475569" },
+  todo: { labelKey: "procedures.todo_badge", color: "#94A3B8", bg: "#F1F5F9", text: "#475569" },
   inprogress: {
-    label: "In corso",
+    labelKey: "procedures.inprogress_badge",
     color: "#2563EB",
     bg: "#EFF6FF",
     text: "#2563EB",
   },
-  done: { label: "Fatto", color: "#059669", bg: "#ECFDF5", text: "#059669" },
+  done: { labelKey: "procedures.done_badge", color: "#059669", bg: "#ECFDF5", text: "#059669" },
 };
 
 export const TASK_STATUS = {
