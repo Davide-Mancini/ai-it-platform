@@ -223,6 +223,7 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
               {[
                 { code: "it", label: "🇮🇹 Italiano" },
                 { code: "en", label: "🇬🇧 English" },
+                { code: "lt", label: "🇱🇹 Lietuvių" },
               ].map(lang => (
                 <button
                   key={lang.code}

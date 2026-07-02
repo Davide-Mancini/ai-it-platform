@@ -1,5 +1,7 @@
 import { useState } from "react";
 import "./UsersPage.css";
+import { useTranslation } from "react-i18next";
+
 
 const API_BASE = "http://localhost:8000";
 
@@ -32,6 +34,7 @@ function RoleBadge({ role }) {
 }
 
 function SendEmailModal({ users, token, onClose }) {
+  const { t } = useTranslation();
   const [mode, setMode]               = useState("all"); // "all" | "role" | "select"
   const [selectedRoles, setRoles]     = useState(new Set());
   const [selected, setSelected]       = useState(new Set());
@@ -131,8 +134,8 @@ function SendEmailModal({ users, token, onClose }) {
       <div className="pai-modal-box pai-email-modal" onClick={e => e.stopPropagation()}>
         <div className="pai-users__edit-header">
           <div>
-            <div className="pai-users__edit-title">Invia email</div>
-            <div className="pai-users__edit-sub">Componi e invia una email agli utenti della piattaforma</div>
+            <div className="pai-users__edit-title">{t("users.email_modal_title")}</div>
+            <div className="pai-users__edit-sub">{t("users.email_modal_sub")}</div>
           </div>
           <button className="pai-users__close-btn" onClick={onClose}>
             <svg width={15} height={15} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round">
@@ -143,10 +146,10 @@ function SendEmailModal({ users, token, onClose }) {
 
         <div className="pai-email-modal__body">
           <div className="pai-field">
-            <label className="pai-field__label text-black">OGGETTO</label>
+            <label className="pai-field__label text-black">{t("users.email_subject")}</label>
             <input
               className="pai-field__input"
-              placeholder="Es. Aggiornamento importante sulla piattaforma"
+              placeholder={t("users.email_subject_placeholder")}
               value={subject}
               onChange={e => setSubject(e.target.value)}
               disabled={sending}
@@ -154,10 +157,10 @@ function SendEmailModal({ users, token, onClose }) {
           </div>
 
           <div className="pai-field">
-            <label className="pai-field__label text-black">MESSAGGIO</label>
+            <label className="pai-field__label text-black">{t("users.email_body")}</label>
             <textarea
               className="pai-email-modal__textarea"
-              placeholder="Scrivi il testo del messaggio…"
+              placeholder={t("users.email_body_placeholder")}
               value={body}
               onChange={e => setBody(e.target.value)}
               disabled={sending}
@@ -165,25 +168,25 @@ function SendEmailModal({ users, token, onClose }) {
           </div>
 
           <div>
-            <div className="pai-email-modal__recipients-label text-black">DESTINATARI</div>
+            <div className="pai-email-modal__recipients-label text-black">{t("users.email_recipients")}</div>
             <div className="pai-email-modal__mode">
               <button
                 className={`pai-email-modal__mode-btn${mode === "all" ? " pai-email-modal__mode-btn--active" : ""}`}
                 onClick={() => setMode("all")}
               >
-                Tutti ({users.length})
+                {t('users.all')} ({users.length})
               </button>
               <button
                 className={`pai-email-modal__mode-btn${mode === "role" ? " pai-email-modal__mode-btn--active" : ""}`}
                 onClick={() => setMode("role")}
               >
-                Per ruolo
+                {t('users.by_role')}
               </button>
               <button
                 className={`pai-email-modal__mode-btn${mode === "select" ? " pai-email-modal__mode-btn--active" : ""}`}
                 onClick={() => setMode("select")}
               >
-                Selezione manuale
+                {t('users.select_users')}
               </button>
             </div>
 
@@ -230,7 +233,7 @@ function SendEmailModal({ users, token, onClose }) {
             )}
 
             <div className="pai-email-modal__counter">
-              {recipientCount} destinatar{recipientCount === 1 ? "io" : "i"} selezionat{recipientCount === 1 ? "o" : "i"}
+              {recipientCount} {recipientCount === 1 ? t('users.recipients_count_singular') : t('users.recipients_count_plural')}
             </div>
           </div>
 
@@ -238,9 +241,9 @@ function SendEmailModal({ users, token, onClose }) {
           {success && <div className="pai-email-modal__success">{success}</div>}
 
           <div className="pai-users__edit-actions">
-            <button className="pai-btn pai-btn--ghost" onClick={onClose} disabled={sending}>Chiudi</button>
+            <button className="pai-btn pai-btn--ghost" onClick={onClose} disabled={sending}>{t('users.btn_close')}</button>
             <button className="pai-btn pai-btn--primary" onClick={handleSend} disabled={sending || recipientCount === 0}>
-              {sending ? "Invio in corso…" : `Invia a ${recipientCount} utent${recipientCount === 1 ? "e" : "i"}`}
+              {sending ? "Invio in corso…" : (recipientCount === 1 ? t('users.btn_send_singular', { count: recipientCount }) : t('users.btn_send_plural', { count: recipientCount }))}
             </button>
           </div>
         </div>
@@ -250,6 +253,7 @@ function SendEmailModal({ users, token, onClose }) {
 }
 
 function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error }) {
+  const { t} = useTranslation();
   const [form, setForm] = useState({
     first_name:  user.first_name,
     last_name:   user.last_name,
@@ -271,7 +275,7 @@ function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error
       <div className="pai-modal-box pai-users__edit-modal" onClick={e => e.stopPropagation()}>
         <div className="pai-users__edit-header">
           <div>
-            <div className="pai-users__edit-title">Modifica utente</div>
+            <div className="pai-users__edit-title">{t('users.modal_title')}</div>
             <div className="pai-users__edit-sub">{user.email}</div>
           </div>
           <button className="pai-users__close-btn" onClick={onClose}>
@@ -284,22 +288,22 @@ function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error
         <div className="pai-users__edit-body">
           <div className="pai-users__edit-row">
             <div className="pai-field">
-              <label className="pai-field__label">NOME</label>
+              <label className="pai-field__label">{t('users.modal_edit_name')}</label>
               <input className="pai-field__input" value={form.first_name} onChange={e => set("first_name", e.target.value)} />
             </div>
             <div className="pai-field">
-              <label className="pai-field__label">COGNOME</label>
+              <label className="pai-field__label">{t('users.modal_edit_surname')}</label>
               <input className="pai-field__input" value={form.last_name} onChange={e => set("last_name", e.target.value)} />
             </div>
           </div>
 
           <div className="pai-field">
-            <label className="pai-field__label">EMAIL</label>
+            <label className="pai-field__label">{t('users.modal_edit_email')}</label>
             <input className="pai-field__input" value={form.email} onChange={e => set("email", e.target.value)} type="email" />
           </div>
 
           <div className="pai-field">
-            <label className="pai-field__label">RUOLO</label>
+            <label className="pai-field__label">{t('users.modal_edit_role')}</label>
             <select className="pai-field__select" value={form.role_id} onChange={e => set("role_id", e.target.value)}>
               {roles.map(r => (
                 <option key={r.id} value={r.id}>{r.name}{r.description ? ` — ${r.description}` : ""}</option>
@@ -310,16 +314,16 @@ function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error
           {/* Toggle stato account */}
           <div className="pai-users__active-row">
             <div>
-              <div className="pai-users__active-label">Stato account</div>
+              <div className="pai-users__active-label">{t('users.modal_edit_status')}</div>
               <div className="pai-users__active-sub">
-                {user.is_active ? "L'utente può accedere alla piattaforma" : "L'utente non può accedere alla piattaforma"}
+                {user.is_active ? t('users.modal_edit_status_sub') : t('users.modal_edit_status_sub_inactive')}
               </div>
             </div>
             <button
               className={`pai-users__toggle${user.is_active ? " pai-users__toggle--on" : ""}`}
               onClick={handleToggle}
               disabled={toggling}
-              title={user.is_active ? "Disattiva account" : "Attiva account"}
+              title={user.is_active ? t('users.modal_edit_status_sub_active') : t('users.modal_edit_status_sub_inactive_title')}
             >
               <span className="pai-users__toggle-knob" />
             </button>
@@ -328,9 +332,9 @@ function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error
           {error && <div className="pai-users__edit-error">{error}</div>}
 
           <div className="pai-users__edit-actions">
-            <button className="pai-btn pai-btn--ghost" onClick={onClose}>Annulla</button>
+            <button className="pai-btn pai-btn--ghost" onClick={onClose}>{t('users.modal_edit_btn_close')}</button>
             <button className="pai-btn pai-btn--primary" onClick={() => onSave(form)} disabled={saving}>
-              {saving ? "Salvataggio…" : "Salva modifiche"}
+              {saving ? t('users.modal_edit_btn_saving') : t('users.modal_edit_btn_save')}
             </button>
           </div>
         </div>
@@ -340,6 +344,7 @@ function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error
 }
 
 export default function UsersPage({ users, roles, loading, onSave, onToggleActive, token }) {
+  const { t } = useTranslation();
   const [search, setSearch]       = useState("");
   const [editingUser, setEditing] = useState(null);
   const [saving, setSaving]       = useState(false);
@@ -374,8 +379,8 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
       {/* Toolbar */}
       <div className="pai-users__toolbar">
         <div>
-          <div className="pai-users__title">Gestione utenti</div>
-          <div className="pai-users__sub">{users.length} utenti registrati</div>
+          <div className="pai-users__title">{t("users.title") }</div>
+          <div className="pai-users__sub">{t("users.users_registered", { count: users.length })}</div>
         </div>
         <div className="pai-users__toolbar-right">
           <div className="pai-users__search-wrap">
@@ -384,7 +389,7 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
             </svg>
             <input
               className="pai-users__search"
-              placeholder="Cerca per nome, email o ruolo…"
+              placeholder={t("users.search_placeholder")}
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -394,7 +399,7 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
               <polyline points="22,6 12,13 2,6" />
             </svg>
-            Invia Email
+            {t("users.send_email_btn")}
           </button>
         </div>
       </div>
@@ -402,18 +407,18 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
       {/* Table */}
       <div className="pai-card pai-users__table-wrap">
         {loading ? (
-          <div className="pai-users__loading">Caricamento utenti…</div>
+          <div className="pai-users__loading">{t("users.loading")}</div>
         ) : filtered.length === 0 ? (
-          <div className="pai-users__empty">Nessun utente trovato.</div>
+          <div className="pai-users__empty">{t("users.no_users")}</div>
         ) : (
           <table className="pai-users__table">
             <thead>
               <tr>
-                <th>Utente</th>
-                <th>Email</th>
-                <th>Ruolo</th>
-                <th>Stato</th>
-                <th></th>
+                <th>{t("users.col_user")}</th>
+                <th>{t("users.col_email")}</th>
+                <th>{t("users.col_role")}</th>
+                <th>{t("users.col_status")}</th>
+                <th>{t("users.col_actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -435,7 +440,7 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
                       background: u.is_active ? "#ECFDF5" : "#FDF2F2",
                       fontSize: 11,
                     }}>
-                      {u.is_active ? "Attivo" : "Inattivo"}
+                      {u.is_active ? t("users.active") : t("users.inactive")}
                     </span>
                   </td>
                   <td>
@@ -444,7 +449,7 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                       </svg>
-                      Modifica
+                      {t("users.edit_btn")}
                     </button>
                   </td>
                 </tr>

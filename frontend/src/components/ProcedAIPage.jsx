@@ -92,6 +92,13 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
     if (selectedProcId) dispatch(fetchSteps(token, selectedProcId));
   }, [dispatch, token, selectedProcId]);
 
+  // Carica gli step delle procedure recenti mostrate in dashboard
+  useEffect(() => {
+    procedures.slice(0, 5).forEach(p => {
+      if (!stepsById[p.id]) dispatch(fetchSteps(token, p.id));
+    });
+  }, [dispatch, token, procedures]);
+
   // Reset selectedProcId quando si naviga fuori da /procedures
   useEffect(() => {
     if (pathname !== "/procedures") setSelectedProcId(null);

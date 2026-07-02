@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import "./Documents.css";
 
 const API_BASE  = "http://localhost:8000";
+const ALL_CAT   = "__all__";
 const EXT_COLOR = { pdf: "#DC2626", docx: "#2563EB", xlsx: "#059669", txt: "#475569" };
 
 const CATEGORY_COLORS = [
@@ -459,7 +460,7 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
   const [selected, setSelected] = useState(null);
   const [editing, setEditing]   = useState(null);
   const [deleting, setDeleting] = useState(null);
-  const [activeCat, setActiveCat] = useState("Tutte");
+  const [activeCat, setActiveCat] = useState(ALL_CAT);
 
   const [policies, setPolicies]         = useState([]);
   const [loadingPolicies, setLoadingP]  = useState(true);
@@ -478,8 +479,8 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
   }, [token]);
 
   const ALL_LABEL = t("documents.all_categories");
-  const cats     = [ALL_LABEL, ...new Set(documents.map(d => d.file_type || "Altro").filter(Boolean))];
-  const filtered = activeCat === ALL_LABEL ? documents : documents.filter(d => (d.file_type || "Altro") === activeCat);
+  const cats     = [ALL_CAT, ...new Set(documents.map(d => d.file_type || "Altro").filter(Boolean))];
+  const filtered = activeCat === ALL_CAT ? documents : documents.filter(d => (d.file_type || "Altro") === activeCat);
 
   return (
     <div className="pai-view pai-docs-wrapper">
@@ -518,9 +519,9 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
                   className={`pai-docs__cat-item${cat === activeCat ? " pai-docs__cat-item--active" : ""}`}
                   onClick={() => setActiveCat(cat)}
                 >
-                  <span>{cat}</span>
+                  <span>{cat === ALL_CAT ? ALL_LABEL : cat}</span>
                   <span className="pai-docs__cat-count">
-                    {cat === "Tutte" ? documents.length : documents.filter(d => (d.file_type || "Altro") === cat).length}
+                    {cat === ALL_CAT ? documents.length : documents.filter(d => (d.file_type || "Altro") === cat).length}
                   </span>
                 </div>
               ))}
