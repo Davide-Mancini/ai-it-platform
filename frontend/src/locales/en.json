@@ -25,7 +25,8 @@
   },
   "topbar": {
     "greeting": "Good morning, ",
-    "procedure_detail": "Procedure Detail"
+    "procedure_detail": "Procedure Detail",
+    "change_language": "Change language"
   },
   "auth": {
     "login_tab": "Sign in",
@@ -357,6 +358,7 @@
    "ai": {
     "welcome_message": "Hello! Describe the procedure you want to create and I will generate it with all the steps.\n\nE.g., \"New customer onboarding\", \"Production deployment\", \"Critical ticket management\"",
     "chat_placeholder": "Describe your procedure",
+    "prompt_too_long": "Message is too long (max {{max}} characters).",
     "send_btn": "Send",
     "sending": "Sending…",
     "error": "Error while generating the procedure. Please try again.",

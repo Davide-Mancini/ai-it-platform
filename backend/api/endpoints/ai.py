@@ -1,4 +1,5 @@
 from services import gemini_service
+from services.rate_limiter import RateLimiter
 from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session
 import models
@@ -14,12 +15,16 @@ router = APIRouter()
 # Solo Administrator e IT Manager possono approvare o rifiutare le procedure dell'IA
 allow_it_creators = gemini_service.RoleChecker(["Admin", "IT Manager"])
 
+# Max 5 richieste di generazione AI ogni 60 secondi, per utente
+ai_rate_limit = RateLimiter(max_calls=5, period_seconds=60)
+
 #Rotta per generare le procedure tramite l'ai
 @router.post("/generate", response_model=schemas.AIRecommendationOut)
 def generate_procedure_with_ai(
     payload: schemas.AIRequest,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(gemini_service.allow_it_creators)
+    current_user: models.User = Depends(gemini_service.allow_it_creators),
+    _rate_limit: models.User = Depends(ai_rate_limit),
 ):
     #Richiamo la funzione scritta all'interno dei service
     new_ai_procedure = gemini_service.generate_procedure_with_ai(payload, db, current_user)

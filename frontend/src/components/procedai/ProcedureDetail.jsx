@@ -173,7 +173,7 @@ export default function ProcedureDetail({
             <div className="pai-detail__steps-header">
               <div className="pai-detail__steps-title">
                 {t("procedures.procedure_steps")}
-                {loadingSteps && <span className="pai-detail__steps-loading">{t("procedures.loading")}</span>}
+                {loadingSteps && <span className="pai-detail__steps-loading ms-1">{t("procedures.loading")}</span>}
               </div>
             </div>
 

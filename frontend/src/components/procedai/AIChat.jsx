@@ -30,7 +30,7 @@ function TypingIndicator() {
   );
 }
 
-export default function AIChat({ isOpen, onToggle, messages, input, onInputChange, onSend, loading, onAccept, onReject }) {
+export default function AIChat({ isOpen, onToggle, messages, input, onInputChange, maxLength, onSend, loading, onAccept, onReject }) {
   const endRef = useRef(null);
 
   useEffect(() => {
@@ -100,6 +100,7 @@ export default function AIChat({ isOpen, onToggle, messages, input, onInputChang
                 onChange={e => onInputChange(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); } }}
                 placeholder={t("ai.chat_placeholder")}
+                maxLength={maxLength}
                 rows={2}
               />
               <button className="pai-chat__send" onClick={onSend} disabled={loading || !input.trim()}>
@@ -109,6 +110,9 @@ export default function AIChat({ isOpen, onToggle, messages, input, onInputChang
                 </svg>
               </button>
             </div>
+            {maxLength && (
+              <div className="pai-chat__char-count">{input.length}/{maxLength}</div>
+            )}
           </div>
         </>
       )}

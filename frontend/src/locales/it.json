@@ -25,7 +25,8 @@
   },
   "topbar": {
     "greeting": "Buongiorno ",
-    "procedure_detail": "Dettaglio Procedura"
+    "procedure_detail": "Dettaglio Procedura",
+    "change_language": "Cambia lingua"
   },
   "auth": {
     "login_tab": "Accedi",
@@ -358,6 +359,7 @@
   "ai": {
     "welcome_message": "Ciao! Descrivimi la procedura che vuoi creare e la genererò con tutti gli step.\n\nEs: \"Onboarding nuovo cliente\", \"Deploy in produzione\", \"Gestione ticket critico\"",
     "chat_placeholder": "Descrivi la tua procedura",
+    "prompt_too_long": "Il messaggio è troppo lungo (max {{max}} caratteri).",
     "send_btn": "Invia",
     "sending": "Invio…",
     "error": "Errore durante la generazione della procedura. Riprova.",

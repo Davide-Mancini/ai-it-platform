@@ -25,7 +25,8 @@
   },
   "topbar": {
     "greeting": "Labas rytas, ",
-    "procedure_detail": "Procedūros informacija"
+    "procedure_detail": "Procedūros informacija",
+    "change_language": "Keisti kalbą"
   },
   "auth": {
     "login_tab": "Prisijungti",
@@ -357,6 +358,7 @@
   "ai": {
     "welcome_message": "Sveiki! Aprašykite procedūrą, kurią norite sukurti, ir aš ją sugeneruosiu su visais žingsniais.\n\nPvz.: „Naujo kliento įtraukimas“, „Diegimas gamybos aplinkoje“, „Kritinio bilieto valdymas“",
     "chat_placeholder": "Aprašykite savo procedūrą",
+    "prompt_too_long": "Žinutė per ilga (maks. {{max}} simbolių).",
     "send_btn": "Siųsti",
     "sending": "Siunčiama…",
     "error": "Klaida generuojant procedūrą. Bandykite dar kartą.",

@@ -137,6 +137,13 @@
   transition: border-color .15s;
 }
 .pai-chat__textarea:focus { border-color: #2563EB; background: white; }
+.pai-chat__char-count {
+  padding: 0 14px 10px;
+  text-align: right;
+  font-size: 11px;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
 .pai-chat__textarea::placeholder { color: #94A3B8; }
 .pai-chat__send {
   width: 37px; height: 37px; flex-shrink: 0;

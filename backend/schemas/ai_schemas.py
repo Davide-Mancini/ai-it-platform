@@ -1,11 +1,11 @@
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, List
 
 
 class AIRequest(BaseModel):
-    prompt: str
+    prompt: str = Field(..., min_length=1, max_length=2000, description="Richiesta dell'utente per la generazione della procedura")
     language: str = "it"
 
 

@@ -27,6 +27,7 @@ import AIChat          from "./procedai/AIChat";
 import "./procedai/ProcedAIPage.css";
 
 const API_BASE = "http://localhost:8000";
+const AI_PROMPT_MAX_LENGTH = 2000;
 
 export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdate }) {
   const dispatch = useDispatch();
@@ -185,6 +186,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const sendAIMessage = async () => {
     const prompt = aiInput.trim();
     if (!prompt || aiLoading) return;
+    if (prompt.length > AI_PROMPT_MAX_LENGTH) {
+      setAiMessages(prev => [...prev, { role: "ai", isError: true, text: t("ai.prompt_too_long", { max: AI_PROMPT_MAX_LENGTH }) }]);
+      return;
+    }
     setAiMessages(prev => [...prev, { role: "user", text: prompt }]);
     setAiInput("");
     setAiLoading(true);
@@ -375,6 +380,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         messages={aiMessages}
         input={aiInput}
         onInputChange={setAiInput}
+        maxLength={AI_PROMPT_MAX_LENGTH}
         onSend={sendAIMessage}
         loading={aiLoading}
         onAccept={acceptRec}
