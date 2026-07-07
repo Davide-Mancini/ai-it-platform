@@ -3,16 +3,17 @@ import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 
-import { fetchProcedures, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure, PROCEDURES_RESET_STEPS } from "../redux/actions/proceduresActions";
+import { fetchProcedures, fetchProceduresBrowse, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure, PROCEDURES_RESET_STEPS } from "../redux/actions/proceduresActions";
 import { fetchAllTasks, createTask, updateTaskStatus, updateTaskPriority, assignUserToTask, unassignUserFromTask } from "../redux/actions/tasksActions";
 import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
-import { fetchUsers, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
+import { fetchUsers, fetchUsersBrowse, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllNotifications } from "../redux/actions/notificationsActions";
 import { useNotificationsSSE } from "../hooks/useNotificationsSSE";
 
 import Sidebar         from "./procedai/Sidebar";
 import TopBar          from "./procedai/TopBar";
 import Dashboard       from "./procedai/Dashboard";
+import Analytics       from "./procedai/Analytics";
 import ProcedureList   from "./procedai/ProcedureList";
 import ProcedureDetail from "./procedai/ProcedureDetail";
 import TaskBoard       from "./procedai/TaskBoard";
@@ -36,10 +37,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const { i18n } = useTranslation();
 
   // ── Stato Redux ─────────────────────────────────────────────────────────
-  const { list: procedures, stepsById, loadingSteps, togglingStepId } = useSelector(s => s.procedures);
+  const { list: procedures, stepsById, loadingSteps, togglingStepId, browse: proceduresBrowse } = useSelector(s => s.procedures);
   const { list: tasks }       = useSelector(s => s.tasks);
   const { list: documents, loading: loadingDocs } = useSelector(s => s.documents);
-  const { list: users, roles, loading: loadingUsers } = useSelector(s => s.users);
+  const { list: users, roles, loading: loadingUsers, browse: usersBrowse } = useSelector(s => s.users);
   const { list: notifications } = useSelector(s => s.notifications);
 
   useNotificationsSSE(token);
@@ -62,9 +63,24 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const [aiLoading, setAiLoading]   = useState(false);
 
   const isAdmin = userInfo?.role?.name === "Admin" || userInfo?.role === "Admin";
+  const isITManager = userInfo?.role?.name === "IT Manager" || userInfo?.role === "IT Manager";
+  const canViewAIStats = isAdmin || isITManager;
 
   const [recentActivity, setRecentActivity] = useState([]);
   const [collaborators, setCollaborators]   = useState([]);
+  const [actionStats, setActionStats] = useState([]);
+  const [aiStats, setAiStats] = useState(null);
+  const [workload, setWorkload] = useState([]);
+  const [resolutionStats, setResolutionStats] = useState(null);
+  const [roleStats, setRoleStats] = useState([]);
+  const [procLanguageStats, setProcLanguageStats] = useState([]);
+  const [procTrendStats, setProcTrendStats] = useState([]);
+
+  // Ricerca + paginazione server-side per le tabelle/griglie di ProcedureList e UsersPage
+  const [procSearch, setProcSearch] = useState("");
+  const [procPage, setProcPage]     = useState(1);
+  const [userSearch, setUserSearch] = useState("");
+  const [userPage, setUserPage]     = useState(1);
 
   // Dati derivati per il dettaglio
   const selectedProc = selectedProcId ? procedures.find(p => p.id === selectedProcId) : null;
@@ -79,7 +95,46 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
       .then(r => r.ok ? r.json() : []).then(setRecentActivity).catch(() => {});
     fetch(`${API_BASE}/api/team/collaborators`, { headers: h })
       .then(r => r.ok ? r.json() : []).then(setCollaborators).catch(() => {});
+    fetch(`${API_BASE}/api/audit/stats/actions?limit=6`, { headers: h })
+      .then(r => r.ok ? r.json() : []).then(setActionStats).catch(() => {});
+    fetch(`${API_BASE}/api/tasks/stats/resolution-time`, { headers: h })
+      .then(r => r.ok ? r.json() : null).then(setResolutionStats).catch(() => {});
+    fetch(`${API_BASE}/api/procedures/stats/by-language`, { headers: h })
+      .then(r => r.ok ? r.json() : []).then(setProcLanguageStats).catch(() => {});
+    fetch(`${API_BASE}/api/procedures/stats/created-trend?days=14`, { headers: h })
+      .then(r => r.ok ? r.json() : []).then(setProcTrendStats).catch(() => {});
   }, [dispatch, token]);
+
+  useEffect(() => {
+    if (!canViewAIStats) return;
+    fetch(`${API_BASE}/api/ai/recommendations/stats`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null).then(setAiStats).catch(() => {});
+  }, [token, canViewAIStats]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetch(`${API_BASE}/api/auth/users/workload?limit=10`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : []).then(setWorkload).catch(() => {});
+    fetch(`${API_BASE}/api/auth/users/stats/roles`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : []).then(setRoleStats).catch(() => {});
+  }, [token, isAdmin]);
+
+  // Ricerca + paginazione server-side per la griglia di ProcedureList (debounced)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      dispatch(fetchProceduresBrowse(token, i18n.language, { page: procPage, pageSize: 25, search: procSearch }));
+    }, 350);
+    return () => clearTimeout(t);
+  }, [dispatch, token, i18n.language, procPage, procSearch]);
+
+  // Ricerca + paginazione server-side per la tabella di UsersPage (debounced)
+  useEffect(() => {
+    if (!isAdmin) return;
+    const t = setTimeout(() => {
+      dispatch(fetchUsersBrowse(token, { page: userPage, pageSize: 25, search: userSearch }));
+    }, 350);
+    return () => clearTimeout(t);
+  }, [dispatch, token, isAdmin, userPage, userSearch]);
 
   // Ricarica procedure, step e task quando cambia la lingua dell'interfaccia, cosi'
   // title/description arrivano tradotti nella nuova lingua invece di restare
@@ -113,6 +168,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   useEffect(() => {
     if (pathname !== "/procedures") setSelectedProcId(null);
   }, [pathname]);
+
+  // ── Ricerca/paginazione procedure e utenti ──────────────────────────────
+  const handleProcSearchChange = (value) => { setProcSearch(value); setProcPage(1); };
+  const handleUserSearchChange = (value) => { setUserSearch(value); setUserPage(1); };
 
   // ── Navigazione ──────────────────────────────────────────────────────────
   const handleProcedureClick = (id) => {
@@ -239,6 +298,38 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
     if (r.ok) setRecentActivity(await r.json());
   };
 
+  // ── Refresh dati Analytics ───────────────────────────────────────────────
+  const handleRefreshAnalytics = async () => {
+    const h = { Authorization: `Bearer ${token}` };
+    await Promise.all([
+      dispatch(fetchProcedures(token, i18n.language)),
+      dispatch(fetchAllTasks(token, i18n.language)),
+      fetch(`${API_BASE}/api/audit/stats/actions?limit=6`, { headers: h })
+        .then(r => r.ok ? r.json() : []).then(setActionStats).catch(() => {}),
+      fetch(`${API_BASE}/api/tasks/stats/resolution-time`, { headers: h })
+        .then(r => r.ok ? r.json() : null).then(setResolutionStats).catch(() => {}),
+      fetch(`${API_BASE}/api/procedures/stats/by-language`, { headers: h })
+        .then(r => r.ok ? r.json() : []).then(setProcLanguageStats).catch(() => {}),
+      fetch(`${API_BASE}/api/procedures/stats/created-trend?days=14`, { headers: h })
+        .then(r => r.ok ? r.json() : []).then(setProcTrendStats).catch(() => {}),
+      canViewAIStats
+        ? fetch(`${API_BASE}/api/ai/recommendations/stats`, { headers: h })
+            .then(r => r.ok ? r.json() : null).then(setAiStats).catch(() => {})
+        : Promise.resolve(),
+    ]);
+  };
+
+  // ── Refresh grafici pagina Utenti ────────────────────────────────────────
+  const handleRefreshUserCharts = async () => {
+    const h = { Authorization: `Bearer ${token}` };
+    await Promise.all([
+      fetch(`${API_BASE}/api/auth/users/workload?limit=10`, { headers: h })
+        .then(r => r.ok ? r.json() : []).then(setWorkload).catch(() => {}),
+      fetch(`${API_BASE}/api/auth/users/stats/roles`, { headers: h })
+        .then(r => r.ok ? r.json() : []).then(setRoleStats).catch(() => {}),
+    ]);
+  };
+
   // ── Gestione utenti ──────────────────────────────────────────────────────
   const handleSaveUser = async (userId, form) => await dispatch(updateUser(token, userId, form));
   const handleMarkNotificationRead     = (id) => dispatch(markNotificationRead(token, id));
@@ -268,7 +359,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
       }
       return (
         <ProcedureList
-          procedures={procedures}
+          browse={proceduresBrowse}
+          search={procSearch}
+          onSearchChange={handleProcSearchChange}
+          onPageChange={setProcPage}
           isAdmin={isAdmin}
           onProcedureClick={handleProcedureClick}
           onCreateClick={openCreate}
@@ -305,6 +399,18 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
 
     if (pathname === "/team") return <Team collaborators={collaborators} />;
 
+    if (pathname === "/analytics") return (
+      <Analytics
+        tasks={tasks}
+        actionStats={actionStats}
+        aiStats={aiStats}
+        resolutionStats={resolutionStats}
+        languageStats={procLanguageStats}
+        trendStats={procTrendStats}
+        onRefresh={handleRefreshAnalytics}
+      />
+    );
+
     if (pathname === "/notifications") return (
       <Notifications
         notifications={notifications}
@@ -325,6 +431,13 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         onSave={handleSaveUser}
         onToggleActive={(userId, isActive) => dispatch(toggleUserActive(token, userId, isActive))}
         token={token}
+        workload={workload}
+        roleStats={roleStats}
+        browse={usersBrowse}
+        search={userSearch}
+        onSearchChange={handleUserSearchChange}
+        onPageChange={setUserPage}
+        onRefreshCharts={handleRefreshUserCharts}
       />
     );
 

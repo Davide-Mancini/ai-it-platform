@@ -1,6 +1,7 @@
 {
   "nav": {
     "dashboard": "Dashboard",
+    "analytics": "Analytics",
     "procedures": "Procedure",
     "tasks": "Task Board",
     "documents": "Documenti & Policy",
@@ -8,6 +9,33 @@
     "notifications": "Notifiche",
     "settings": "Impostazioni",
     "users": "Utenti"
+  },
+  "charts": {
+    "no_data": "Dati non ancora disponibili"
+  },
+  "pager": {
+    "range": "{{from}}–{{to}} di {{total}}",
+    "prev": "← Precedente",
+    "next": "Successivo →",
+    "page_of": "Pagina {{page}} di {{totalPages}}"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "sub": "Statistiche e tendenze della piattaforma",
+    "refresh": "Aggiorna dati",
+    "charts_procedures_trend": "Procedure create",
+    "procedures_created_period": "{{count}} nelle ultime 2 settimane",
+    "charts_ai_acceptance": "Accettazione raccomandazioni AI",
+    "ai_accepted": "Accettate",
+    "ai_rejected": "Rifiutate",
+    "ai_pending": "In attesa",
+    "charts_top_actions": "Attività per tipo",
+    "charts_task_priority": "Priorità dei task",
+    "charts_procedures_language": "Procedure per lingua",
+    "charts_resolution_time": "Tempo medio di risoluzione",
+    "resolution_time_overall": "Media complessiva: {{value}}{{unit}}",
+    "unit_hours": "h",
+    "unit_days": "gg"
   },
   "sidebar": {
     "menu": "Menu",
@@ -298,6 +326,10 @@
   "users": {
     "title": "Gestione Utenti",
     "users_registered": "{{count}} utenti registrati",
+    "workload_title": "Carico di lavoro",
+    "workload_sub": "Task aperti assegnati per utente",
+    "roles_title": "Distribuzione ruoli utenti",
+    "refresh_charts": "Aggiorna grafici",
     "search_placeholder": "Cerca utente...",
     "send_email_btn": "Invia Email",
     "col_user": "Utente",

@@ -39,8 +39,8 @@ def create_user(user: schemas.UserCreate, db: Session):
     return new_user
 
 
-def get_users(db: Session):
-    return auth_repository.get_all_users(db)
+def get_users(db: Session, page: int | None = None, page_size: int | None = None, search: str | None = None):
+    return auth_repository.get_all_users(db, page, page_size, search)
 
 def set_user_active(db: Session, user_id: str, is_active: bool):
     return auth_repository.set_user_active(db, user_id, is_active)

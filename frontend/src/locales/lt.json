@@ -1,6 +1,7 @@
 {
   "nav": {
     "dashboard": "Valdymo skydas",
+    "analytics": "Analitika",
     "procedures": "Procedūros",
     "tasks": "Užduočių lenta",
     "documents": "Dokumentai ir politikos",
@@ -8,6 +9,33 @@
     "notifications": "Pranešimai",
     "settings": "Nustatymai",
     "users": "Vartotojai"
+  },
+  "charts": {
+    "no_data": "Duomenų kol kas nėra"
+  },
+  "pager": {
+    "range": "{{from}}–{{to}} iš {{total}}",
+    "prev": "← Ankstesnis",
+    "next": "Kitas →",
+    "page_of": "Puslapis {{page}} iš {{totalPages}}"
+  },
+  "analytics": {
+    "title": "Analitika",
+    "sub": "Platformos statistika ir tendencijos",
+    "refresh": "Atnaujinti duomenis",
+    "charts_procedures_trend": "Sukurtos procedūros",
+    "procedures_created_period": "{{count}} per pastarąsias 2 savaites",
+    "charts_ai_acceptance": "DI rekomendacijų priėmimas",
+    "ai_accepted": "Priimta",
+    "ai_rejected": "Atmesta",
+    "ai_pending": "Laukiama",
+    "charts_top_actions": "Veikla pagal tipą",
+    "charts_task_priority": "Užduočių prioritetas",
+    "charts_procedures_language": "Procedūros pagal kalbą",
+    "charts_resolution_time": "Vidutinis sprendimo laikas",
+    "resolution_time_overall": "Bendras vidurkis: {{value}}{{unit}}",
+    "unit_hours": "val.",
+    "unit_days": "d."
   },
   "sidebar": {
     "menu": "Meniu",
@@ -298,6 +326,10 @@
   "users": {
     "title": "Vartotojų valdymas",
     "users_registered": "įregistruota {{count}} vartotojų",
+    "workload_title": "Darbo krūvis",
+    "workload_sub": "Kiekvienam vartotojui priskirtos atviros užduotys",
+    "roles_title": "Vartotojų vaidmenų pasiskirstymas",
+    "refresh_charts": "Atnaujinti grafikus",
     "search_placeholder": "Ieškoti vartotojo...",
     "send_email_btn": "Siųsti el. laišką",
     "col_user": "Vartotojas",

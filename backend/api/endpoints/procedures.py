@@ -1,4 +1,6 @@
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Request, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import models
@@ -21,25 +23,88 @@ def create_procedure(
     user_agent = request.headers.get("user-agent")
     return procedure_service.create_procedure(procedure,ip_address,user_agent, db, current_user)
 
-#Recupero tutte le procedure
-@router.get("/", response_model=List[schemas.ProcedureOut])
+#Recupero tutte le procedure. Se page/page_size non sono passati, restituisce
+#tutto (retrocompatibile per i consumer che hanno bisogno della lista intera:
+#dropdown, dashboard, grafici). Passando page/page_size si attiva la paginazione
+#(usata dalla griglia di ProcedureList), con ricerca opzionale per titolo.
+@router.get("/", response_model=schemas.PaginatedProceduresOut)
 def get_all_procedures(
     lang: Optional[str] = Query(None),
+    page: Optional[int] = Query(default=None, ge=1),
+    page_size: Optional[int] = Query(default=None, ge=1, le=100),
+    search: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    procedures = db.query(models.Procedure).all()
+    query = db.query(models.Procedure)
+    if search:
+        query = query.filter(models.Procedure.title.ilike(f"%{search}%"))
+    query = query.order_by(models.Procedure.created_at.desc())
+
+    total = query.count()
+    if page is not None or page_size is not None:
+        effective_page = page or 1
+        effective_size = page_size or 25
+        procedures = query.offset((effective_page - 1) * effective_size).limit(effective_size).all()
+    else:
+        effective_page = 1
+        effective_size = total
+        procedures = query.all()
+
     if not lang:
-        return procedures
-    translated = translation_service.get_translated_procedures(db, procedures, lang)
-    results = []
-    for proc in procedures:
-        out = schemas.ProcedureOut.model_validate(proc).model_dump()
-        title, description = translated[proc.id]
-        out["title"] = title
-        out["description"] = description
-        results.append(out)
-    return results
+        items = procedures
+    else:
+        translated = translation_service.get_translated_procedures(db, procedures, lang)
+        items = []
+        for proc in procedures:
+            out = schemas.ProcedureOut.model_validate(proc).model_dump()
+            title, description = translated[proc.id]
+            out["title"] = title
+            out["description"] = description
+            items.append(out)
+
+    return schemas.PaginatedProceduresOut(items=items, total=total, page=effective_page, page_size=effective_size)
+
+
+#Conteggio procedure per lingua, per il grafico in Analytics
+@router.get("/stats/by-language", response_model=List[schemas.LanguageCountOut])
+def get_procedures_by_language(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    rows = (
+        db.query(models.Procedure.language, func.count(models.Procedure.id))
+        .group_by(models.Procedure.language)
+        .order_by(func.count(models.Procedure.id).desc())
+        .all()
+    )
+    return [schemas.LanguageCountOut(language=language, count=count) for language, count in rows]
+
+
+#Conteggio procedure create per giorno (ultimi N giorni), per il grafico trend in Analytics
+@router.get("/stats/created-trend", response_model=List[schemas.DateCountOut])
+def get_procedures_created_trend(
+    days: int = Query(default=14, ge=1, le=90),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    today = datetime.now(timezone.utc).date()
+    start = today - timedelta(days=days - 1)
+
+    rows = (
+        db.query(func.date(models.Procedure.created_at).label("day"), func.count(models.Procedure.id))
+        .filter(func.date(models.Procedure.created_at) >= start)
+        .group_by("day")
+        .all()
+    )
+    counts = {str(day): count for day, count in rows}
+
+    result = []
+    for i in range(days):
+        d = start + timedelta(days=i)
+        key = str(d)
+        result.append(schemas.DateCountOut(date=key, count=counts.get(key, 0)))
+    return result
 
 #Recupero una determinata procedura tramite id
 @router.get("/{id}", response_model=schemas.ProcedureOut)

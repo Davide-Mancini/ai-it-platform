@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import Pager from "./Pager";
 import "./ProcedureList.css";
 
 function Icon({ path, size = 16, color = "currentColor" }) {
@@ -144,18 +145,15 @@ function DeleteModal({ procedure, onClose, onConfirm, deleting }) {
 }
 
 /* ── Componente principale ───────────────────────────────────────────────── */
-export default function ProcedureList({ procedures, isAdmin, onProcedureClick, onCreateClick, onEditProcedure, onDeleteProcedure }) {
+export default function ProcedureList({ browse, search, onSearchChange, onPageChange, isAdmin, onProcedureClick, onCreateClick, onEditProcedure, onDeleteProcedure }) {
   const { t } = useTranslation();
-  const [search, setSearch] = useState("");
   const [editTarget,   setEditTarget]   = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [saving,   setSaving]   = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [editError, setEditError] = useState("");
 
-  const filtered = procedures.filter(p =>
-    p.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = browse.items;
 
   const formatDate = (dt) => dt
     ? new Date(dt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
@@ -196,7 +194,7 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
             className="pai-proc-list__search"
             placeholder={t("procedures.search_placeholder")}
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => onSearchChange(e.target.value)}
           />
         </div>
         <button className="pai-btn pai-btn--primary" onClick={onCreateClick}>
@@ -249,6 +247,15 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
             </div>
           ))}
         </div>
+      )}
+
+      {filtered.length > 0 && (
+        <Pager
+          page={browse.page}
+          pageSize={browse.pageSize}
+          total={browse.total}
+          onPageChange={onPageChange}
+        />
       )}
 
       {editTarget && (

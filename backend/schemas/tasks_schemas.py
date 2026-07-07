@@ -35,6 +35,19 @@ class TaskOut(TaskBase):
     procedure_id: UUID
     assigned_users: List[UserMinimal] = []
     created_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+
+# Schema per il grafico "tempo medio di risoluzione" nella sezione Analytics
+class PriorityResolutionOut(BaseModel):
+    priority: str
+    avg_hours: Optional[float] = None
+    count: int
+
+class ResolutionTimeStatsOut(BaseModel):
+    by_priority: List[PriorityResolutionOut]
+    overall_avg_hours: Optional[float] = None
+    resolved_count: int

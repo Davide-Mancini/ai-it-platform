@@ -1,3 +1,4 @@
+from statistics import mean
 from uuid import UUID
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -9,6 +10,8 @@ import schemas
 from db.database import get_db
 from repository import procedure_repository, task_repository
 from models.associations import task_user_assignments
+
+PRIORITY_ORDER = ["critical", "high", "medium", "low"]
 
 
 def _is_admin(user: models.User) -> bool:
@@ -137,6 +140,33 @@ def assign_user_to_task(
         )
 
     return task
+
+
+def get_resolution_time_stats(db: Session, current_user: models.User):
+    tasks = get_all_tasks(db, current_user)
+
+    by_priority = {p: [] for p in PRIORITY_ORDER}
+    for task in tasks:
+        if task.completed_at and task.created_at and task.priority in by_priority:
+            hours = (task.completed_at - task.created_at).total_seconds() / 3600
+            by_priority[task.priority].append(hours)
+
+    result = []
+    overall = []
+    for priority in PRIORITY_ORDER:
+        hours_list = by_priority[priority]
+        overall.extend(hours_list)
+        result.append(schemas.PriorityResolutionOut(
+            priority=priority,
+            avg_hours=round(mean(hours_list), 1) if hours_list else None,
+            count=len(hours_list),
+        ))
+
+    return schemas.ResolutionTimeStatsOut(
+        by_priority=result,
+        overall_avg_hours=round(mean(overall), 1) if overall else None,
+        resolved_count=len(overall),
+    )
 
 
 def unassign_user_from_task(

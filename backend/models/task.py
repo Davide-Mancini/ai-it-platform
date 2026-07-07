@@ -13,6 +13,7 @@ class Task(Base):
     status = Column(String, default="pending")
     priority = Column(String, default="low")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
 
     procedure_id = Column(UUID(as_uuid=True), ForeignKey("procedures.id", ondelete="CASCADE"), nullable=False)
 

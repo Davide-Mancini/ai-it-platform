@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 from uuid import UUID
 from pydantic import BaseModel,EmailStr,Field,field_validator
 
@@ -89,3 +89,24 @@ class RoleOut(BaseModel):
     description: str | None = None
 
     model_config = {"from_attributes": True}
+
+# Schema per il grafico "workload" nella pagina Utenti (solo admin)
+class UserWorkloadOut(BaseModel):
+    user_id: str
+    first_name: str
+    last_name: str
+    open_tasks: int
+    done_tasks: int
+
+# Risposta paginata per l'elenco utenti (usata dalla tabella con ricerca;
+# se page/page_size non sono passati, l'endpoint restituisce tutto in una sola "pagina")
+class PaginatedUsersOut(BaseModel):
+    items: List[UserOut]
+    total: int
+    page: int
+    page_size: int
+
+# Conteggio utenti per ruolo, per il grafico nella pagina Utenti (solo admin)
+class RoleCountOut(BaseModel):
+    role: str
+    count: int

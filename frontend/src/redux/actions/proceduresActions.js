@@ -17,19 +17,36 @@ export const STEP_TOGGLE_START       = "STEP_TOGGLE_START";
 export const STEP_TOGGLE_SUCCESS     = "STEP_TOGGLE_SUCCESS";
 export const STEP_TOGGLE_DONE        = "STEP_TOGGLE_DONE";
 export const PROCEDURES_RESET_STEPS  = "PROCEDURES_RESET_STEPS";
+export const PROCEDURES_BROWSE_LOADING = "PROCEDURES_BROWSE_LOADING";
+export const PROCEDURES_BROWSE_SUCCESS = "PROCEDURES_BROWSE_SUCCESS";
 
+// Lista completa (non paginata) — usata da dropdown, dashboard, grafici e ovunque
+// serva avere tutte le procedure disponibili lato client.
 export const fetchProcedures = (token, lang) => async (dispatch) => {
   dispatch({ type: PROCEDURES_LOADING });
   try {
     const url = `${API_BASE}/api/procedures/${lang ? `?lang=${lang}` : ""}`;
     const res = await fetch(url, { headers: headers(token) });
     if (res.ok) {
-      dispatch({ type: PROCEDURES_SUCCESS, payload: await res.json() });
+      const data = await res.json();
+      dispatch({ type: PROCEDURES_SUCCESS, payload: data.items });
     } else {
       dispatch({ type: PROCEDURES_ERROR, payload: "Errore caricamento procedure" });
     }
   } catch {
     dispatch({ type: PROCEDURES_ERROR, payload: "Errore di rete" });
+  }
+};
+
+// Pagina singola con ricerca server-side — usata solo dalla griglia di ProcedureList.
+export const fetchProceduresBrowse = (token, lang, { page = 1, pageSize = 25, search = "" } = {}) => async (dispatch) => {
+  dispatch({ type: PROCEDURES_BROWSE_LOADING });
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  if (lang) params.set("lang", lang);
+  if (search) params.set("search", search);
+  const res = await fetch(`${API_BASE}/api/procedures/?${params.toString()}`, { headers: headers(token) });
+  if (res.ok) {
+    dispatch({ type: PROCEDURES_BROWSE_SUCCESS, payload: await res.json() });
   }
 };
 
@@ -117,7 +134,7 @@ export const acceptRecommendation = (token, rec, lang) => async (dispatch) => {
   throw new Error(err.detail || "Errore durante l'accettazione");
 };
 
-export const rejectRecommendation = (token, rec) => async (dispatch) => {
+export const rejectRecommendation = (token, rec) => async () => {
   await fetch(`${API_BASE}/api/ai/recommendations/${rec.id}/reject`, {
     method: "POST",
     headers: headers(token),

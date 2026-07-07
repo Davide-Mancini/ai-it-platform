@@ -34,3 +34,10 @@ class AIRecommendationOut(BaseModel):
     is_accepted: Optional[bool]
     language: str = "it"
     created_at: datetime
+
+
+# Conteggi per il grafico "tasso di accettazione AI" della dashboard
+class RecommendationStatsOut(BaseModel):
+    accepted: int
+    rejected: int
+    pending: int

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import "./UsersPage.css";
 import { useTranslation } from "react-i18next";
+import { ChartCard, HorizontalBarChart } from "./ChartPrimitives";
+import { ROLE_COLORS } from "./constants";
+import Pager from "./Pager";
 
 
 const API_BASE = "http://localhost:8000";
@@ -17,15 +20,7 @@ function Avatar({ firstName, lastName }) {
 }
 
 function RoleBadge({ role }) {
-  const map = {
-    Admin:       { color: "#DC2626", bg: "#dc262625" },
-    "IT Manager":{ color: "#7C3AED", bg: "#7c3aed28" },
-    Engineer:      { color: "#2563EB", bg: "#2564eb2d" },
-    Sales:      { color: "#eb25e1", bg: "#eb25e11e" },
-    Auditor:      { color: "#ebcd25", bg: "#ebcd251f" },
-    Customer:      { color: "#25ebe1", bg: "#25ebe12f" }
-  };
-  const s = map[role] || { color: "#64748B", bg: "#F1F5F9" };
+  const s = ROLE_COLORS[role] || { color: "#64748B", bg: "#F1F5F9" };
   return (
     <span className="pai-chip" style={{ color: s.color, background: s.bg, fontSize: 11 }}>
       {role}
@@ -44,14 +39,7 @@ function SendEmailModal({ users, token, onClose }) {
   const [error, setError]             = useState("");
   const [success, setSuccess]         = useState("");
 
-  const roleColors = {
-    Admin:        { color: "#DC2626", bg: "#dc262625" },
-    "IT Manager": { color: "#7C3AED", bg: "#7c3aed28" },
-    Engineer:     { color: "#2563EB", bg: "#2564eb2d" },
-    Sales:        { color: "#eb25e1", bg: "#eb25e11e" },
-    Auditor:      { color: "#ebcd25", bg: "#ebcd251f" },
-    Customer:     { color: "#25ebe1", bg: "#25ebe12f" },
-  };
+  const roleColors = ROLE_COLORS;
 
   const roleGroups = users.reduce((acc, u) => {
     acc[u.role] = (acc[u.role] || 0) + 1;
@@ -343,23 +331,55 @@ function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error
   );
 }
 
-export default function UsersPage({ users, roles, loading, onSave, onToggleActive, token }) {
+function WorkloadChart({ workload }) {
   const { t } = useTranslation();
-  const [search, setSearch]       = useState("");
+  const data = (workload || [])
+    .filter(w => w.open_tasks > 0)
+    .map(w => ({
+      key: w.user_id,
+      label: `${w.first_name} ${w.last_name?.[0] || ""}.`,
+      value: w.open_tasks,
+      color: "#D97706",
+    }));
+  const empty = data.length === 0 ? t("charts.no_data") : null;
+  return (
+    <ChartCard title={t("users.workload_title")} sub={t("users.workload_sub")} empty={empty}>
+      <HorizontalBarChart data={data} />
+    </ChartCard>
+  );
+}
+
+function UserRolesChart({ roleStats }) {
+  const { t } = useTranslation();
+  const data = (roleStats || []).map(({ role, count }) => ({
+    key: role,
+    label: role,
+    value: count,
+    color: (ROLE_COLORS[role] || {}).color || "#64748B",
+  }));
+  const empty = data.length === 0 ? t("charts.no_data") : null;
+  return (
+    <ChartCard title={t("users.roles_title")} empty={empty}>
+      <HorizontalBarChart data={data} />
+    </ChartCard>
+  );
+}
+
+export default function UsersPage({ users, roles, onSave, onToggleActive, token, workload = [], roleStats = [], browse, search, onSearchChange, onPageChange, onRefreshCharts }) {
+  const { t } = useTranslation();
   const [editingUser, setEditing] = useState(null);
   const [saving, setSaving]       = useState(false);
   const [saveError, setSaveError] = useState("");
   const [showEmail, setShowEmail] = useState(false);
+  const [refreshingCharts, setRefreshingCharts] = useState(false);
 
-  const filtered = users.filter(u => {
-    const q = search.toLowerCase();
-    return (
-      u.first_name.toLowerCase().includes(q) ||
-      u.last_name.toLowerCase().includes(q)  ||
-      u.email.toLowerCase().includes(q)      ||
-      u.role.toLowerCase().includes(q)
-    );
-  });
+  const filtered = browse.items;
+
+  const handleRefreshCharts = async () => {
+    if (!onRefreshCharts || refreshingCharts) return;
+    setRefreshingCharts(true);
+    try { await onRefreshCharts(); } finally { setRefreshingCharts(false); }
+  };
 
   const handleSave = async (form) => {
     setSaving(true);
@@ -380,7 +400,7 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
       <div className="pai-users__toolbar">
         <div>
           <div className="pai-users__title">{t("users.title") }</div>
-          <div className="pai-users__sub">{t("users.users_registered", { count: users.length })}</div>
+          <div className="pai-users__sub">{t("users.users_registered", { count: browse.total })}</div>
         </div>
         <div className="pai-users__toolbar-right">
           <div className="pai-users__search-wrap">
@@ -391,7 +411,7 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
               className="pai-users__search"
               placeholder={t("users.search_placeholder")}
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => onSearchChange(e.target.value)}
             />
           </div>
           <button className="pai-users__send-btn" onClick={() => setShowEmail(true)}>
@@ -404,9 +424,28 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
         </div>
       </div>
 
+      {/* Charts */}
+      <div className="pai-users__charts-header">
+        <button
+          className={`pai-users__refresh-btn${refreshingCharts ? " pai-users__refresh-btn--spinning" : ""}`}
+          onClick={handleRefreshCharts}
+          title={t("users.refresh_charts")}
+          disabled={refreshingCharts}
+        >
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
+        </button>
+      </div>
+      <div className="pai-users__chart-row">
+        <WorkloadChart workload={workload} />
+        <UserRolesChart roleStats={roleStats} />
+      </div>
+
       {/* Table */}
       <div className="pai-card pai-users__table-wrap">
-        {loading ? (
+        {browse.loading ? (
           <div className="pai-users__loading">{t("users.loading")}</div>
         ) : filtered.length === 0 ? (
           <div className="pai-users__empty">{t("users.no_users")}</div>
@@ -456,6 +495,14 @@ export default function UsersPage({ users, roles, loading, onSave, onToggleActiv
               ))}
             </tbody>
           </table>
+        )}
+        {filtered.length > 0 && (
+          <Pager
+            page={browse.page}
+            pageSize={browse.pageSize}
+            total={browse.total}
+            onPageChange={onPageChange}
+          />
         )}
       </div>
 

@@ -1,4 +1,5 @@
 from uuid import UUID
+from typing import List
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -17,3 +18,21 @@ class ProcedureOut(ProcedureBase):
 
     class Config:
         from_attributes = True
+
+# Risposta paginata per l'elenco procedure (usata dalla tabella/griglia con ricerca;
+# se page/page_size non sono passati, l'endpoint restituisce tutto in una sola "pagina")
+class PaginatedProceduresOut(BaseModel):
+    items: List[ProcedureOut]
+    total: int
+    page: int
+    page_size: int
+
+# Conteggio procedure per lingua, per il grafico in Analytics
+class LanguageCountOut(BaseModel):
+    language: str
+    count: int
+
+# Conteggio procedure create per giorno, per il grafico trend in Analytics
+class DateCountOut(BaseModel):
+    date: str
+    count: int

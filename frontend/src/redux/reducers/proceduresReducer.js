@@ -11,6 +11,8 @@ import {
   STEP_TOGGLE_SUCCESS,
   STEP_TOGGLE_DONE,
   PROCEDURES_RESET_STEPS,
+  PROCEDURES_BROWSE_LOADING,
+  PROCEDURES_BROWSE_SUCCESS,
 } from "../actions/proceduresActions";
 
 const initialState = {
@@ -21,6 +23,8 @@ const initialState = {
   stepsById: {},
   loadingSteps: false,
   togglingStepId: null,
+  // Pagina corrente per la griglia di ProcedureList (ricerca + paginazione server-side)
+  browse: { items: [], total: 0, page: 1, pageSize: 25, loading: false },
 };
 
 export const proceduresReducer = (state = initialState, action) => {
@@ -83,6 +87,21 @@ export const proceduresReducer = (state = initialState, action) => {
 
     case PROCEDURES_RESET_STEPS:
       return { ...state, stepsById: {} };
+
+    case PROCEDURES_BROWSE_LOADING:
+      return { ...state, browse: { ...state.browse, loading: true } };
+
+    case PROCEDURES_BROWSE_SUCCESS:
+      return {
+        ...state,
+        browse: {
+          items: action.payload.items,
+          total: action.payload.total,
+          page: action.payload.page,
+          pageSize: action.payload.page_size,
+          loading: false,
+        },
+      };
 
     default:
       return state;

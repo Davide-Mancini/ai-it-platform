@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { LANGUAGES } from "./constants";
 import "./TopBar.css";
 
 function BellIcon() {
@@ -10,12 +11,6 @@ function BellIcon() {
     </svg>
   );
 }
-
-const LANGUAGES = [
-  { code: "it", flag: "🇮🇹", label: "Italiano" },
-  { code: "en", flag: "🇬🇧", label: "English" },
-  { code: "lt", flag: "🇱🇹", label: "Lietuvių" },
-];
 
 export default function TopBar({ userInfo, unreadCount, isProcedureDetail = false }) {
   const { t, i18n } = useTranslation();

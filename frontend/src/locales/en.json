@@ -1,6 +1,7 @@
 {
   "nav": {
     "dashboard": "Dashboard",
+    "analytics": "Analytics",
     "procedures": "Procedures",
     "tasks": "Task Board",
     "documents": "Documents & Policies",
@@ -8,6 +9,33 @@
     "notifications": "Notifications",
     "settings": "Settings",
     "users": "Users"
+  },
+  "charts": {
+    "no_data": "No data available yet"
+  },
+  "pager": {
+    "range": "{{from}}–{{to}} of {{total}}",
+    "prev": "← Previous",
+    "next": "Next →",
+    "page_of": "Page {{page}} of {{totalPages}}"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "sub": "Platform statistics and trends",
+    "refresh": "Refresh data",
+    "charts_procedures_trend": "Procedures created",
+    "procedures_created_period": "{{count}} in the last 2 weeks",
+    "charts_ai_acceptance": "AI recommendation acceptance",
+    "ai_accepted": "Accepted",
+    "ai_rejected": "Rejected",
+    "ai_pending": "Pending",
+    "charts_top_actions": "Activity by type",
+    "charts_task_priority": "Task priority",
+    "charts_procedures_language": "Procedures by language",
+    "charts_resolution_time": "Average resolution time",
+    "resolution_time_overall": "Overall average: {{value}}{{unit}}",
+    "unit_hours": "h",
+    "unit_days": "d"
   },
   "sidebar": {
     "menu": "Menu",
@@ -298,6 +326,10 @@
   "users": {
     "title": "User Management",
      "users_registered": "{{count}} users registered",
+    "workload_title": "Workload",
+    "workload_sub": "Open tasks assigned per user",
+    "roles_title": "User roles distribution",
+    "refresh_charts": "Refresh charts",
     "search_placeholder": "Search user...",
     "send_email_btn": "Send Email",
     "col_user": "User",

@@ -5,6 +5,11 @@ export const NAV_ITEMS = [
     icon: "M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z",
   },
   {
+    id: "analytics",
+    label: "Analytics",
+    icon: "M3 3v18h18M8 17V9m4 8V5m4 12v-6",
+  },
+  {
     id: "procedures",
     label: "Procedure",
     icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h4",
@@ -59,6 +64,21 @@ export const PRIORITY = {
   high: { label: "Alto", color: "#D97706", bg: "#FFFBEB" },
   medium: { label: "Medio", color: "#CA8A04", bg: "#FEFCE8" },
   low: { label: "Basso", color: "#94A3B8", bg: "#F8FAFC" },
+};
+
+export const LANGUAGES = [
+  { code: "it", flag: "🇮🇹", label: "Italiano" },
+  { code: "en", flag: "🇬🇧", label: "English" },
+  { code: "lt", flag: "🇱🇹", label: "Lietuvių" },
+];
+
+export const ROLE_COLORS = {
+  Admin:        { color: "#DC2626", bg: "#dc262625" },
+  "IT Manager": { color: "#7C3AED", bg: "#7c3aed28" },
+  Engineer:     { color: "#2563EB", bg: "#2564eb2d" },
+  Sales:        { color: "#eb25e1", bg: "#eb25e11e" },
+  Auditor:      { color: "#ebcd25", bg: "#ebcd251f" },
+  Customer:     { color: "#25ebe1", bg: "#25ebe12f" },
 };
 
 export function stepNextStatus(current) {

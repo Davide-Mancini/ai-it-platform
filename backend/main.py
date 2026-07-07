@@ -21,6 +21,9 @@ with engine.connect() as _conn:
         "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"
     ))
     _conn.execute(text(
+        "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE"
+    ))
+    _conn.execute(text(
         "ALTER TABLE procedures ADD COLUMN IF NOT EXISTS language VARCHAR(5) NOT NULL DEFAULT 'it'"
     ))
     _conn.execute(text(

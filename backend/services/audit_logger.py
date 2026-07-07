@@ -26,9 +26,7 @@ def log_action(
     )
     db.add(audit_log)
     
-def get_all_audit_log(
-    db:Session
-):
-    return audit_repository.get_all_audit_log(db)
+def get_all_audit_log(db: Session, page: int, page_size: int):
+    return audit_repository.get_all_audit_log(db, page, page_size)
     
        

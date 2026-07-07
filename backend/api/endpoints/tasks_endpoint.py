@@ -32,6 +32,14 @@ def get_all_tasks(
     return _translated_tasks_response(db, tasks, lang)
 
 
+@router.get("/stats/resolution-time", response_model=schemas.ResolutionTimeStatsOut)
+def get_resolution_time_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return task_service.get_resolution_time_stats(db, current_user)
+
+
 @router.post("/procedures/{procedure_id}/tasks", response_model=schemas.TaskOut)
 def create_task_for_procedure(
     procedure_id: str,

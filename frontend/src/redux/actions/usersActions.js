@@ -9,12 +9,28 @@ export const USERS_LOADING    = "USERS_LOADING";
 export const USERS_SUCCESS    = "USERS_SUCCESS";
 export const ROLES_SUCCESS    = "ROLES_SUCCESS";
 export const USER_UPDATED     = "USER_UPDATED";
+export const USERS_BROWSE_LOADING = "USERS_BROWSE_LOADING";
+export const USERS_BROWSE_SUCCESS = "USERS_BROWSE_SUCCESS";
 
+// Lista completa (non paginata) — usata da dropdown assegnazione task, invio
+// email massivo e ovunque serva avere tutti gli utenti disponibili lato client.
 export const fetchUsers = (token) => async (dispatch) => {
   dispatch({ type: USERS_LOADING });
   const res = await fetch(`${API_BASE}/api/auth/users/`, { headers: headers(token) });
   if (res.ok) {
-    dispatch({ type: USERS_SUCCESS, payload: await res.json() });
+    const data = await res.json();
+    dispatch({ type: USERS_SUCCESS, payload: data.items });
+  }
+};
+
+// Pagina singola con ricerca server-side — usata solo dalla tabella di UsersPage.
+export const fetchUsersBrowse = (token, { page = 1, pageSize = 25, search = "" } = {}) => async (dispatch) => {
+  dispatch({ type: USERS_BROWSE_LOADING });
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  if (search) params.set("search", search);
+  const res = await fetch(`${API_BASE}/api/auth/users/?${params.toString()}`, { headers: headers(token) });
+  if (res.ok) {
+    dispatch({ type: USERS_BROWSE_SUCCESS, payload: await res.json() });
   }
 };
 

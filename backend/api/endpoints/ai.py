@@ -31,6 +31,24 @@ def generate_procedure_with_ai(
     return new_ai_procedure
 
 
+@router.get("/recommendations/stats", response_model=schemas.RecommendationStatsOut)
+def get_recommendation_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(allow_it_creators),
+):
+    is_admin = current_user.role and current_user.role.name == "Admin"
+
+    query = db.query(AIRecommendation)
+    if not is_admin:
+        query = query.filter(AIRecommendation.user_id == current_user.id)
+
+    accepted = query.filter(AIRecommendation.is_accepted.is_(True)).count()
+    rejected = query.filter(AIRecommendation.is_accepted.is_(False)).count()
+    pending = query.filter(AIRecommendation.is_accepted.is_(None)).count()
+
+    return schemas.RecommendationStatsOut(accepted=accepted, rejected=rejected, pending=pending)
+
+
 @router.post("/recommendations/{recommendation_id}/accept", status_code=status.HTTP_201_CREATED)
 def accept_recommendation(
     recommendation_id: str,
