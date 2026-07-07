@@ -26,10 +26,10 @@ function ProceduresTrendChart({ trendStats }) {
       empty={empty}
     >
       <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={buckets} margin={{ top: 8, right: 12, bottom: 0, left: -20 }}>
+        <AreaChart data={buckets} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} stroke={GRID_STROKE} />
           <XAxis dataKey="date" tick={AXIS_TICK} axisLine={{ stroke: GRID_STROKE }} tickLine={false} interval={Math.ceil(buckets.length / 6)} />
-          <YAxis allowDecimals={false} tick={AXIS_TICK} axisLine={false} tickLine={false} width={30} />
+          <YAxis allowDecimals={false} tick={AXIS_TICK} axisLine={false} tickLine={false} width={28} />
           <Tooltip content={<AreaTooltip />} cursor={{ stroke: AXIS_STROKE, strokeWidth: 1 }} />
           <Area
             type="monotone"
