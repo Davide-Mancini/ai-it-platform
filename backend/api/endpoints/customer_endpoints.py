@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, Request,status
 from sqlalchemy.orm import Session
 import models
@@ -7,6 +8,14 @@ from api.endpoints.auth import get_current_user
 from services import customer_service
 
 router = APIRouter()
+
+#endpoint elenco clienti
+@router.get('/', response_model=List[schemas.CustomerOut])
+def list_customers(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return customer_service.list_customers(db)
 
 #endpoint creazione nuovo cliente
 @router.post('/', response_model=schemas.CustomerOut)
@@ -48,11 +57,11 @@ def patch_customer(
 
 @router.delete('/{customer_id}',status_code=status.HTTP_204_NO_CONTENT)
 def delete_customer(
-    id:str,
+    customer_id:str,
     request: Request,
     db:Session= Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
-    customer_service.delete_customer(id,ip_address,user_agent,db,current_user)
+    customer_service.delete_customer(customer_id,ip_address,user_agent,db,current_user)

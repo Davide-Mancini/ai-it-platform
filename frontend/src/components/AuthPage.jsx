@@ -22,6 +22,11 @@ function AuthPage({ onAuth }) {
   const [registerError, setRegisterError] = useState("");
   const [registerLoading, setRegisterLoading] = useState(false);
 
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+
   const handleLogin = async () => {
     if (!loginData.email || !loginData.password) {
       setLoginError(t("auth.err_email_password"));
@@ -38,11 +43,11 @@ function AuthPage({ onAuth }) {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formData,
+        credentials: "include",
       });
 
       if (res.ok) {
-        const data = await res.json();
-        onAuth(data.access_token);
+        onAuth();
       } else {
         const err = await res.json().catch(() => ({}));
         setLoginError(err.detail || t("auth.err_invalid_credentials"));
@@ -51,6 +56,32 @@ function AuthPage({ onAuth }) {
       setLoginError(t("auth.err_network"));
     } finally {
       setLoginLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) {
+      setForgotError(t("auth.err_email_password"));
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError("");
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      if (res.ok) {
+        setForgotSent(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setForgotError(err.detail || t("auth.err_network"));
+      }
+    } catch {
+      setForgotError(t("auth.err_network"));
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -165,7 +196,17 @@ function AuthPage({ onAuth }) {
                     >
                       {loginLoading ? t("auth.login_loading") : t("auth.login_btn")}
                     </button>
-                    <div className="d-flex justify-content-center align-items-center mt-3">
+                    <div className="text-center mt-2">
+                      <button
+                        type="button"
+                        style={{ color: "#397BC0" }}
+                        className="btn btn-link btn-sm p-0"
+                        onClick={() => { setActiveTab("forgot"); setForgotError(""); setForgotSent(false); }}
+                      >
+                        {t("auth.forgot_password_link")}
+                      </button>
+                    </div>
+                    <div className="d-flex justify-content-center align-items-center mt-2">
                       <p className="text-center text-muted small mb-0 me-1">
                         {t("auth.no_account")}{" "}
                       </p>
@@ -174,6 +215,54 @@ function AuthPage({ onAuth }) {
                       </button>
                     </div>
                   </form>
+                )}
+
+                {/* ─── FORGOT PASSWORD ─── */}
+                {activeTab === "forgot" && (
+                  <div>
+                    <h2 className="h5 fw-semibold mb-1">{t("auth.forgot_password_title")}</h2>
+                    <p className="text-muted small mb-3">{t("auth.forgot_password_sub")}</p>
+                    {forgotSent ? (
+                      <div className="alert alert-success py-2 px-3 small mb-3">
+                        {t("auth.forgot_password_success")}
+                      </div>
+                    ) : (
+                      <form onSubmit={e => { e.preventDefault(); handleForgotPassword(); }}>
+                        <div className="mb-3">
+                          <label className="form-label text-muted small fw-semibold">{t("auth.email_label")}</label>
+                          <input
+                            type="email"
+                            className="form-control auth-input"
+                            placeholder={t("auth.email_placeholder")}
+                            value={forgotEmail}
+                            onChange={e => setForgotEmail(e.target.value)}
+                            autoFocus
+                          />
+                        </div>
+                        {forgotError && (
+                          <div className="alert alert-danger py-2 px-3 small mb-3">{forgotError}</div>
+                        )}
+                        <button
+                          type="submit"
+                          className="btn w-100 auth-btn text-light"
+                          disabled={forgotLoading}
+                          style={{ backgroundColor: "#397BC0" }}
+                        >
+                          {forgotLoading ? t("auth.forgot_password_loading") : t("auth.forgot_password_btn")}
+                        </button>
+                      </form>
+                    )}
+                    <div className="text-center mt-3">
+                      <button
+                        type="button"
+                        style={{ color: "#397BC0" }}
+                        className="btn btn-link btn-sm p-0"
+                        onClick={() => { setActiveTab("login"); setForgotSent(false); }}
+                      >
+                        {t("auth.back_to_login")}
+                      </button>
+                    </div>
+                  </div>
                 )}
 
                 {/* ─── REGISTER ─── */}

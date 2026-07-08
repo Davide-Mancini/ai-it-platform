@@ -1,6 +1,6 @@
 import "./ManualForm.css";
 import { useTranslation } from "react-i18next";
-export default function ManualForm({ form, onChange, onSubmit, onClose, loading, error }) {
+export default function ManualForm({ form, onChange, onSubmit, onClose, loading, error, customers = [] }) {
   const {t} = useTranslation();
   return (
     <div className="pai-overlay" onClick={onClose}>
@@ -40,6 +40,22 @@ export default function ManualForm({ form, onChange, onSubmit, onClose, loading,
               rows={4}
             />
           </div>
+
+          {customers.length > 0 && (
+            <div className="pai-field">
+              <label className="pai-field__label">Cliente (opzionale)</label>
+              <select
+                className="pai-field__select"
+                value={form.customer_id || ""}
+                onChange={e => onChange({ ...form, customer_id: e.target.value || null })}
+              >
+                <option value="">Nessun cliente collegato</option>
+                {customers.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {error && <div className="pai-manual-form__error">{error}</div>}
 

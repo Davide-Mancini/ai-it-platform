@@ -77,6 +77,19 @@ def update_task_status(
     return task_service.update_task_status(task_id, status_update, ip_address, user_agent, db, current_user)
 
 
+@router.patch("/tasks/{task_id}/customer-response", response_model=schemas.TaskOut)
+def submit_task_customer_response(
+    task_id: str,
+    response_update: schemas.TaskCustomerResponse,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return task_service.submit_customer_response(task_id, response_update, ip_address, user_agent, db, current_user)
+
+
 @router.patch("/tasks/{task_id}/priority", response_model=schemas.TaskOut)
 def update_task_priority(
     task_id: str,

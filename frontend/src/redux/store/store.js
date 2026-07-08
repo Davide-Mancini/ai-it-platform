@@ -5,6 +5,7 @@ import { tasksReducer }         from "../reducers/tasksReducer";
 import { documentsReducer }     from "../reducers/documentsReducer";
 import { usersReducer }         from "../reducers/usersReducer";
 import { notificationsReducer } from "../reducers/notificationsReducer";
+import { customersReducer }     from "../reducers/customersReducer";
 
 const rootReducer = combineReducers({
   newUser:       newUserReducer,
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
   documents:     documentsReducer,
   users:         usersReducer,
   notifications: notificationsReducer,
+  customers:     customersReducer,
 });
 
 const store = configureStore({ reducer: rootReducer });

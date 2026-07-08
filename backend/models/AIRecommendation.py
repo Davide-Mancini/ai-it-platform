@@ -22,5 +22,7 @@ class AIRecommendation(Base):
     is_accepted = Column(Boolean, nullable=True, default=None)
     # Lingua in cui e' stata generata la procedura (lingua UI di chi ha creato la richiesta)
     language = Column(String(5), nullable=False, default="it", server_default="it")
+    # Cliente selezionato al momento della richiesta, riportato sulla Procedure se la raccomandazione viene accettata
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     user = relationship("User")

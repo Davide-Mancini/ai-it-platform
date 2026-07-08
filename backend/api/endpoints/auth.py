@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request, Response, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -17,14 +17,19 @@ from mail_sender import send_custom_email
 from models.push_subscription import PushSubscription
 import os
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 # Max 10 tentativi di login ogni 5 minuti, per indirizzo IP
 login_rate_limit = IPRateLimiter(max_calls=10, period_seconds=300)
+# Max 5 richieste di reset password ogni 15 minuti, per indirizzo IP
+forgot_password_rate_limit = IPRateLimiter(max_calls=5, period_seconds=900)
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> models.User:
-    email = verify_access_token(token)
+# Il token viaggia in un cookie httpOnly (impostato al login), non in un header
+# Authorization: cosi' non e' mai leggibile da JavaScript, anche in caso di XSS.
+def get_current_user(access_token: Optional[str] = Cookie(default=None), db: Session = Depends(get_db)) -> models.User:
+    if access_token is None:
+        raise HTTPException(status_code=401, detail="Non autenticato")
+    email = verify_access_token(access_token)
     if email is None:
         raise HTTPException(status_code=401, detail="Token non valido")
     user = db.query(models.User).filter(models.User.email == email).first()
@@ -87,6 +92,33 @@ def login(
     user_agent = request.headers.get("user-agent")
     return auth_service.login(db,form_data,response,ip_address=client_ip, user_agent=user_agent)
 
+#rotta per richiedere il link di reset password via email — risponde sempre allo
+#stesso modo (non rivela se l'email esiste) per non permettere di scoprire quali
+#indirizzi sono registrati
+@router.post("/forgot-password")
+def forgot_password(
+    data: schemas.ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+    _rate_limit: None = Depends(forgot_password_rate_limit),
+):
+    auth_service.forgot_password(db, data.email)
+    return {"message": "Se l'indirizzo è registrato, riceverai a breve un'email con le istruzioni."}
+
+#rotta per impostare la nuova password tramite il token ricevuto via email
+@router.post("/reset-password")
+def reset_password(
+    data: schemas.ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    auth_service.reset_password(db, data.token, data.new_password)
+    return {"message": "Password reimpostata con successo."}
+
+#rotta di logout: essendo il cookie httpOnly, il frontend non puo' cancellarlo da JS
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(key="access_token")
+    return {"message": "Logout effettuato"}
+
 #rotta che restituisce informazione sul'utente autenticato, utile nel frontend per mostrare il nome dell'utente o il suo ruolo
 @router.get("/me")
 def get_me(current_user: models.User = Depends(get_current_user)):
@@ -135,6 +167,18 @@ def update_user(
     existing = db.query(models.User).filter(models.User.email == data.email, models.User.id != user_to_modify.id).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email già in uso da un altro utente")
+    new_role = db.query(models.Role).filter(models.Role.id == data.role_id).first()
+    if not new_role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ruolo non trovato")
+    if new_role.name == "Customer":
+        if not data.customer_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Il ruolo Customer richiede un cliente associato")
+        customer = db.query(models.Customer).filter(models.Customer.id == data.customer_id).first()
+        if not customer:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente non trovato")
+        user_to_modify.customer_id = data.customer_id
+    else:
+        user_to_modify.customer_id = None
     user_to_modify.first_name = data.first_name
     user_to_modify.last_name  = data.last_name
     user_to_modify.email      = data.email

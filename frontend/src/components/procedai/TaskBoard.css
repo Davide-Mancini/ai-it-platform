@@ -136,6 +136,77 @@
 }
 .pai-task-priority--clickable:hover { filter: brightness(.93); }
 
+.pai-task-card__customer-flag {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: #7C3AED;
+  background: #7c3aed1f;
+  flex-shrink: 0;
+}
+
+.pai-task-card__customer-response {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E9EEF4;
+}
+.pai-task-card__customer-response-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 3px;
+}
+.pai-task-card__customer-response-text {
+  font-size: 12.5px;
+  color: #334155;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.pai-task-card__customer-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.pai-task-card__customer-textarea {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid #E2E8F0;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-family: inherit;
+  color: #0F172A;
+  background: #F8FAFC;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+.pai-task-card__customer-textarea:focus { border-color: #2563EB; background: white; }
+.pai-task-card__customer-submit {
+  align-self: flex-end;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 7px;
+  background: #7C3AED;
+  color: white;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: filter .15s, opacity .15s;
+}
+.pai-task-card__customer-submit:hover:not(:disabled) { filter: brightness(1.08); }
+.pai-task-card__customer-submit:disabled { opacity: .5; cursor: not-allowed; }
+
 .pai-priority-dropdown {
   z-index: 9999;
   background: #fff;
@@ -371,6 +442,17 @@
   font-size: 13px; color: #DC2626; background: #FEF2F2; padding: 9px 12px; border-radius: 7px;
 }
 .pai-task-form__row { display: flex; gap: 12px; }
+.pai-task-form__checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #475569;
+  cursor: pointer;
+}
+.pai-task-form__checkbox-row input[type="checkbox"] { accent-color: #7C3AED; cursor: pointer; }
+.pai-task-form__checkbox-row--disabled { color: #94A3B8; cursor: default; }
+.pai-task-form__checkbox-row--disabled input[type="checkbox"] { cursor: not-allowed; }
 .pai-task-form__actions { display: flex; gap: 10px; justify-content: flex-end; }
 .pai-field__select {
   width: 100%;

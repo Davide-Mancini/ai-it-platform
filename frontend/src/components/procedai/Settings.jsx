@@ -60,9 +60,9 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
     try {
       const res = await fetch(`${API_BASE}/api/auth/me`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(form),
       });

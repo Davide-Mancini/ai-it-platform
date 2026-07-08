@@ -20,13 +20,21 @@ function getCols(t) {
   ];
 }
 
-function PriorityBadge({ priority, onChangePriority }) {
+function PriorityBadge({ priority, onChangePriority, canManage = true }) {
   const { t } = useTranslation();
   const PRIORITIES = getPriorities(t);
   const [open, setOpen] = useState(false);
   const [pos, setPos]   = useState({ top: 0, left: 0 });
   const ref = useRef(null);
   const cfg = PRIORITIES.find(p => p.id === priority) || PRIORITIES[0];
+
+  if (!canManage) {
+    return (
+      <span className="pai-task-priority" style={{ color: cfg.color, background: cfg.bg }}>
+        {cfg.label}
+      </span>
+    );
+  }
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -120,7 +128,9 @@ function AssignDropdown({ task, users, onAssign }) {
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef(null);
   const assignedIds = new Set((task.assigned_users || []).map(u => u.id));
-  const unassigned = users.filter(u => !assignedIds.has(u.id));
+  // Un customer non va assegnato come "responsabile interno": interagisce col task
+  // tramite il flag requires_customer_input, non tramite l'assegnazione da workload
+  const unassigned = users.filter(u => !assignedIds.has(u.id) && u.role !== "Customer");
 
   const handleOpen = (e) => {
     e.stopPropagation();
@@ -177,9 +187,19 @@ function AssignDropdown({ task, users, onAssign }) {
   );
 }
 
-function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, isAdmin, users, onAssignUser, onUnassignUser }) {
+function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, isAdmin, canManage = true, users, onAssignUser, onUnassignUser, onSubmitResponse }) {
   const { t } = useTranslation();
   const proc = procedures.find(p => p.id === task.procedure_id);
+  const [responseDraft, setResponseDraft] = useState(task.customer_response || "");
+  const [submittingResponse, setSubmittingResponse] = useState(false);
+
+  const handleSubmitResponse = async () => {
+    if (!responseDraft.trim() || submittingResponse) return;
+    setSubmittingResponse(true);
+    try { await onSubmitResponse(task.id, responseDraft.trim()); }
+    finally { setSubmittingResponse(false); }
+  };
+
   return (
     <div className="pai-task-card">
       <div className="pai-task-card__title">{task.title}</div>
@@ -188,13 +208,43 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
         <PriorityBadge
           priority={task.priority || "low"}
           onChangePriority={(p) => onPriorityChange(task.id, p)}
+          canManage={canManage}
         />
+        {task.requires_customer_input && (
+          <span className="pai-task-card__customer-flag" title="Richiede dati dal cliente">Cliente</span>
+        )}
         {task.created_at && (
           <span className="pai-task-card__date">{formatDate(task.created_at)}</span>
         )}
       </div>
 
       {proc && <div className="pai-task-card__proc">{proc.title}</div>}
+
+      {canManage && task.requires_customer_input && task.customer_response && (
+        <div className="pai-task-card__customer-response">
+          <div className="pai-task-card__customer-response-label">Risposta del cliente</div>
+          <div className="pai-task-card__customer-response-text">{task.customer_response}</div>
+        </div>
+      )}
+
+      {!canManage && task.requires_customer_input && (
+        <div className="pai-task-card__customer-input" onClick={e => e.stopPropagation()}>
+          <textarea
+            className="pai-task-card__customer-textarea"
+            value={responseDraft}
+            onChange={e => setResponseDraft(e.target.value)}
+            placeholder="Inserisci qui i dati richiesti…"
+            rows={2}
+          />
+          <button
+            className="pai-task-card__customer-submit"
+            onClick={handleSubmitResponse}
+            disabled={submittingResponse || !responseDraft.trim()}
+          >
+            {submittingResponse ? "Invio…" : (task.customer_response ? "Aggiorna" : "Invia")}
+          </button>
+        </div>
+      )}
 
       {(task.assigned_users || []).length > 0 && (
         <div className="pai-task-card__avatars">
@@ -239,7 +289,7 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
   );
 }
 
-function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick, isAdmin, users, onAssignUser, onUnassignUser }) {
+function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick, isAdmin, canManage = true, users, onAssignUser, onUnassignUser, onSubmitResponse }) {
   const { t } = useTranslation();
   const [over, setOver] = useState(false);
   const colTasks = tasks.filter(task => task.status === col.id);
@@ -257,7 +307,7 @@ function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, drag
           <span className="pai-kanban-col__label">{col.label}</span>
           <span className="pai-kanban-col__count">{colTasks.length}</span>
         </div>
-        {col.id === "pending" && (
+        {col.id === "pending" && canManage && (
           <button className="pai-kanban-col__add-btn" onClick={onAddClick} title={t("tasks.create_title")}>
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
               <line x1={12} y1={5} x2={12} y2={19} /><line x1={5} y1={12} x2={19} y2={12} />
@@ -282,9 +332,11 @@ function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, drag
               onStatusChange={onStatusChange}
               onPriorityChange={onPriorityChange}
               isAdmin={isAdmin}
+              canManage={canManage}
               users={users}
               onAssignUser={onAssignUser}
               onUnassignUser={onUnassignUser}
+              onSubmitResponse={onSubmitResponse}
             />
           </div>
         ))}
@@ -302,12 +354,20 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
   const [title, setTitle]       = useState("");
   const [procId, setProcId]     = useState(procedures[0]?.id || "");
   const [priority, setPriority] = useState("low");
+  const [requiresCustomerInput, setRequiresCustomerInput] = useState(false);
   const [error, setError]       = useState("");
+
+  const selectedProc = procedures.find(p => p.id === procId);
+  const hasLinkedCustomer = !!selectedProc?.customer_id;
+
+  useEffect(() => {
+    if (!hasLinkedCustomer) setRequiresCustomerInput(false);
+  }, [hasLinkedCustomer]);
 
   const handleSubmit = () => {
     if (!title.trim()) { setError(t("tasks.err_title")); return; }
     if (!procId) { setError(t("tasks.err_procedure")); return; }
-    onSubmit(title.trim(), procId, priority);
+    onSubmit(title.trim(), procId, priority, requiresCustomerInput && hasLinkedCustomer);
   };
 
   return (
@@ -371,6 +431,18 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
             </div>
           </div>
 
+          <label className={`pai-task-form__checkbox-row${!hasLinkedCustomer ? " pai-task-form__checkbox-row--disabled" : ""}`}>
+            <input
+              type="checkbox"
+              checked={requiresCustomerInput}
+              disabled={!hasLinkedCustomer}
+              onChange={e => setRequiresCustomerInput(e.target.checked)}
+            />
+            {hasLinkedCustomer
+              ? "Richiede dati dal cliente collegato — solo questo task sarà visibile al cliente"
+              : "Richiede dati dal cliente — collega un cliente a questa procedura per usare questa opzione"}
+          </label>
+
           {error && <div className="pai-task-form__error">{error}</div>}
 
           <div className="pai-task-form__actions">
@@ -385,7 +457,7 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
   );
 }
 
-export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorityChange, onCreateTask, isAdmin, users, onAssignUser, onUnassignUser }) {
+export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorityChange, onCreateTask, isAdmin, canManage = true, users, onAssignUser, onUnassignUser, onSubmitResponse }) {
   const { t } = useTranslation();
   const COLS = getCols(t);
   const [draggedId, setDraggedId] = useState(null);
@@ -397,10 +469,10 @@ export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorit
     setDraggedId(null);
   };
 
-  const handleSubmit = async (title, procId, priority) => {
+  const handleSubmit = async (title, procId, priority, requiresCustomerInput) => {
     setCreateLoading(true);
     try {
-      await onCreateTask(title, procId, priority);
+      await onCreateTask(title, procId, priority, requiresCustomerInput);
       setShowCreate(false);
     } finally {
       setCreateLoading(false);
@@ -424,9 +496,11 @@ export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorit
             onDrop={handleDrop}
             onAddClick={() => setShowCreate(true)}
             isAdmin={isAdmin}
+            canManage={canManage}
             users={users}
             onAssignUser={onAssignUser}
             onUnassignUser={onUnassignUser}
+            onSubmitResponse={onSubmitResponse}
           />
         ))}
       </div>

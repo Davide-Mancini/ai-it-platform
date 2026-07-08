@@ -97,7 +97,8 @@ function SendEmailModal({ users, token, onClose }) {
       };
       const res = await fetch(`${API_BASE}/api/auth/send-bulk-email`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
@@ -240,17 +241,20 @@ function SendEmailModal({ users, token, onClose }) {
   );
 }
 
-function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error }) {
+function EditModal({ user, roles, customers = [], onClose, onSave, onToggleActive, saving, error }) {
   const { t} = useTranslation();
   const [form, setForm] = useState({
     first_name:  user.first_name,
     last_name:   user.last_name,
     email:       user.email,
     role_id:     roles.find(r => r.name === user.role)?.id || "",
+    customer_id: user.customer_id || "",
   });
   const [toggling, setToggling] = useState(false);
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+  const selectedRoleName = roles.find(r => r.id === form.role_id)?.name;
+  const isCustomerRole = selectedRoleName === "Customer";
 
   const handleToggle = async () => {
     setToggling(true);
@@ -299,6 +303,18 @@ function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error
             </select>
           </div>
 
+          {isCustomerRole && (
+            <div className="pai-field">
+              <label className="pai-field__label">Azienda cliente</label>
+              <select className="pai-field__select" value={form.customer_id} onChange={e => set("customer_id", e.target.value)}>
+                <option value="">Seleziona un'azienda…</option>
+                {customers.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Toggle stato account */}
           <div className="pai-users__active-row">
             <div>
@@ -321,7 +337,11 @@ function EditModal({ user, roles, onClose, onSave, onToggleActive, saving, error
 
           <div className="pai-users__edit-actions">
             <button className="pai-btn pai-btn--ghost" onClick={onClose}>{t('users.modal_edit_btn_close')}</button>
-            <button className="pai-btn pai-btn--primary" onClick={() => onSave(form)} disabled={saving}>
+            <button
+              className="pai-btn pai-btn--primary"
+              onClick={() => onSave(form)}
+              disabled={saving || (isCustomerRole && !form.customer_id)}
+            >
               {saving ? t('users.modal_edit_btn_saving') : t('users.modal_edit_btn_save')}
             </button>
           </div>
@@ -365,7 +385,7 @@ function UserRolesChart({ roleStats }) {
   );
 }
 
-export default function UsersPage({ users, roles, onSave, onToggleActive, token, workload = [], roleStats = [], browse, search, onSearchChange, onPageChange, onRefreshCharts }) {
+export default function UsersPage({ users, roles, customers = [], onSave, onToggleActive, token, workload = [], roleStats = [], browse, search, onSearchChange, onPageChange, onRefreshCharts }) {
   const { t } = useTranslation();
   const [editingUser, setEditing] = useState(null);
   const [saving, setSaving]       = useState(false);
@@ -385,7 +405,7 @@ export default function UsersPage({ users, roles, onSave, onToggleActive, token,
     setSaving(true);
     setSaveError("");
     try {
-      await onSave(editingUser.id, form);
+      await onSave(editingUser.id, { ...form, customer_id: form.customer_id || null });
       setEditing(null);
     } catch (e) {
       setSaveError(e.message);
@@ -510,6 +530,7 @@ export default function UsersPage({ users, roles, onSave, onToggleActive, token,
         <EditModal
           user={editingUser}
           roles={roles}
+          customers={customers}
           onClose={() => setEditing(null)}
           onSave={handleSave}
           onToggleActive={onToggleActive}

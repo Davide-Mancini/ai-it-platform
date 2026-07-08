@@ -8,7 +8,7 @@ export const DOCUMENT_REMOVE   = "DOCUMENT_REMOVE";
 export const fetchDocuments = (token) => async (dispatch) => {
   dispatch({ type: DOCUMENTS_LOADING });
   const res = await fetch(`${API_BASE}/api/documents/documents`, {
-    headers: { Authorization: `Bearer ${token}` },
+    credentials: "include",
   });
   if (res.ok) {
     dispatch({ type: DOCUMENTS_SUCCESS, payload: await res.json() });
@@ -18,7 +18,8 @@ export const fetchDocuments = (token) => async (dispatch) => {
 export const updateDocument = (token, id, data) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/documents/documents/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -33,7 +34,7 @@ export const updateDocument = (token, id, data) => async (dispatch) => {
 export const deleteDocument = (token, id) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/documents/documents/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
+    credentials: "include",
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

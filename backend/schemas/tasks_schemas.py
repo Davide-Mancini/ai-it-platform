@@ -19,7 +19,7 @@ class TaskBase(BaseModel):
     priority: str = "low"
 
 class TaskCreate(TaskBase):
-    pass
+    requires_customer_input: bool = False
 
 class TaskUpdateStatus(BaseModel):
     status: str
@@ -30,12 +30,17 @@ class TaskUpdatePriority(BaseModel):
 class TaskAssign(BaseModel):
     user_id: UUID
 
+class TaskCustomerResponse(BaseModel):
+    customer_response: str
+
 class TaskOut(TaskBase):
     id: UUID
     procedure_id: UUID
     assigned_users: List[UserMinimal] = []
     created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    requires_customer_input: bool = False
+    customer_response: Optional[str] = None
 
     class Config:
         from_attributes = True

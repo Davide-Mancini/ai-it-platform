@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from uuid import UUID
 from pydantic import BaseModel,EmailStr,Field,field_validator
 
@@ -20,6 +20,7 @@ class UserOut(UserBase):
     id: UUID
     is_active: bool
     role: str
+    customer_id: Optional[UUID] = None
     
     @field_validator('role', mode='before')
     @classmethod
@@ -49,6 +50,7 @@ class UserUpdate(BaseModel):
     last_name: str = Field(min_length=1, max_length=50)
     email: EmailStr
     role_id: UUID
+    customer_id: Optional[UUID] = None
 
     model_config = {"from_attributes": True}
 
@@ -81,6 +83,15 @@ class BulkEmailRequest(BaseModel):
     user_ids: list[UUID] | None = None  # None = tutti gli utenti
 
     model_config = {"from_attributes": True}
+
+# Schema per la richiesta di recupero password (solo email)
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+# Schema per l'impostazione della nuova password tramite il token ricevuto via email
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8, max_length=25, description="La password deve contenere\n .almeno 8 caratteri\n .una lettera maiuscola\n una lettera minuscola\n un numero\n un carattere speciale ")
 
 # Schema per i ruoli
 class RoleOut(BaseModel):

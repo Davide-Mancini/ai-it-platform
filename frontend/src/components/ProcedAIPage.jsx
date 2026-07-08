@@ -4,10 +4,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 
 import { fetchProcedures, fetchProceduresBrowse, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure, PROCEDURES_RESET_STEPS } from "../redux/actions/proceduresActions";
-import { fetchAllTasks, createTask, updateTaskStatus, updateTaskPriority, assignUserToTask, unassignUserFromTask } from "../redux/actions/tasksActions";
+import { fetchAllTasks, createTask, updateTaskStatus, updateTaskPriority, assignUserToTask, unassignUserFromTask, submitTaskCustomerResponse } from "../redux/actions/tasksActions";
 import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
 import { fetchUsers, fetchUsersBrowse, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllNotifications } from "../redux/actions/notificationsActions";
+import { fetchCustomers, createCustomer, updateCustomer, deleteCustomer } from "../redux/actions/customersActions";
 import { useNotificationsSSE } from "../hooks/useNotificationsSSE";
 
 import Sidebar         from "./procedai/Sidebar";
@@ -22,6 +23,7 @@ import Team            from "./procedai/Team";
 import Notifications   from "./procedai/Notifications";
 import Settings        from "./procedai/Settings";
 import UsersPage       from "./procedai/UsersPage";
+import CustomersPage   from "./procedai/CustomersPage";
 import CreateModal     from "./procedai/CreateModal";
 import ManualForm      from "./procedai/ManualForm";
 import AIChat          from "./procedai/AIChat";
@@ -42,6 +44,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const { list: documents, loading: loadingDocs } = useSelector(s => s.documents);
   const { list: users, roles, loading: loadingUsers, browse: usersBrowse } = useSelector(s => s.users);
   const { list: notifications } = useSelector(s => s.notifications);
+  const { list: customers, loading: loadingCustomers } = useSelector(s => s.customers);
 
   useNotificationsSSE(token);
 
@@ -52,7 +55,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   // Create flow
   const [showCreateChoice, setShowCreateChoice] = useState(false);
   const [showManual, setShowManual]             = useState(false);
-  const [manualForm, setManualForm]             = useState({ title: "", description: "" });
+  const [manualForm, setManualForm]             = useState({ title: "", description: "", customer_id: null });
   const [manualLoading, setManualLoading]       = useState(false);
   const [manualError, setManualError]           = useState("");
 
@@ -61,9 +64,13 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const [aiMessages, setAiMessages] = useState([]);
   const [aiInput, setAiInput]       = useState("");
   const [aiLoading, setAiLoading]   = useState(false);
+  const [aiCustomerId, setAiCustomerId] = useState(null);
 
   const isAdmin = userInfo?.role?.name === "Admin" || userInfo?.role === "Admin";
   const isITManager = userInfo?.role?.name === "IT Manager" || userInfo?.role === "IT Manager";
+  const isSales = userInfo?.role?.name === "Sales" || userInfo?.role === "Sales";
+  const isCustomer = userInfo?.role?.name === "Customer" || userInfo?.role === "Customer";
+  const canManageCustomers = isAdmin || isITManager || isSales;
   const canViewAIStats = isAdmin || isITManager;
 
   const [recentActivity, setRecentActivity] = useState([]);
@@ -90,32 +97,33 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   useEffect(() => {
     dispatch(fetchDocuments(token));
     dispatch(fetchNotifications(token));
-    const h = { Authorization: `Bearer ${token}` };
-    fetch(`${API_BASE}/api/audit/recent?limit=10`, { headers: h })
+    dispatch(fetchCustomers(token));
+    const opts = { credentials: "include" };
+    fetch(`${API_BASE}/api/audit/recent?limit=10`, opts)
       .then(r => r.ok ? r.json() : []).then(setRecentActivity).catch(() => {});
-    fetch(`${API_BASE}/api/team/collaborators`, { headers: h })
+    fetch(`${API_BASE}/api/team/collaborators`, opts)
       .then(r => r.ok ? r.json() : []).then(setCollaborators).catch(() => {});
-    fetch(`${API_BASE}/api/audit/stats/actions?limit=6`, { headers: h })
+    fetch(`${API_BASE}/api/audit/stats/actions?limit=6`, opts)
       .then(r => r.ok ? r.json() : []).then(setActionStats).catch(() => {});
-    fetch(`${API_BASE}/api/tasks/stats/resolution-time`, { headers: h })
+    fetch(`${API_BASE}/api/tasks/stats/resolution-time`, opts)
       .then(r => r.ok ? r.json() : null).then(setResolutionStats).catch(() => {});
-    fetch(`${API_BASE}/api/procedures/stats/by-language`, { headers: h })
+    fetch(`${API_BASE}/api/procedures/stats/by-language`, opts)
       .then(r => r.ok ? r.json() : []).then(setProcLanguageStats).catch(() => {});
-    fetch(`${API_BASE}/api/procedures/stats/created-trend?days=14`, { headers: h })
+    fetch(`${API_BASE}/api/procedures/stats/created-trend?days=14`, opts)
       .then(r => r.ok ? r.json() : []).then(setProcTrendStats).catch(() => {});
   }, [dispatch, token]);
 
   useEffect(() => {
     if (!canViewAIStats) return;
-    fetch(`${API_BASE}/api/ai/recommendations/stats`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_BASE}/api/ai/recommendations/stats`, { credentials: "include" })
       .then(r => r.ok ? r.json() : null).then(setAiStats).catch(() => {});
   }, [token, canViewAIStats]);
 
   useEffect(() => {
     if (!isAdmin) return;
-    fetch(`${API_BASE}/api/auth/users/workload?limit=10`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_BASE}/api/auth/users/workload?limit=10`, { credentials: "include" })
       .then(r => r.ok ? r.json() : []).then(setWorkload).catch(() => {});
-    fetch(`${API_BASE}/api/auth/users/stats/roles`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_BASE}/api/auth/users/stats/roles`, { credentials: "include" })
       .then(r => r.ok ? r.json() : []).then(setRoleStats).catch(() => {});
   }, [token, isAdmin]);
 
@@ -199,7 +207,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const closeModals = () => {
     setShowCreateChoice(false);
     setShowManual(false);
-    setManualForm({ title: "", description: "" });
+    setManualForm({ title: "", description: "", customer_id: null });
     setManualError("");
   };
 
@@ -230,9 +238,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   // ── Task ─────────────────────────────────────────────────────────────────
   const handleTaskStatusChange   = (taskId, newStatus)   => dispatch(updateTaskStatus(token, taskId, newStatus, i18n.language));
   const handleTaskPriorityChange = (taskId, newPriority) => dispatch(updateTaskPriority(token, taskId, newPriority, i18n.language));
-  const handleCreateTask = async (title, procedureId, priority) => await dispatch(createTask(token, procedureId, title, priority));
+  const handleCreateTask = async (title, procedureId, priority, requiresCustomerInput) => await dispatch(createTask(token, procedureId, title, priority, requiresCustomerInput));
   const handleAssignUser   = (taskId, userId) => dispatch(assignUserToTask(token, taskId, userId));
   const handleUnassignUser = (taskId, userId) => dispatch(unassignUserFromTask(token, taskId, userId));
+  const handleSubmitTaskResponse = async (taskId, responseText) => await dispatch(submitTaskCustomerResponse(token, taskId, responseText));
 
   // ── AI chat ──────────────────────────────────────────────────────────────
   const toggleAIChat = () => {
@@ -255,8 +264,9 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
     try {
       const res = await fetch(`${API_BASE}/api/ai/generate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ prompt, language: i18n.language }),
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, language: i18n.language, customer_id: aiCustomerId || null }),
       });
       if (res.ok) {
         const rec = await res.json();
@@ -294,26 +304,26 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
 
   // ── Refresh attività recente ─────────────────────────────────────────────
   const handleRefreshActivity = async () => {
-    const r = await fetch(`${API_BASE}/api/audit/recent?limit=10`, { headers: { Authorization: `Bearer ${token}` } });
+    const r = await fetch(`${API_BASE}/api/audit/recent?limit=10`, { credentials: "include" });
     if (r.ok) setRecentActivity(await r.json());
   };
 
   // ── Refresh dati Analytics ───────────────────────────────────────────────
   const handleRefreshAnalytics = async () => {
-    const h = { Authorization: `Bearer ${token}` };
+    const opts = { credentials: "include" };
     await Promise.all([
       dispatch(fetchProcedures(token, i18n.language)),
       dispatch(fetchAllTasks(token, i18n.language)),
-      fetch(`${API_BASE}/api/audit/stats/actions?limit=6`, { headers: h })
+      fetch(`${API_BASE}/api/audit/stats/actions?limit=6`, opts)
         .then(r => r.ok ? r.json() : []).then(setActionStats).catch(() => {}),
-      fetch(`${API_BASE}/api/tasks/stats/resolution-time`, { headers: h })
+      fetch(`${API_BASE}/api/tasks/stats/resolution-time`, opts)
         .then(r => r.ok ? r.json() : null).then(setResolutionStats).catch(() => {}),
-      fetch(`${API_BASE}/api/procedures/stats/by-language`, { headers: h })
+      fetch(`${API_BASE}/api/procedures/stats/by-language`, opts)
         .then(r => r.ok ? r.json() : []).then(setProcLanguageStats).catch(() => {}),
-      fetch(`${API_BASE}/api/procedures/stats/created-trend?days=14`, { headers: h })
+      fetch(`${API_BASE}/api/procedures/stats/created-trend?days=14`, opts)
         .then(r => r.ok ? r.json() : []).then(setProcTrendStats).catch(() => {}),
       canViewAIStats
-        ? fetch(`${API_BASE}/api/ai/recommendations/stats`, { headers: h })
+        ? fetch(`${API_BASE}/api/ai/recommendations/stats`, opts)
             .then(r => r.ok ? r.json() : null).then(setAiStats).catch(() => {})
         : Promise.resolve(),
     ]);
@@ -321,17 +331,22 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
 
   // ── Refresh grafici pagina Utenti ────────────────────────────────────────
   const handleRefreshUserCharts = async () => {
-    const h = { Authorization: `Bearer ${token}` };
+    const opts = { credentials: "include" };
     await Promise.all([
-      fetch(`${API_BASE}/api/auth/users/workload?limit=10`, { headers: h })
+      fetch(`${API_BASE}/api/auth/users/workload?limit=10`, opts)
         .then(r => r.ok ? r.json() : []).then(setWorkload).catch(() => {}),
-      fetch(`${API_BASE}/api/auth/users/stats/roles`, { headers: h })
+      fetch(`${API_BASE}/api/auth/users/stats/roles`, opts)
         .then(r => r.ok ? r.json() : []).then(setRoleStats).catch(() => {}),
     ]);
   };
 
   // ── Gestione utenti ──────────────────────────────────────────────────────
   const handleSaveUser = async (userId, form) => await dispatch(updateUser(token, userId, form));
+
+  // ── Gestione clienti ─────────────────────────────────────────────────────
+  const handleCreateCustomer = async (form) => await dispatch(createCustomer(token, form));
+  const handleSaveCustomer   = async (id, form) => await dispatch(updateCustomer(token, id, form));
+  const handleDeleteCustomer = async (id) => await dispatch(deleteCustomer(token, id));
   const handleMarkNotificationRead     = (id) => dispatch(markNotificationRead(token, id));
   const handleMarkAllNotificationsRead = ()   => dispatch(markAllNotificationsRead(token));
   const handleDeleteNotification       = (id) => dispatch(deleteNotification(token, id));
@@ -364,6 +379,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
           onSearchChange={handleProcSearchChange}
           onPageChange={setProcPage}
           isAdmin={isAdmin}
+          canCreate={!isCustomer}
           onProcedureClick={handleProcedureClick}
           onCreateClick={openCreate}
           onEditProcedure={handleEditProcedure}
@@ -380,9 +396,11 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         onPriorityChange={handleTaskPriorityChange}
         onCreateTask={handleCreateTask}
         isAdmin={isAdmin}
+        canManage={!isCustomer}
         users={users}
         onAssignUser={handleAssignUser}
         onUnassignUser={handleUnassignUser}
+        onSubmitResponse={handleSubmitTaskResponse}
       />
     );
 
@@ -427,6 +445,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
       <UsersPage
         users={users}
         roles={roles}
+        customers={customers}
         loading={loadingUsers}
         onSave={handleSaveUser}
         onToggleActive={(userId, isActive) => dispatch(toggleUserActive(token, userId, isActive))}
@@ -438,6 +457,16 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         onSearchChange={handleUserSearchChange}
         onPageChange={setUserPage}
         onRefreshCharts={handleRefreshUserCharts}
+      />
+    );
+
+    if (pathname === "/customers" && canManageCustomers) return (
+      <CustomersPage
+        customers={customers}
+        loading={loadingCustomers}
+        onCreate={handleCreateCustomer}
+        onSave={handleSaveCustomer}
+        onDelete={handleDeleteCustomer}
       />
     );
 
@@ -484,6 +513,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
           onClose={closeModals}
           loading={manualLoading}
           error={manualError}
+          customers={customers}
         />
       )}
 
@@ -498,6 +528,9 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         loading={aiLoading}
         onAccept={acceptRec}
         onReject={rejectRec}
+        customers={customers}
+        selectedCustomerId={aiCustomerId}
+        onCustomerChange={setAiCustomerId}
       />
     </div>
   );

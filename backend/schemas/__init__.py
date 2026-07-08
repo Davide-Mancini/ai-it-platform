@@ -1,6 +1,6 @@
-from .users_schemas import UserBase, UserCreate, UserOut, UserLogin, Token, UserUpdate, UserProfileUpdate, RoleOut, UserActiveUpdate, BulkEmailRequest, PushSubscribeRequest, UserWorkloadOut, PaginatedUsersOut, RoleCountOut
+from .users_schemas import UserBase, UserCreate, UserOut, UserLogin, Token, UserUpdate, UserProfileUpdate, RoleOut, UserActiveUpdate, BulkEmailRequest, PushSubscribeRequest, UserWorkloadOut, PaginatedUsersOut, RoleCountOut, ForgotPasswordRequest, ResetPasswordRequest
 from .procedures_schemas import ProcedureBase, ProcedureCreate, ProcedureOut, PaginatedProceduresOut, LanguageCountOut, DateCountOut
-from .tasks_schemas import TaskBase, TaskCreate, TaskUpdateStatus, TaskUpdatePriority, TaskOut, TaskAssign, PriorityResolutionOut, ResolutionTimeStatsOut
+from .tasks_schemas import TaskBase, TaskCreate, TaskUpdateStatus, TaskUpdatePriority, TaskOut, TaskAssign, TaskCustomerResponse, PriorityResolutionOut, ResolutionTimeStatsOut
 from .ai_schemas import AIRequest, AIProcedureResponse, AIRecommendationOut, AIStepStructure, RecommendationStatsOut
 from .translation_schemas import IndexedTranslation, BatchProcedureTranslationResponse, StepTranslationBatchResponse
 from .customers_schemas import CustomerBase,CustomerCreate,CustomerOut,CustomerUpdate

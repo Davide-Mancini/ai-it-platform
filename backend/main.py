@@ -29,6 +29,24 @@ with engine.connect() as _conn:
     _conn.execute(text(
         "ALTER TABLE ai_recommendations ADD COLUMN IF NOT EXISTS language VARCHAR(5) NOT NULL DEFAULT 'it'"
     ))
+    _conn.execute(text(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES customers(id) ON DELETE SET NULL"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE ai_recommendations ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES customers(id) ON DELETE SET NULL"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS requires_customer_input BOOLEAN NOT NULL DEFAULT false"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS customer_response TEXT"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_hash VARCHAR"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP"
+    ))
     _conn.commit()
 app = FastAPI(title="AI Assisted IT Platform API")
 

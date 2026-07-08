@@ -66,7 +66,7 @@ export function usePushNotifications(token) {
       //    Il Push Service di Google/Mozilla la userà per verificare
       //    che i messaggi vengano davvero dal nostro server.
       const keyRes = await fetch(`${API_BASE}/api/auth/push-vapid-key`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       if (!keyRes.ok) throw new Error("Impossibile recuperare la chiave VAPID.");
       const { public_key } = await keyRes.json();
@@ -87,7 +87,8 @@ export function usePushNotifications(token) {
       const subJson = subscription.toJSON();
       await fetch(`${API_BASE}/api/auth/push-subscribe`, {
         method:  "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           endpoint: subJson.endpoint,
           p256dh:   subJson.keys.p256dh,
@@ -120,7 +121,8 @@ export function usePushNotifications(token) {
         // 2. Rimuoviamo la subscription dal nostro DB.
         await fetch(`${API_BASE}/api/auth/push-unsubscribe`, {
           method:  "DELETE",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             endpoint: subJson.endpoint,
             p256dh:   subJson.keys.p256dh,

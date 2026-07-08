@@ -16,12 +16,15 @@ def create_procedure(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    if current_user.role and current_user.role.name == "Customer":
+        raise HTTPException(status_code=403, detail="Il ruolo Customer non può creare procedure")
     #Creo un nuovo oggetto procedura con i dati forniti come parametro e l'id dell'utente corrente come autore
     new_procedure = models.Procedure(
         title=procedure.title,
         description=procedure.description,
         user_id=current_user.id,
-        language=procedure.language
+        language=procedure.language,
+        customer_id=procedure.customer_id
     )
     
     log_action(
@@ -44,6 +47,8 @@ def get_procedure_by_id(
     #se la procedura torna false lancio eccezione con messaggio
     if not procedure:
         raise HTTPException(status_code=404, detail="Procedura non trovata")
+    if current_user.role and current_user.role.name == "Customer" and procedure.customer_id != current_user.customer_id:
+        raise HTTPException(status_code=403, detail="Non autorizzato ad accedere a questa procedura")
     return procedure
 
 def update_procedure(
@@ -54,14 +59,20 @@ def update_procedure(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    if current_user.role and current_user.role.name == "Customer":
+        raise HTTPException(status_code=403, detail="Il ruolo Customer non può modificare procedure")
     #creo variabile che contiene il risultato della query per trovare la procedura da aggiornare
-    db_procedure = get_procedure_by_id(db,id)
+    db_procedure = get_procedure_by_id(db,id,current_user)
     #se la procedura torna false lancio eccezione con messaggio
     if not db_procedure:
         raise HTTPException(status_code=404, detail="Procedura non trovata")
     #altrimenti aggiorno i campi con i dati forniti come parametro
     db_procedure.title = procedure_data.title
     db_procedure.description = procedure_data.description
+    #il cliente collegato si imposta solo in creazione; in modifica lo tocchiamo solo se esplicitamente passato,
+    #altrimenti l'EditModal (che invia solo title/description) lo azzererebbe involontariamente
+    if procedure_data.customer_id is not None:
+        db_procedure.customer_id = procedure_data.customer_id
     #le traduzioni in cache non sono piu' valide dopo una modifica del testo sorgente
     translation_service.invalidate_procedure_translations(db, db_procedure.id)
     #salvo modifche nel db
@@ -81,12 +92,14 @@ def delete_procedure(
     id: str,
     current_user: models.User = Depends(get_current_user)
 ):
+    if current_user.role and current_user.role.name == "Customer":
+        raise HTTPException(status_code=403, detail="Il ruolo Customer non può eliminare procedure")
     #creo variabile che contiene il risultato della query per trovare la procedura da eliminare
-    db_procedure = get_procedure_by_id(db,id)
+    db_procedure = get_procedure_by_id(db,id,current_user)
     #se la procedura torna false lancio eccezione con messaggio
     if not db_procedure:
         raise HTTPException(status_code=404, detail="Procedura non trovata")
-    
+
     #altrimenti elimino la procedura dal db
     procedure_repository.delete_procedure_by_id(db,db_procedure)
     

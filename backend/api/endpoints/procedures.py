@@ -37,6 +37,8 @@ def get_all_procedures(
     current_user: models.User = Depends(get_current_user)
 ):
     query = db.query(models.Procedure)
+    if current_user.role and current_user.role.name == "Customer":
+        query = query.filter(models.Procedure.customer_id == current_user.customer_id)
     if search:
         query = query.filter(models.Procedure.title.ilike(f"%{search}%"))
     query = query.order_by(models.Procedure.created_at.desc())
@@ -196,6 +198,9 @@ def update_step_status(
     step = db.query(models.ProcedureStep).filter(models.ProcedureStep.id == step_id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Step non trovato")
+    if current_user.role and current_user.role.name == "Customer":
+        if step.version.procedure.customer_id != current_user.customer_id:
+            raise HTTPException(status_code=403, detail="Non autorizzato a modificare questo step")
     step.status = status_update.status
     db.commit()
     db.refresh(step)

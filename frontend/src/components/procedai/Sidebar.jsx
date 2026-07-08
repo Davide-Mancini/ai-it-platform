@@ -27,6 +27,14 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
     ? [userInfo.first_name, userInfo.last_name].filter(Boolean).join(" ") || userInfo.email
     : t("sidebar.user_fallback");
   const roleName = userInfo?.role?.name || userInfo?.role || t("sidebar.role_fallback");
+  const isCustomerRole = roleName === "Customer";
+  const canManageCustomers = ["Admin", "IT Manager", "Sales"].includes(roleName);
+  // Il ruolo Customer ha una navigazione ridotta: solo le proprie procedure/task,
+  // niente sezioni interne (analytics, documenti, team)
+  const CUSTOMER_ALLOWED_NAV = new Set(["dashboard", "procedures", "tasks", "notifications", "settings"]);
+  const visibleNavItems = isCustomerRole
+    ? NAV_ITEMS.filter(item => CUSTOMER_ALLOWED_NAV.has(item.id))
+    : NAV_ITEMS;
 
   return (
     <aside className={`pai-sidebar${collapsed ? " pai-sidebar--collapsed" : ""}`}>
@@ -55,7 +63,7 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
       {/* Nav */}
       <nav className="pai-sidebar__nav">
         <div className="pai-sidebar__section-label">{t("sidebar.menu")}</div>
-        {NAV_ITEMS.map(item => {
+        {visibleNavItems.map(item => {
           const count = item.badge ? unreadCount : 0;
           return (
             <NavLink
@@ -76,23 +84,40 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
           );
         })}
 
-        {/* Voce admin-only */}
-        {roleName === "Admin" && (
+        {/* Voci riservate: gestione utenti (admin) e clienti (admin/IT manager/sales) */}
+        {(roleName === "Admin" || canManageCustomers) && (
           <>
             <div className="pai-sidebar__section-label" style={{ marginTop: 16 }}>{t("sidebar.admin")}</div>
-            <NavLink
-              to="/users"
-              className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
-              title={collapsed ? t("nav.users") : undefined}
-            >
-              <div className="pai-sidebar__item-icon">
-                <Icon
-                  path="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
-                  size={17}
-                />
-              </div>
-              <span className="pai-sidebar__item-label">{t("nav.users")}</span>
-            </NavLink>
+            {roleName === "Admin" && (
+              <NavLink
+                to="/users"
+                className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
+                title={collapsed ? t("nav.users") : undefined}
+              >
+                <div className="pai-sidebar__item-icon">
+                  <Icon
+                    path="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                    size={17}
+                  />
+                </div>
+                <span className="pai-sidebar__item-label">{t("nav.users")}</span>
+              </NavLink>
+            )}
+            {canManageCustomers && (
+              <NavLink
+                to="/customers"
+                className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
+                title={collapsed ? "Clienti" : undefined}
+              >
+                <div className="pai-sidebar__item-icon">
+                  <Icon
+                    path="M3 21h18M5 21V7l8-4v18M13 21V11l6 3v7M9 9v.01M9 12v.01M9 15v.01"
+                    size={17}
+                  />
+                </div>
+                <span className="pai-sidebar__item-label">Clienti</span>
+              </NavLink>
+            )}
           </>
         )}
       </nav>

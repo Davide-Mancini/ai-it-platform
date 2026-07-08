@@ -154,7 +154,8 @@ def generate_procedure_with_ai(
             input_data=payload.prompt,
             output_text=ai_response.model_dump_json(),
             is_accepted=None,
-            language=payload.language
+            language=payload.language,
+            customer_id=payload.customer_id
         )
         db.add(new_reccomendation)
         db.commit()

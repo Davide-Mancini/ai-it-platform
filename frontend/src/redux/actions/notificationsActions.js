@@ -1,6 +1,7 @@
 const API_BASE = "http://localhost:8000";
 
-const headers = (token) => ({ Authorization: `Bearer ${token}` });
+// Il token viaggia in un cookie httpOnly gestito dal browser, niente piu' header manuale.
+const headers = () => ({});
 
 export const NOTIFICATIONS_SUCCESS    = "NOTIFICATIONS_SUCCESS";
 export const NOTIFICATION_RECEIVED    = "NOTIFICATION_RECEIVED";
@@ -10,7 +11,7 @@ export const NOTIFICATION_DELETED     = "NOTIFICATION_DELETED";
 export const NOTIFICATIONS_ALL_DELETED = "NOTIFICATIONS_ALL_DELETED";
 
 export const fetchNotifications = (token) => async (dispatch) => {
-  const res = await fetch(`${API_BASE}/api/notifications/`, { headers: headers(token) });
+  const res = await fetch(`${API_BASE}/api/notifications/`, { credentials: "include", headers: headers() });
   if (res.ok) {
     dispatch({ type: NOTIFICATIONS_SUCCESS, payload: await res.json() });
   }
@@ -19,7 +20,7 @@ export const fetchNotifications = (token) => async (dispatch) => {
 export const markNotificationRead = (token, id) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/notifications/${id}/read`, {
     method: "PATCH",
-    headers: headers(token),
+    credentials: "include", headers: headers(),
   });
   if (res.ok) {
     dispatch({ type: NOTIFICATION_READ, payload: id });
@@ -29,7 +30,7 @@ export const markNotificationRead = (token, id) => async (dispatch) => {
 export const markAllNotificationsRead = (token) => async (dispatch) => {
   await fetch(`${API_BASE}/api/notifications/read-all`, {
     method: "PATCH",
-    headers: headers(token),
+    credentials: "include", headers: headers(),
   });
   dispatch({ type: NOTIFICATIONS_ALL_READ });
 };
@@ -37,7 +38,7 @@ export const markAllNotificationsRead = (token) => async (dispatch) => {
 export const deleteNotification = (token, id) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/notifications/${id}`, {
     method: "DELETE",
-    headers: headers(token),
+    credentials: "include", headers: headers(),
   });
   if (res.ok) {
     dispatch({ type: NOTIFICATION_DELETED, payload: id });
@@ -47,7 +48,7 @@ export const deleteNotification = (token, id) => async (dispatch) => {
 export const deleteAllNotifications = (token) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/notifications/`, {
     method: "DELETE",
-    headers: headers(token),
+    credentials: "include", headers: headers(),
   });
   if (res.ok) {
     dispatch({ type: NOTIFICATIONS_ALL_DELETED });

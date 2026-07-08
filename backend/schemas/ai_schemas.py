@@ -7,6 +7,7 @@ from typing import Optional, List
 class AIRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=2000, description="Richiesta dell'utente per la generazione della procedura")
     language: str = "it"
+    customer_id: Optional[UUID] = None
 
 
 class AIStepStructure(BaseModel):
@@ -33,6 +34,7 @@ class AIRecommendationOut(BaseModel):
     output_text: str
     is_accepted: Optional[bool]
     language: str = "it"
+    customer_id: Optional[UUID] = None
     created_at: datetime
 
 

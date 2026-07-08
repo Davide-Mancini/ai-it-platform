@@ -1,7 +1,8 @@
 const API_BASE = "http://localhost:8000";
 
+// Il token viaggia in un cookie httpOnly gestito dal browser: qui serve solo
+// impostare Content-Type quando c'e' un body JSON.
 const headers = (token, json = false) => ({
-  Authorization: `Bearer ${token}`,
   ...(json ? { "Content-Type": "application/json" } : {}),
 });
 
@@ -26,7 +27,7 @@ export const fetchProcedures = (token, lang) => async (dispatch) => {
   dispatch({ type: PROCEDURES_LOADING });
   try {
     const url = `${API_BASE}/api/procedures/${lang ? `?lang=${lang}` : ""}`;
-    const res = await fetch(url, { headers: headers(token) });
+    const res = await fetch(url, { credentials: "include", headers: headers(token) });
     if (res.ok) {
       const data = await res.json();
       dispatch({ type: PROCEDURES_SUCCESS, payload: data.items });
@@ -44,17 +45,17 @@ export const fetchProceduresBrowse = (token, lang, { page = 1, pageSize = 25, se
   const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
   if (lang) params.set("lang", lang);
   if (search) params.set("search", search);
-  const res = await fetch(`${API_BASE}/api/procedures/?${params.toString()}`, { headers: headers(token) });
+  const res = await fetch(`${API_BASE}/api/procedures/?${params.toString()}`, { credentials: "include", headers: headers(token) });
   if (res.ok) {
     dispatch({ type: PROCEDURES_BROWSE_SUCCESS, payload: await res.json() });
   }
 };
 
-export const createProcedure = (token, { title, description, language }) => async (dispatch) => {
+export const createProcedure = (token, { title, description, language, customer_id }) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/procedures/`, {
     method: "POST",
-    headers: headers(token, true),
-    body: JSON.stringify({ title, description, language }),
+    credentials: "include", headers: headers(token, true),
+    body: JSON.stringify({ title, description, language, customer_id: customer_id || null }),
   });
   if (res.ok) {
     const newProc = await res.json();
@@ -68,7 +69,7 @@ export const createProcedure = (token, { title, description, language }) => asyn
 export const updateProcedure = (token, id, { title, description }) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/procedures/${id}`, {
     method: "PUT",
-    headers: headers(token, true),
+    credentials: "include", headers: headers(token, true),
     body: JSON.stringify({ title, description }),
   });
   if (res.ok) {
@@ -83,7 +84,7 @@ export const updateProcedure = (token, id, { title, description }) => async (dis
 export const deleteProcedure = (token, id) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/procedures/${id}`, {
     method: "DELETE",
-    headers: headers(token),
+    credentials: "include", headers: headers(token),
   });
   if (res.ok) {
     dispatch({ type: PROCEDURE_REMOVE, payload: id });
@@ -97,7 +98,7 @@ export const fetchSteps = (token, procedureId, lang) => async (dispatch) => {
   dispatch({ type: STEPS_LOADING });
   const url = `${API_BASE}/api/procedures/${procedureId}/steps${lang ? `?lang=${lang}` : ""}`;
   const res = await fetch(url, {
-    headers: headers(token),
+    credentials: "include", headers: headers(token),
   });
   if (res.ok) {
     dispatch({ type: STEPS_SUCCESS, payload: { procedureId, steps: await res.json() } });
@@ -109,7 +110,7 @@ export const toggleStepStatus = (token, stepId, newStatus, procedureId) => async
   try {
     const res = await fetch(`${API_BASE}/api/procedures/steps/${stepId}/status`, {
       method: "PATCH",
-      headers: headers(token, true),
+      credentials: "include", headers: headers(token, true),
       body: JSON.stringify({ status: newStatus }),
     });
     if (res.ok) {
@@ -124,7 +125,7 @@ export const toggleStepStatus = (token, stepId, newStatus, procedureId) => async
 export const acceptRecommendation = (token, rec, lang) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/ai/recommendations/${rec.id}/accept`, {
     method: "POST",
-    headers: headers(token),
+    credentials: "include", headers: headers(token),
   });
   if (res.ok) {
     await dispatch(fetchProcedures(token, lang));
@@ -137,6 +138,6 @@ export const acceptRecommendation = (token, rec, lang) => async (dispatch) => {
 export const rejectRecommendation = (token, rec) => async () => {
   await fetch(`${API_BASE}/api/ai/recommendations/${rec.id}/reject`, {
     method: "POST",
-    headers: headers(token),
+    credentials: "include", headers: headers(token),
   });
 };

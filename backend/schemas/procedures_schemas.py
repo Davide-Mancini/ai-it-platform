@@ -1,7 +1,8 @@
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
+from .customers_schemas import CustomerOut
 
 class ProcedureBase(BaseModel):
     title: str
@@ -9,12 +10,15 @@ class ProcedureBase(BaseModel):
 
 class ProcedureCreate(ProcedureBase):
     language: str = "it"
+    customer_id: Optional[UUID] = None
 
 class ProcedureOut(ProcedureBase):
     id: UUID
     created_at: datetime
     user_id: UUID
     language: str = "it"
+    customer_id: Optional[UUID] = None
+    customer: Optional[CustomerOut] = None
 
     class Config:
         from_attributes = True

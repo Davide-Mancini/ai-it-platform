@@ -191,7 +191,8 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
     try {
       const res = await fetch(`${API_BASE}/api/policy/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title:       form.title.trim(),
           description: form.description.trim(),
@@ -470,7 +471,7 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
   useEffect(() => {
     if (!token) return;
     fetch(`${API_BASE}/api/policy/?limit=200`, {
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
     })
       .then(r => (r.ok ? r.json() : []))
       .then(data => setPolicies(data))

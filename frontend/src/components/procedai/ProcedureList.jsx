@@ -145,7 +145,7 @@ function DeleteModal({ procedure, onClose, onConfirm, deleting }) {
 }
 
 /* ── Componente principale ───────────────────────────────────────────────── */
-export default function ProcedureList({ browse, search, onSearchChange, onPageChange, isAdmin, onProcedureClick, onCreateClick, onEditProcedure, onDeleteProcedure }) {
+export default function ProcedureList({ browse, search, onSearchChange, onPageChange, isAdmin, canCreate = true, onProcedureClick, onCreateClick, onEditProcedure, onDeleteProcedure }) {
   const { t } = useTranslation();
   const [editTarget,   setEditTarget]   = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -197,10 +197,12 @@ export default function ProcedureList({ browse, search, onSearchChange, onPageCh
             onChange={e => onSearchChange(e.target.value)}
           />
         </div>
-        <button className="pai-btn pai-btn--primary" onClick={onCreateClick}>
-          <Icon path="M12 5v14M5 12h14" size={15} color="white" />
-          {t("procedures.new_btn")}
-        </button>
+        {canCreate && (
+          <button className="pai-btn pai-btn--primary" onClick={onCreateClick}>
+            <Icon path="M12 5v14M5 12h14" size={15} color="white" />
+            {t("procedures.new_btn")}
+          </button>
+        )}
       </div>
 
       {/* Grid */}
@@ -211,10 +213,12 @@ export default function ProcedureList({ browse, search, onSearchChange, onPageCh
           </div>
           <div className="pai-proc-list__empty-title">{t("procedures.empty_title")}</div>
           <div className="pai-proc-list__empty-sub">{t("procedures.empty_sub")}</div>
-          <button className="pai-btn pai-btn--primary" onClick={onCreateClick} style={{ marginTop: 16 }}>
-            <Icon path="M12 5v14M5 12h14" size={15} color="white" />
-            {t("procedures.create_btn")}
-          </button>
+          {canCreate && (
+            <button className="pai-btn pai-btn--primary" onClick={onCreateClick} style={{ marginTop: 16 }}>
+              <Icon path="M12 5v14M5 12h14" size={15} color="white" />
+              {t("procedures.create_btn")}
+            </button>
+          )}
         </div>
       ) : (
         <div className="pai-proc-list__grid">

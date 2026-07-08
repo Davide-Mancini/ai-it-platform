@@ -30,7 +30,7 @@ function TypingIndicator() {
   );
 }
 
-export default function AIChat({ isOpen, onToggle, messages, input, onInputChange, maxLength, onSend, loading, onAccept, onReject }) {
+export default function AIChat({ isOpen, onToggle, messages, input, onInputChange, maxLength, onSend, loading, onAccept, onReject, customers = [], selectedCustomerId, onCustomerChange }) {
   const endRef = useRef(null);
 
   useEffect(() => {
@@ -91,6 +91,22 @@ export default function AIChat({ isOpen, onToggle, messages, input, onInputChang
               {loading && <TypingIndicator />}
               <div ref={endRef} />
             </div>
+
+            {/* Cliente collegato (opzionale) */}
+            {customers.length > 0 && (
+              <div className="pai-chat__customer-row">
+                <select
+                  className="pai-chat__customer-select"
+                  value={selectedCustomerId || ""}
+                  onChange={e => onCustomerChange(e.target.value || null)}
+                >
+                  <option value="">Nessun cliente collegato</option>
+                  {customers.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Input */}
             <div className="pai-chat__input-row">
