@@ -29,6 +29,7 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
   const roleName = userInfo?.role?.name || userInfo?.role || t("sidebar.role_fallback");
   const isCustomerRole = roleName === "Customer";
   const canManageCustomers = ["Admin", "IT Manager", "Sales"].includes(roleName);
+  const canReviewProcedures = ["Admin", "IT Manager"].includes(roleName);
   // Il ruolo Customer ha una navigazione ridotta: solo le proprie procedure/task,
   // niente sezioni interne (analytics, documenti, team)
   const CUSTOMER_ALLOWED_NAV = new Set(["dashboard", "procedures", "tasks", "notifications", "settings"]);
@@ -84,10 +85,25 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
           );
         })}
 
-        {/* Voci riservate: gestione utenti (admin) e clienti (admin/IT manager/sales) */}
-        {(roleName === "Admin" || canManageCustomers) && (
+        {/* Voci riservate: gestione utenti (admin), clienti (admin/IT manager/sales) e revisione AI (admin/IT manager) */}
+        {(roleName === "Admin" || canManageCustomers || canReviewProcedures) && (
           <>
             <div className="pai-sidebar__section-label" style={{ marginTop: 16 }}>{t("sidebar.admin")}</div>
+            {canReviewProcedures && (
+              <NavLink
+                to="/agent-review"
+                className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
+                title={collapsed ? t("nav.agent_review") : undefined}
+              >
+                <div className="pai-sidebar__item-icon">
+                  <Icon
+                    path="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3zM5 17l.75 2.25L8 20l-2.25.75L5 23l-.75-2.25L2 20l2.25-.75L5 17z"
+                    size={17}
+                  />
+                </div>
+                <span className="pai-sidebar__item-label">{t("nav.agent_review")}</span>
+              </NavLink>
+            )}
             {roleName === "Admin" && (
               <NavLink
                 to="/users"

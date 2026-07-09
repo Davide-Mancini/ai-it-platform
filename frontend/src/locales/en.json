@@ -8,7 +8,8 @@
     "team": "Team",
     "notifications": "Notifications",
     "settings": "Settings",
-    "users": "Users"
+    "users": "Users",
+    "agent_review": "AI Review"
   },
   "charts": {
     "no_data": "No data available yet"
@@ -65,6 +66,8 @@
     "last_name_label": "LAST NAME",
     "confirm_password_label": "CONFIRM PASSWORD",
     "email_placeholder": "john.doe@example.com",
+    "name_placeholder": "John",
+    "surname_placeholder": "Doe",
     "password_placeholder_min": "Minimum 8 characters",
     "no_account": "Don't have an account?",
     "have_account": "Already have an account?",
@@ -129,7 +132,9 @@
     "action_TASK_CREATED": "created a new task",
     "action_TASK_UPDATED": "updated a task",
     "action_LOGIN": "signed in",
-    "action_AI_RECOMMENDATION_ACCEPTED": "accepted an AI recommendation"
+    "action_AI_RECOMMENDATION_ACCEPTED": "accepted an AI recommendation",
+    "action_REVIEW_ACCEPTED": "accepted an AI review",
+    "action_REVIEW_DISMISSED": "dismissed an AI review"
   },
   "notifications": {
     "title": "Notifications",
@@ -415,5 +420,27 @@
     "accept_recommendation": "Accept AI Recommendation",
     "accepted_recommendation": "AI Recommendation Accepted",
     "reject_recommendation": "Reject AI Recommendation"
+  },
+  "agent_review": {
+    "title": "Procedure review agent",
+    "no_run_yet": "No review has been run yet",
+    "last_run_running": "Review in progress…",
+    "last_run_completed": "Last review completed: {{count}} findings",
+    "last_run_failed": "The last review run failed",
+    "run_now_btn": "Run review now",
+    "running_btn": "Running…",
+    "tab_pending": "Pending",
+    "tab_accepted": "Accepted",
+    "tab_dismissed": "Dismissed",
+    "all_severities": "All severities",
+    "loading": "Loading…",
+    "no_findings": "No findings in this category",
+    "show_changes": "View proposed changes ({{count}})",
+    "hide_changes": "Hide proposed changes",
+    "step_label": "Step {{number}}",
+    "accept_btn": "Apply change",
+    "reject_btn": "Dismiss",
+    "status_accepted": "Change applied: a new draft version of the procedure was created.",
+    "status_dismissed": "Finding dismissed."
   }
 }

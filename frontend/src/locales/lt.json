@@ -8,7 +8,8 @@
     "team": "Komanda",
     "notifications": "Pranešimai",
     "settings": "Nustatymai",
-    "users": "Vartotojai"
+    "users": "Vartotojai",
+    "agent_review": "DI peržiūra"
   },
   "charts": {
     "no_data": "Duomenų kol kas nėra"
@@ -66,6 +67,8 @@
     "confirm_password_label": "PATVIRTINKITE SLAPTAŽODĮ",
     "email_placeholder": "jonas.jonaitis@example.com",
     "password_placeholder_min": "Mažiausiai 8 simboliai",
+    "name_placeholder": "Jonas",
+    "surname_placeholder": "Jonaitis",
     "no_account": "Neturite paskyros?",
     "have_account": "Jau turite paskyrą?",
     "login_btn": "Prisijungti",
@@ -129,7 +132,9 @@
     "action_TASK_CREATED": "sukūrė naują užduotį",
     "action_TASK_UPDATED": "atnaujino užduotį",
     "action_LOGIN": "prisijungė",
-    "action_AI_RECOMMENDATION_ACCEPTED": "priėmė DI rekomendaciją"
+    "action_AI_RECOMMENDATION_ACCEPTED": "priėmė DI rekomendaciją",
+    "action_REVIEW_ACCEPTED": "priėmė DI peržiūrą",
+    "action_REVIEW_DISMISSED": "atmesti DI peržiūrą"
   },
   "notifications": {
     "title": "Pranešimai",
@@ -415,5 +420,27 @@
     "accept_recommendation": "Priimti DI rekomendaciją",
     "accepted_recommendation": "DI rekomendacija priimta",
     "reject_recommendation": "Atmesti DI rekomendaciją"
+  },
+  "agent_review": {
+    "title": "Procedūrų peržiūros agentas",
+    "no_run_yet": "Peržiūra dar nebuvo vykdyta",
+    "last_run_running": "Peržiūra vykdoma…",
+    "last_run_completed": "Paskutinė peržiūra baigta: rasta {{count}} pastabų",
+    "last_run_failed": "Paskutinė peržiūra nepavyko",
+    "run_now_btn": "Vykdyti peržiūrą dabar",
+    "running_btn": "Vykdoma…",
+    "tab_pending": "Laukiančios",
+    "tab_accepted": "Priimtos",
+    "tab_dismissed": "Atmestos",
+    "all_severities": "Visi lygiai",
+    "loading": "Kraunama…",
+    "no_findings": "Šioje kategorijoje pastabų nėra",
+    "show_changes": "Rodyti siūlomus pakeitimus ({{count}})",
+    "hide_changes": "Slėpti siūlomus pakeitimus",
+    "step_label": "Žingsnis {{number}}",
+    "accept_btn": "Taikyti pakeitimą",
+    "reject_btn": "Atmesti",
+    "status_accepted": "Pakeitimas pritaikytas: sukurta nauja procedūros juodraščio versija.",
+    "status_dismissed": "Pastaba atmesta."
   }
 }

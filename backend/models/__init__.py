@@ -15,3 +15,5 @@ from .document import Document
 from .policy import Policy
 from .knowledge_base_item import KnowledgeBaseItem
 from .push_subscription import PushSubscription
+from .procedure_review_run import ProcedureReviewRun
+from .procedure_review_finding import ProcedureReviewFinding

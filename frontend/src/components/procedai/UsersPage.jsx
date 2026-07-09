@@ -28,7 +28,7 @@ function RoleBadge({ role }) {
   );
 }
 
-function SendEmailModal({ users, token, onClose }) {
+function SendEmailModal({ users, onClose }) {
   const { t } = useTranslation();
   const [mode, setMode]               = useState("all"); // "all" | "role" | "select"
   const [selectedRoles, setRoles]     = useState(new Set());

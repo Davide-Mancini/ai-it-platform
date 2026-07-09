@@ -9,6 +9,7 @@ import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions
 import { fetchUsers, fetchUsersBrowse, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllNotifications } from "../redux/actions/notificationsActions";
 import { fetchCustomers, createCustomer, updateCustomer, deleteCustomer } from "../redux/actions/customersActions";
+import { fetchReviewFindings, fetchRunStatus, triggerReview, acceptFinding, rejectFinding } from "../redux/actions/procedureReviewActions";
 import { useNotificationsSSE } from "../hooks/useNotificationsSSE";
 
 import Sidebar         from "./procedai/Sidebar";
@@ -23,6 +24,7 @@ import Team            from "./procedai/Team";
 import Notifications   from "./procedai/Notifications";
 import Settings        from "./procedai/Settings";
 import UsersPage       from "./procedai/UsersPage";
+import AgentReview     from "./procedai/AgentReview";
 import CustomersPage   from "./procedai/CustomersPage";
 import CreateModal     from "./procedai/CreateModal";
 import ManualForm      from "./procedai/ManualForm";
@@ -45,6 +47,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const { list: users, roles, loading: loadingUsers, browse: usersBrowse } = useSelector(s => s.users);
   const { list: notifications } = useSelector(s => s.notifications);
   const { list: customers, loading: loadingCustomers } = useSelector(s => s.customers);
+  const reviewBrowse = useSelector(s => s.procedureReview);
 
   useNotificationsSSE(token);
 
@@ -72,6 +75,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const isCustomer = userInfo?.role?.name === "Customer" || userInfo?.role === "Customer";
   const canManageCustomers = isAdmin || isITManager || isSales;
   const canViewAIStats = isAdmin || isITManager;
+  const canReviewProcedures = isAdmin || isITManager;
 
   const [recentActivity, setRecentActivity] = useState([]);
   const [collaborators, setCollaborators]   = useState([]);
@@ -88,6 +92,9 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const [procPage, setProcPage]     = useState(1);
   const [userSearch, setUserSearch] = useState("");
   const [userPage, setUserPage]     = useState(1);
+  const [reviewStatus, setReviewStatus]     = useState("pending");
+  const [reviewSeverity, setReviewSeverity] = useState("");
+  const [reviewPage, setReviewPage]         = useState(1);
 
   // Dati derivati per il dettaglio
   const selectedProc = selectedProcId ? procedures.find(p => p.id === selectedProcId) : null;
@@ -176,6 +183,13 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   useEffect(() => {
     if (pathname !== "/procedures") setSelectedProcId(null);
   }, [pathname]);
+
+  // Segnalazioni dell'agente di revisione: caricate solo quando si visita la tab
+  // dedicata (riservata ad Admin/IT Manager), e ricaricate al cambio di filtro/pagina.
+  useEffect(() => {
+    if (!canReviewProcedures || pathname !== "/agent-review") return;
+    dispatch(fetchReviewFindings({ status: reviewStatus, severity: reviewSeverity }, reviewPage));
+  }, [dispatch, canReviewProcedures, pathname, reviewStatus, reviewSeverity, reviewPage]);
 
   // ── Ricerca/paginazione procedure e utenti ──────────────────────────────
   const handleProcSearchChange = (value) => { setProcSearch(value); setProcPage(1); };
@@ -347,6 +361,18 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   const handleCreateCustomer = async (form) => await dispatch(createCustomer(token, form));
   const handleSaveCustomer   = async (id, form) => await dispatch(updateCustomer(token, id, form));
   const handleDeleteCustomer = async (id) => await dispatch(deleteCustomer(token, id));
+  // ── Agente di revisione procedure ────────────────────────────────────────
+  const handleReviewFilterChange = ({ status, severity }) => {
+    setReviewStatus(status);
+    setReviewSeverity(severity);
+    setReviewPage(1);
+  };
+  const handleReviewRefresh = () => dispatch(fetchReviewFindings({ status: reviewStatus, severity: reviewSeverity }, reviewPage));
+  const handleTriggerReview = async () => await dispatch(triggerReview());
+  const handleCheckRunStatus = async (runId) => await dispatch(fetchRunStatus(runId));
+  const handleAcceptFinding = async (id) => { await dispatch(acceptFinding(id)); handleReviewRefresh(); };
+  const handleRejectFinding = async (id) => { await dispatch(rejectFinding(id)); };
+
   const handleMarkNotificationRead     = (id) => dispatch(markNotificationRead(token, id));
   const handleMarkAllNotificationsRead = ()   => dispatch(markAllNotificationsRead(token));
   const handleDeleteNotification       = (id) => dispatch(deleteNotification(token, id));
@@ -457,6 +483,22 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         onSearchChange={handleUserSearchChange}
         onPageChange={setUserPage}
         onRefreshCharts={handleRefreshUserCharts}
+      />
+    );
+
+    if (pathname === "/agent-review" && canReviewProcedures) return (
+      <AgentReview
+        browse={reviewBrowse}
+        lastRun={reviewBrowse.lastRun}
+        statusFilter={reviewStatus}
+        severityFilter={reviewSeverity}
+        onFilterChange={handleReviewFilterChange}
+        onPageChange={setReviewPage}
+        onTrigger={handleTriggerReview}
+        onCheckRunStatus={handleCheckRunStatus}
+        onAccept={handleAcceptFinding}
+        onReject={handleRejectFinding}
+        onRefresh={handleReviewRefresh}
       />
     );
 

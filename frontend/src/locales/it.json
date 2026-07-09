@@ -8,7 +8,8 @@
     "team": "Team",
     "notifications": "Notifiche",
     "settings": "Impostazioni",
-    "users": "Utenti"
+    "users": "Utenti",
+    "agent_review": "Revisione AI"
   },
   "charts": {
     "no_data": "Dati non ancora disponibili"
@@ -66,6 +67,8 @@
     "confirm_password_label": "CONFERMA PASSWORD",
     "email_placeholder": "mario.rossi@esempio.it",
     "password_placeholder_min": "Minimo 8 caratteri",
+    "name_placeholder": "Mario",
+    "surname_placeholder": "Rossi",
     "no_account": "Non hai un account?",
     "have_account": "Hai già un account?",
     "login_btn": "Accedi",
@@ -129,7 +132,9 @@
     "action_TASK_CREATED": "ha creato un nuovo task",
     "action_TASK_UPDATED": "ha aggiornato un task",
     "action_LOGIN": "ha effettuato l'accesso",
-    "action_AI_RECOMMENDATION_ACCEPTED": "ha accettato una raccomandazione AI"
+    "action_AI_RECOMMENDATION_ACCEPTED": "ha accettato una raccomandazione AI",
+    "action_REVIEW_ACCEPTED": "ha accettato una revisione AI",
+    "action_REVIEW_DISMISSED": "ha scartato una revisione AI"
   },
   "notifications": {
     "title": "Notifiche",
@@ -416,5 +421,27 @@
     "accept_recommendation": "Accetta raccomandazione AI",
     "accepted_recommendation": "Raccomandazione AI accettata",
     "reject_recommendation": "Rifiuta raccomandazione AI"
+  },
+  "agent_review": {
+    "title": "Agente di revisione procedure",
+    "no_run_yet": "Nessuna revisione eseguita ancora",
+    "last_run_running": "Revisione in corso…",
+    "last_run_completed": "Ultima revisione completata: {{count}} segnalazioni trovate",
+    "last_run_failed": "L'ultima revisione non è andata a buon fine",
+    "run_now_btn": "Esegui revisione ora",
+    "running_btn": "Revisione in corso…",
+    "tab_pending": "In attesa",
+    "tab_accepted": "Accettate",
+    "tab_dismissed": "Scartate",
+    "all_severities": "Tutte le severità",
+    "loading": "Caricamento…",
+    "no_findings": "Nessuna segnalazione in questa categoria",
+    "show_changes": "Vedi modifiche proposte ({{count}})",
+    "hide_changes": "Nascondi modifiche proposte",
+    "step_label": "Step {{number}}",
+    "accept_btn": "Applica modifica",
+    "reject_btn": "Scarta",
+    "status_accepted": "Modifica applicata: è stata creata una nuova versione (bozza) della procedura.",
+    "status_dismissed": "Segnalazione scartata."
   }
 }

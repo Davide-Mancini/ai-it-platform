@@ -2,9 +2,12 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 from api.endpoints.api import api_router
 from db.database import engine,Base,SessionLocal
 from seed import seed_role, seed_document, seed_policies,seed_knowledge_base
+from services import procedure_review_service
 from sqlalchemy import text
 
 Base.metadata.create_all(bind=engine)
@@ -75,3 +78,22 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Includiamo tutte le rotte del progetto con un unico comando
 app.include_router(api_router, prefix="/api")
+
+
+def _run_scheduled_procedure_review():
+    db = SessionLocal()
+    try:
+        procedure_review_service.run_review(db, triggered_by="scheduler")
+    finally:
+        db.close()
+
+
+scheduler = BackgroundScheduler()
+# Revisione automatica delle procedure ogni notte alle 03:00
+scheduler.add_job(_run_scheduled_procedure_review, CronTrigger(hour=3, minute=0), id="procedure_review_nightly")
+scheduler.start()
+
+
+@app.on_event("shutdown")
+def _shutdown_scheduler():
+    scheduler.shutdown(wait=False)

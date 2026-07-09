@@ -274,7 +274,7 @@ function AuthPage({ onAuth }) {
                         <input
                           type="text"
                           className="form-control auth-input"
-                          placeholder="Mario"
+                          placeholder= {t("auth.name_placeholder")}
                           value={registerData.first_name}
                           onChange={e => setRegisterData({ ...registerData, first_name: e.target.value })}
                         />
@@ -284,7 +284,7 @@ function AuthPage({ onAuth }) {
                         <input
                           type="text"
                           className="form-control auth-input"
-                          placeholder="Rossi"
+                          placeholder={t("auth.surname_placeholder")}
                           value={registerData.last_name}
                           onChange={e => setRegisterData({ ...registerData, last_name: e.target.value })}
                         />
