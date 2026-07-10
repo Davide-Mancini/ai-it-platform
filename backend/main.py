@@ -42,13 +42,31 @@ with engine.connect() as _conn:
         "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS requires_customer_input BOOLEAN NOT NULL DEFAULT false"
     ))
     _conn.execute(text(
-        "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS customer_response TEXT"
+        "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS required_fields JSON"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS customer_response_data JSON"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE tasks DROP COLUMN IF EXISTS customer_response"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE documents ALTER COLUMN content DROP NOT NULL"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE documents ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES customers(id) ON DELETE CASCADE"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE documents ADD COLUMN IF NOT EXISTS task_id UUID REFERENCES tasks(id) ON DELETE SET NULL"
     ))
     _conn.execute(text(
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_hash VARCHAR"
     ))
     _conn.execute(text(
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP"
+    ))
+    _conn.execute(text(
+        "ALTER TABLE procedure_review_findings ALTER COLUMN summary TYPE TEXT"
     ))
     _conn.commit()
 app = FastAPI(title="AI Assisted IT Platform API")

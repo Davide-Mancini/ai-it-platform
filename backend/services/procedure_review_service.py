@@ -22,7 +22,7 @@ SYSTEM_PROMPT = (
     "passaggi obsoleti, step mancanti, duplicazioni di lavoro o violazioni delle policy aziendali, "
     "confrontandola con le policy e i documenti di riferimento forniti.\n"
     "Per ogni problema trovato, restituisci un finding con: titolo della procedura (esattamente come fornito), "
-    "severity (low|medium|high|critical), category (inefficiency|outdated|policy_violation|duplication|clarity|missing_step), "
+    "severity (low|medium|high|critical), category (Inefficiency|Outdated|Policy Violation|Duplication|Clarity|Missing Step), "
     "una sintesi (summary), una motivazione dettagliata (rationale) e una proposta di modifica concreta "
     "(proposed_changes: lista di modifiche puntuali per singolo step, indicando step_number, field "
     "('title'|'description'|'new_step'|'remove_step'), il valore attuale e quello proposto).\n"

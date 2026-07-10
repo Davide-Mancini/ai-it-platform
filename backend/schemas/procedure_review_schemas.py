@@ -16,7 +16,7 @@ class AIReviewChange(BaseModel):
 class AIReviewFinding(BaseModel):
     procedure_title: str = Field(..., description="Titolo esatto della procedura a cui si riferisce il finding")
     severity: str = Field(..., description="low | medium | high | critical")
-    category: str = Field(..., description="inefficiency | outdated | policy_violation | duplication | clarity | missing_step")
+    category: str = Field(..., description="Inefficiency | Outdated | Policy Violation | Duplication | Clarity | Missing Step")
     summary: str
     rationale: str
     proposed_changes: List[AIReviewChange] = []

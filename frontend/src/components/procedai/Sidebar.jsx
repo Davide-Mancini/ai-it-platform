@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { NAV_ITEMS } from "./constants";
 import "./Sidebar.css";
-import Heximus_Logo_AI_Platform from "../assets/Heximus_Logo_AI_Platform.png"
+import Heximus_Logo_AI_Platform from "/favicon-96x96.png"
 
 function Icon({ path, size = 17 }) {
   return (
@@ -84,6 +84,22 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
             </NavLink>
           );
         })}
+
+        {isCustomerRole && (
+          <NavLink
+            to="/my-documents"
+            className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
+            title={collapsed ? t("nav.my_documents") : undefined}
+          >
+            <div className="pai-sidebar__item-icon">
+              <Icon
+                path="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M9 15h6 M9 11h6"
+                size={17}
+              />
+            </div>
+            <span className="pai-sidebar__item-label">{t("nav.my_documents")}</span>
+          </NavLink>
+        )}
 
         {/* Voci riservate: gestione utenti (admin), clienti (admin/IT manager/sales) e revisione AI (admin/IT manager) */}
         {(roleName === "Admin" || canManageCustomers || canReviewProcedures) && (

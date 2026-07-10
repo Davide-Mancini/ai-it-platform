@@ -26,7 +26,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.message,
-      icon: "https://res.cloudinary.com/dyl6viqkf/image/upload/v1782799821/Heximus_Logo_AI_Platform_nhsevf.png",
+      icon: "/favicon-96x96.png",
+      badge: "/favicon-96x96.png",
       tag: data.id || "heximus-notification",
       data: {
         url: data.url || "/",

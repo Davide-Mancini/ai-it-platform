@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { fetchProcedures, fetchProceduresBrowse, createProcedure, fetchSteps, toggleStepStatus, acceptRecommendation, rejectRecommendation, updateProcedure, deleteProcedure, PROCEDURES_RESET_STEPS } from "../redux/actions/proceduresActions";
 import { fetchAllTasks, createTask, updateTaskStatus, updateTaskPriority, assignUserToTask, unassignUserFromTask, submitTaskCustomerResponse } from "../redux/actions/tasksActions";
-import { fetchDocuments, updateDocument, deleteDocument } from "../redux/actions/documentsActions";
+import { fetchDocuments, updateDocument, deleteDocument, uploadDocument } from "../redux/actions/documentsActions";
 import { fetchUsers, fetchUsersBrowse, fetchRoles, updateUser, toggleUserActive } from "../redux/actions/usersActions";
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllNotifications } from "../redux/actions/notificationsActions";
 import { fetchCustomers, createCustomer, updateCustomer, deleteCustomer } from "../redux/actions/customersActions";
@@ -26,6 +26,7 @@ import Settings        from "./procedai/Settings";
 import UsersPage       from "./procedai/UsersPage";
 import AgentReview     from "./procedai/AgentReview";
 import CustomersPage   from "./procedai/CustomersPage";
+import CustomerDocumentsPage from "./procedai/CustomerDocumentsPage";
 import CreateModal     from "./procedai/CreateModal";
 import ManualForm      from "./procedai/ManualForm";
 import AIChat          from "./procedai/AIChat";
@@ -252,7 +253,7 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   // ── Task ─────────────────────────────────────────────────────────────────
   const handleTaskStatusChange   = (taskId, newStatus)   => dispatch(updateTaskStatus(token, taskId, newStatus, i18n.language));
   const handleTaskPriorityChange = (taskId, newPriority) => dispatch(updateTaskPriority(token, taskId, newPriority, i18n.language));
-  const handleCreateTask = async (title, procedureId, priority, requiresCustomerInput) => await dispatch(createTask(token, procedureId, title, priority, requiresCustomerInput));
+  const handleCreateTask = async (title, procedureId, priority, requiresCustomerInput, requiredFields) => await dispatch(createTask(token, procedureId, title, priority, requiresCustomerInput, requiredFields));
   const handleAssignUser   = (taskId, userId) => dispatch(assignUserToTask(token, taskId, userId));
   const handleUnassignUser = (taskId, userId) => dispatch(unassignUserFromTask(token, taskId, userId));
   const handleSubmitTaskResponse = async (taskId, responseText) => await dispatch(submitTaskCustomerResponse(token, taskId, responseText));
@@ -436,8 +437,18 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
         loading={loadingDocs}
         isAdmin={isAdmin}
         token={token}
+        customers={customers}
         onUpdateDocument={(id, data) => dispatch(updateDocument(token, id, data))}
         onDeleteDocument={(id) => dispatch(deleteDocument(token, id))}
+      />
+    );
+
+    if (pathname === "/my-documents" && isCustomer) return (
+      <CustomerDocumentsPage
+        documents={documents}
+        loading={loadingDocs}
+        tasks={tasks}
+        onUpload={(data) => dispatch(uploadDocument(token, data))}
       />
     );
 

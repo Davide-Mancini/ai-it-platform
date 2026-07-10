@@ -15,6 +15,9 @@ def get_by_id(db:Session, id: UUID):
 def get_all(db: Session):
     return db.query(models.Document).all()
 
+def get_all_for_customer(db: Session, customer_id: UUID):
+    return db.query(models.Document).filter(models.Document.customer_id == customer_id).all()
+
 def update_document(db: Session, id: UUID, data: dict):
     doc = get_by_id(db, id)
     if not doc:

@@ -9,7 +9,8 @@
     "notifications": "Notifications",
     "settings": "Settings",
     "users": "Users",
-    "agent_review": "AI Review"
+    "agent_review": "AI Review",
+    "my_documents": "My Documents"
   },
   "charts": {
     "no_data": "No data available yet"
@@ -58,6 +59,7 @@
     "change_language": "Change language"
   },
   "auth": {
+    "session_expired": "Your session has expired. Please sign in again.",
     "login_tab": "Sign in",
     "register_tab": "Register",
     "email_label": "EMAIL",
@@ -247,7 +249,22 @@
   "tasks": {
     "col_pending": "To do",
     "col_in_progress": "In progress",
+    "col_clarification_needed": "Clarification needed",
     "col_done": "Completed",
+    "request_clarification_btn": "Request clarification",
+    "recheck_btn": "Re-check",
+    "customer_flag_title": "Requires data from the client",
+    "customer_flag_label": "Client",
+    "customer_response_label": "Client response",
+    "customer_input_placeholder": "Enter the requested data…",
+    "submitting": "Sending…",
+    "update_btn": "Update",
+    "send_btn": "Send",
+    "customer_input_hint_enabled": "Requires data from the linked client — only this task will be visible to the client",
+    "customer_input_hint_disabled": "Requires data from the client — link a client to this procedure to use this option",
+    "required_fields_label": "REQUESTED FIELDS (OPTIONAL)",
+    "field_label_placeholder": "E.g. Registered office address",
+    "field_add": "+ Add field",
     "priority_low": "Low",
     "priority_medium": "Medium",
     "priority_high": "High",
@@ -274,6 +291,7 @@
   },
   "documents": {
     "tab_docs": "Documents",
+    "tab_customer_docs": "Customer Documents",
     "tab_policies": "Policies",
     "categories": "Categories",
     "all_categories": "All",
@@ -287,6 +305,10 @@
     "admin_only_delete": "Only administrators can delete",
     "updated_on": "Updated on",
     "no_content": "No content available for this document.",
+    "uploaded_by_customer": "uploaded by {{name}}",
+    "download_file": "Download file",
+    "uploaded_file": "Uploaded file",
+    "customer_docs_empty": "No customer has uploaded any documents yet.",
     "edit_title": "Edit document",
     "edit_sub": "Update title and content",
     "field_title": "TITLE *",
@@ -419,7 +441,8 @@
     "loading": "Generating procedure…",
     "accept_recommendation": "Accept AI Recommendation",
     "accepted_recommendation": "AI Recommendation Accepted",
-    "reject_recommendation": "Reject AI Recommendation"
+    "reject_recommendation": "Reject AI Recommendation",
+    "no_customer_selected": "No customer selected"
   },
   "agent_review": {
     "title": "Procedure review agent",
@@ -442,5 +465,15 @@
     "reject_btn": "Dismiss",
     "status_accepted": "Change applied: a new draft version of the procedure was created.",
     "status_dismissed": "Finding dismissed."
+  },
+  "customer": {
+    "documents_title": "My Documents",
+    "field_title": "Title",
+    "field_file": "File",
+    "field_task_optional": "Linked task (optional)",
+    "upload_btn": "Upload",
+    "uploading": "Uploading…",
+    "no_documents": "No documents uploaded yet",
+    "linked_task": "Linked task"
   }
 }

@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import List, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -13,6 +13,11 @@ class UserMinimal(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class RequiredField(BaseModel):
+    key: str
+    label: str
+
+
 class TaskBase(BaseModel):
     title: str
     status: str = "pending"
@@ -20,6 +25,7 @@ class TaskBase(BaseModel):
 
 class TaskCreate(TaskBase):
     requires_customer_input: bool = False
+    required_fields: Optional[List[RequiredField]] = None
 
 class TaskUpdateStatus(BaseModel):
     status: str
@@ -31,7 +37,7 @@ class TaskAssign(BaseModel):
     user_id: UUID
 
 class TaskCustomerResponse(BaseModel):
-    customer_response: str
+    response_data: Dict[str, str]
 
 class TaskOut(TaskBase):
     id: UUID
@@ -40,7 +46,8 @@ class TaskOut(TaskBase):
     created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     requires_customer_input: bool = False
-    customer_response: Optional[str] = None
+    required_fields: Optional[List[RequiredField]] = None
+    customer_response_data: Optional[Dict[str, str]] = None
 
     class Config:
         from_attributes = True

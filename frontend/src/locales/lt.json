@@ -9,7 +9,8 @@
     "notifications": "Pranešimai",
     "settings": "Nustatymai",
     "users": "Vartotojai",
-    "agent_review": "DI peržiūra"
+    "agent_review": "DI peržiūra",
+    "my_documents": "Mano dokumentai"
   },
   "charts": {
     "no_data": "Duomenų kol kas nėra"
@@ -58,6 +59,7 @@
     "change_language": "Keisti kalbą"
   },
   "auth": {
+    "session_expired": "Jūsų sesija baigėsi. Prisijunkite dar kartą.",
     "login_tab": "Prisijungti",
     "register_tab": "Registruotis",
     "email_label": "EL. PAŠTAS",
@@ -247,7 +249,22 @@
   "tasks": {
     "col_pending": "Atlikti",
     "col_in_progress": "Vykdoma",
+    "col_clarification_needed": "Reikia patikslinimo",
     "col_done": "Užbaigta",
+    "request_clarification_btn": "Prašyti patikslinimo",
+    "recheck_btn": "Peržiūrėti iš naujo",
+    "customer_flag_title": "Reikalingi kliento duomenys",
+    "customer_flag_label": "Klientas",
+    "customer_response_label": "Kliento atsakymas",
+    "customer_input_placeholder": "Įveskite prašomus duomenis…",
+    "submitting": "Siunčiama…",
+    "update_btn": "Atnaujinti",
+    "send_btn": "Siųsti",
+    "customer_input_hint_enabled": "Reikalingi susieto kliento duomenys — šią užduotį matys tik klientas",
+    "customer_input_hint_disabled": "Reikalingi kliento duomenys — susiekite klientą su šia procedūra, kad naudotumėte šią parinktį",
+    "required_fields_label": "PRAŠOMI LAUKAI (NEPRIVALOMA)",
+    "field_label_placeholder": "Pvz. Registruotos buveinės adresas",
+    "field_add": "+ Pridėti lauką",
     "priority_low": "Žema",
     "priority_medium": "Vidutinė",
     "priority_high": "Aukšta",
@@ -274,6 +291,7 @@
   },
   "documents": {
     "tab_docs": "Dokumentai",
+    "tab_customer_docs": "Klientų dokumentai",
     "tab_policies": "Politikos",
     "categories": "Kategorijos",
     "all_categories": "Visos",
@@ -287,6 +305,10 @@
     "admin_only_delete": "Ištrinti gali tik administratoriai",
     "updated_on": "Atnaujinta",
     "no_content": "Šiam dokumentui turinio nėra.",
+    "uploaded_by_customer": "įkėlė {{name}}",
+    "download_file": "Atsisiųsti failą",
+    "uploaded_file": "Įkeltas failas",
+    "customer_docs_empty": "Kol kas nė vienas klientas neįkėlė dokumentų.",
     "edit_title": "Redaguoti dokumentą",
     "edit_sub": "Atnaujinti pavadinimą ir turinį",
     "field_title": "PAVADINIMAS *",
@@ -419,7 +441,8 @@
     "loading": "Generuojama procedūra…",
     "accept_recommendation": "Priimti DI rekomendaciją",
     "accepted_recommendation": "DI rekomendacija priimta",
-    "reject_recommendation": "Atmesti DI rekomendaciją"
+    "reject_recommendation": "Atmesti DI rekomendaciją",
+    "no_customer_selected": "Nėra pasirinkto kliento"
   },
   "agent_review": {
     "title": "Procedūrų peržiūros agentas",
@@ -442,5 +465,15 @@
     "reject_btn": "Atmesti",
     "status_accepted": "Pakeitimas pritaikytas: sukurta nauja procedūros juodraščio versija.",
     "status_dismissed": "Pastaba atmesta."
+  },
+  "customer": {
+    "documents_title": "Mano dokumentai",
+    "field_title": "Pavadinimas",
+    "field_file": "Failas",
+    "field_task_optional": "Susieta užduotis (neprivaloma)",
+    "upload_btn": "Įkelti",
+    "uploading": "Įkeliama…",
+    "no_documents": "Kol kas neįkelta jokių dokumentų",
+    "linked_task": "Susieta užduotis"
   }
 }

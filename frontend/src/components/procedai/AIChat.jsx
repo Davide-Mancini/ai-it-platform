@@ -94,13 +94,13 @@ export default function AIChat({ isOpen, onToggle, messages, input, onInputChang
 
             {/* Cliente collegato (opzionale) */}
             {customers.length > 0 && (
-              <div className="pai-chat__customer-row">
+              <div className="pai-chat__customer-row mb-1">
                 <select
                   className="pai-chat__customer-select"
                   value={selectedCustomerId || ""}
                   onChange={e => onCustomerChange(e.target.value || null)}
                 >
-                  <option value="">Nessun cliente collegato</option>
+                  <option value="">{t("ai.no_customer_selected")}</option>
                   {customers.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}

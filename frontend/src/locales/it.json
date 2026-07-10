@@ -9,7 +9,8 @@
     "notifications": "Notifiche",
     "settings": "Impostazioni",
     "users": "Utenti",
-    "agent_review": "Revisione AI"
+    "agent_review": "Revisione AI",
+    "my_documents": "I miei documenti"
   },
   "charts": {
     "no_data": "Dati non ancora disponibili"
@@ -58,6 +59,7 @@
     "change_language": "Cambia lingua"
   },
   "auth": {
+    "session_expired": "La tua sessione è scaduta. Accedi di nuovo.",
     "login_tab": "Accedi",
     "register_tab": "Registrati",
     "email_label": "EMAIL",
@@ -247,7 +249,22 @@
   "tasks": {
     "col_pending": "Da fare",
     "col_in_progress": "In corso",
+    "col_clarification_needed": "Chiarimento richiesto",
     "col_done": "Completati",
+    "request_clarification_btn": "Richiedi chiarimento",
+    "recheck_btn": "Ricontrolla",
+    "customer_flag_title": "Richiede dati dal cliente",
+    "customer_flag_label": "Cliente",
+    "customer_response_label": "Risposta del cliente",
+    "customer_input_placeholder": "Inserisci qui i dati richiesti…",
+    "submitting": "Invio…",
+    "update_btn": "Aggiorna",
+    "send_btn": "Invia",
+    "customer_input_hint_enabled": "Richiede dati dal cliente collegato — solo questo task sarà visibile al cliente",
+    "customer_input_hint_disabled": "Richiede dati dal cliente — collega un cliente a questa procedura per usare questa opzione",
+    "required_fields_label": "CAMPI RICHIESTI (OPZIONALE)",
+    "field_label_placeholder": "Es. Indirizzo sede legale",
+    "field_add": "+ Aggiungi campo",
     "priority_low": "Basso",
     "priority_medium": "Medio",
     "priority_high": "Alto",
@@ -274,6 +291,7 @@
   },
   "documents": {
     "tab_docs": "Documenti",
+    "tab_customer_docs": "Documenti clienti",
     "tab_policies": "Policy",
     "categories": "Categorie",
     "all_categories": "Tutte",
@@ -287,6 +305,10 @@
     "admin_only_delete": "Solo gli amministratori possono eliminare",
     "updated_on": "Aggiornato il",
     "no_content": "Nessun contenuto disponibile per questo documento.",
+    "uploaded_by_customer": "caricato da {{name}}",
+    "download_file": "Scarica file",
+    "uploaded_file": "File caricato",
+    "customer_docs_empty": "Nessun cliente ha ancora caricato documenti.",
     "edit_title": "Modifica documento",
     "edit_sub": "Aggiorna titolo e contenuto",
     "field_title": "TITOLO *",
@@ -420,7 +442,8 @@
     "loading": "Generazione procedura in corso…",
     "accept_recommendation": "Accetta raccomandazione AI",
     "accepted_recommendation": "Raccomandazione AI accettata",
-    "reject_recommendation": "Rifiuta raccomandazione AI"
+    "reject_recommendation": "Rifiuta raccomandazione AI",
+    "no_customer_selected": "Nessun cliente collegato"
   },
   "agent_review": {
     "title": "Agente di revisione procedure",
@@ -443,5 +466,15 @@
     "reject_btn": "Scarta",
     "status_accepted": "Modifica applicata: è stata creata una nuova versione (bozza) della procedura.",
     "status_dismissed": "Segnalazione scartata."
+  },
+  "customer": {
+    "documents_title": "I miei documenti",
+    "field_title": "Titolo",
+    "field_file": "File",
+    "field_task_optional": "Task collegato (opzionale)",
+    "upload_btn": "Carica",
+    "uploading": "Caricamento…",
+    "no_documents": "Nessun documento caricato",
+    "linked_task": "Task collegato"
   }
 }

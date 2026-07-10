@@ -14,10 +14,16 @@ function getPriorities(t) {
 
 function getCols(t) {
   return [
-    { id: "pending",     label: t("tasks.col_pending"),     dot: "#94A3B8" },
-    { id: "in_progress", label: t("tasks.col_in_progress"), dot: "#2563EB" },
-    { id: "done",        label: t("tasks.col_done"),        dot: "#059669" },
+    { id: "pending",             label: t("tasks.col_pending"),             dot: "#94A3B8" },
+    { id: "in_progress",         label: t("tasks.col_in_progress"),         dot: "#2563EB" },
+    { id: "clarification_needed", label: t("tasks.col_clarification_needed"), dot: "#D97706" },
+    { id: "done",                label: t("tasks.col_done"),                dot: "#059669" },
   ];
+}
+
+function slugifyFieldLabel(label, index) {
+  const slug = label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return slug ? `field_${index}_${slug}` : `field_${index}`;
 }
 
 function PriorityBadge({ priority, onChangePriority, canManage = true }) {
@@ -190,14 +196,28 @@ function AssignDropdown({ task, users, onAssign }) {
 function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, isAdmin, canManage = true, users, onAssignUser, onUnassignUser, onSubmitResponse }) {
   const { t } = useTranslation();
   const proc = procedures.find(p => p.id === task.procedure_id);
-  const [responseDraft, setResponseDraft] = useState(task.customer_response || "");
+  const fields = (task.required_fields && task.required_fields.length > 0)
+    ? task.required_fields
+    : [{ key: "response", label: task.title }];
+  const existingData = task.customer_response_data || {};
+  const [responseDraft, setResponseDraft] = useState(
+    Object.fromEntries(fields.map(f => [f.key, existingData[f.key] || ""]))
+  );
   const [submittingResponse, setSubmittingResponse] = useState(false);
+  const hasExistingResponse = Object.keys(existingData).length > 0;
+  const hasDraftContent = Object.values(responseDraft).some(v => v.trim());
 
   const handleSubmitResponse = async () => {
-    if (!responseDraft.trim() || submittingResponse) return;
+    if (!hasDraftContent || submittingResponse) return;
     setSubmittingResponse(true);
-    try { await onSubmitResponse(task.id, responseDraft.trim()); }
-    finally { setSubmittingResponse(false); }
+    try {
+      const trimmed = Object.fromEntries(
+        Object.entries(responseDraft).filter(([, v]) => v.trim()).map(([k, v]) => [k, v.trim()])
+      );
+      await onSubmitResponse(task.id, trimmed);
+    } finally {
+      setSubmittingResponse(false);
+    }
   };
 
   return (
@@ -211,7 +231,9 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
           canManage={canManage}
         />
         {task.requires_customer_input && (
-          <span className="pai-task-card__customer-flag" title="Richiede dati dal cliente">Cliente</span>
+          <span className="pai-task-card__customer-flag" title={t("tasks.customer_flag_title")}>
+            {t("tasks.customer_flag_label")}
+          </span>
         )}
         {task.created_at && (
           <span className="pai-task-card__date">{formatDate(task.created_at)}</span>
@@ -220,28 +242,37 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
 
       {proc && <div className="pai-task-card__proc">{proc.title}</div>}
 
-      {canManage && task.requires_customer_input && task.customer_response && (
+      {canManage && task.requires_customer_input && hasExistingResponse && (
         <div className="pai-task-card__customer-response">
-          <div className="pai-task-card__customer-response-label">Risposta del cliente</div>
-          <div className="pai-task-card__customer-response-text">{task.customer_response}</div>
+          <div className="pai-task-card__customer-response-label">{t("tasks.customer_response_label")}</div>
+          {fields.map(f => existingData[f.key] && (
+            <div key={f.key} className="pai-task-card__customer-response-text">
+              <strong>{f.label}:</strong> {existingData[f.key]}
+            </div>
+          ))}
         </div>
       )}
 
       {!canManage && task.requires_customer_input && (
         <div className="pai-task-card__customer-input" onClick={e => e.stopPropagation()}>
-          <textarea
-            className="pai-task-card__customer-textarea"
-            value={responseDraft}
-            onChange={e => setResponseDraft(e.target.value)}
-            placeholder="Inserisci qui i dati richiesti…"
-            rows={2}
-          />
+          {fields.map(f => (
+            <div key={f.key} className="pai-task-card__customer-field">
+              <label className="pai-task-card__customer-field-label">{f.label}</label>
+              <textarea
+                className="pai-task-card__customer-textarea"
+                value={responseDraft[f.key] || ""}
+                onChange={e => setResponseDraft(d => ({ ...d, [f.key]: e.target.value }))}
+                placeholder={t("tasks.customer_input_placeholder")}
+                rows={2}
+              />
+            </div>
+          ))}
           <button
             className="pai-task-card__customer-submit"
             onClick={handleSubmitResponse}
-            disabled={submittingResponse || !responseDraft.trim()}
+            disabled={submittingResponse || !hasDraftContent}
           >
-            {submittingResponse ? "Invio…" : (task.customer_response ? "Aggiorna" : "Invia")}
+            {submittingResponse ? t("tasks.submitting") : (hasExistingResponse ? t("tasks.update_btn") : t("tasks.send_btn"))}
           </button>
         </div>
       )}
@@ -268,12 +299,27 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
           />
         )}
         <div className="pai-task-card__spacer" />
-        {colId !== "done" && (
+        {canManage && task.requires_customer_input && (colId === "in_progress" || colId === "done") && (
           <button
-            className={`pai-task-card__btn${colId === "in_progress" ? " pai-task-card__btn--done" : ""}`}
-            onClick={() => onStatusChange(task.id, colId === "pending" ? "in_progress" : "done")}
+            className="pai-task-card__btn pai-task-card__btn--clarify"
+            onClick={() => onStatusChange(task.id, "clarification_needed")}
           >
-            {colId === "pending" ? t("tasks.start_btn") : t("tasks.done_btn")}
+            {t("tasks.request_clarification_btn")}
+          </button>
+        )}
+        {colId === "pending" && (
+          <button className="pai-task-card__btn" onClick={() => onStatusChange(task.id, "in_progress")}>
+            {t("tasks.start_btn")}
+          </button>
+        )}
+        {colId === "in_progress" && (
+          <button className="pai-task-card__btn pai-task-card__btn--done" onClick={() => onStatusChange(task.id, "done")}>
+            {t("tasks.done_btn")}
+          </button>
+        )}
+        {colId === "clarification_needed" && canManage && (
+          <button className="pai-task-card__btn" onClick={() => onStatusChange(task.id, "in_progress")}>
+            {t("tasks.recheck_btn")}
           </button>
         )}
         {colId === "done" && (
@@ -355,6 +401,7 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
   const [procId, setProcId]     = useState(procedures[0]?.id || "");
   const [priority, setPriority] = useState("low");
   const [requiresCustomerInput, setRequiresCustomerInput] = useState(false);
+  const [fieldLabels, setFieldLabels] = useState([]);
   const [error, setError]       = useState("");
 
   const selectedProc = procedures.find(p => p.id === procId);
@@ -367,7 +414,13 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
   const handleSubmit = () => {
     if (!title.trim()) { setError(t("tasks.err_title")); return; }
     if (!procId) { setError(t("tasks.err_procedure")); return; }
-    onSubmit(title.trim(), procId, priority, requiresCustomerInput && hasLinkedCustomer);
+    const active = requiresCustomerInput && hasLinkedCustomer;
+    const requiredFields = active
+      ? fieldLabels
+          .map((label, i) => label.trim() && { key: slugifyFieldLabel(label, i), label: label.trim() })
+          .filter(Boolean)
+      : [];
+    onSubmit(title.trim(), procId, priority, active, requiredFields);
   };
 
   return (
@@ -439,9 +492,39 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
               onChange={e => setRequiresCustomerInput(e.target.checked)}
             />
             {hasLinkedCustomer
-              ? "Richiede dati dal cliente collegato — solo questo task sarà visibile al cliente"
-              : "Richiede dati dal cliente — collega un cliente a questa procedura per usare questa opzione"}
+              ? t("tasks.customer_input_hint_enabled")
+              : t("tasks.customer_input_hint_disabled")}
           </label>
+
+          {requiresCustomerInput && hasLinkedCustomer && (
+            <div className="pai-task-form__fields">
+              <label className="pai-field__label">{t("tasks.required_fields_label")}</label>
+              {fieldLabels.map((label, i) => (
+                <div key={i} className="pai-task-form__field-row">
+                  <input
+                    className="pai-field__input"
+                    value={label}
+                    onChange={e => setFieldLabels(fs => fs.map((f, idx) => idx === i ? e.target.value : f))}
+                    placeholder={t("tasks.field_label_placeholder")}
+                  />
+                  <button
+                    type="button"
+                    className="pai-task-form__field-remove"
+                    onClick={() => setFieldLabels(fs => fs.filter((_, idx) => idx !== i))}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="pai-btn pai-btn--ghost pai-task-form__field-add"
+                onClick={() => setFieldLabels(fs => [...fs, ""])}
+              >
+                {t("tasks.field_add")}
+              </button>
+            </div>
+          )}
 
           {error && <div className="pai-task-form__error">{error}</div>}
 
@@ -469,10 +552,10 @@ export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorit
     setDraggedId(null);
   };
 
-  const handleSubmit = async (title, procId, priority, requiresCustomerInput) => {
+  const handleSubmit = async (title, procId, priority, requiresCustomerInput, requiredFields) => {
     setCreateLoading(true);
     try {
-      await onCreateTask(title, procId, priority, requiresCustomerInput);
+      await onCreateTask(title, procId, priority, requiresCustomerInput, requiredFields);
       setShowCreate(false);
     } finally {
       setCreateLoading(false);

@@ -68,7 +68,7 @@ function CloseIcon() {
 }
 
 /* ── Document view modal ─────────────────────────────────────────────────────── */
-function DocModal({ doc, onClose }) {
+function DocModal({ doc, customerName, onClose }) {
   const { t } = useTranslation();
   const ext   = doc.file_type?.replace(".", "").toLowerCase() || "doc";
   const color = EXT_COLOR[ext] || "#475569";
@@ -78,21 +78,35 @@ function DocModal({ doc, onClose }) {
         <div className="pai-doc-modal__header">
           <div className="pai-doc-modal__header-left">
             <div className="pai-docs__ext-badge" style={{ color, background: `${color}14`, width: 42, height: 42, fontSize: 9, borderRadius: 10 }}>
-              {ext.toUpperCase()}
+               {ext.length > 5 ? ext.slice(0, 5).toUpperCase() + "…" : ext.toUpperCase()}
             </div>
             <div>
               <div className="pai-doc-modal__title">{doc.title}</div>
-              <div className="pai-doc-modal__meta">{ext.toUpperCase()} · {t("documents.updated_on")} {formatDate(doc.updated_at || doc.created_at)}</div>
+              <div className="pai-doc-modal__meta">
+                {ext.toUpperCase()} · {t("documents.updated_on")} {formatDate(doc.updated_at || doc.created_at)}
+                {customerName && <> · {t("documents.uploaded_by_customer", { name: customerName })}</>}
+              </div>
             </div>
           </div>
           <button className="pai-doc-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
         <div className="pai-doc-modal__body">
+          {doc.file_path && (
+            <a
+              className="pai-btn pai-btn--primary"
+              style={{ display: "inline-flex", marginBottom: 16, textDecoration: "none" }}
+              href={`${API_BASE}${doc.file_path}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t("documents.download_file")}
+            </a>
+          )}
           {doc.content
             ? doc.content.split("\n").map((line, i) =>
                 line.trim() ? <p key={i} className="pai-doc-modal__paragraph">{line}</p> : <div key={i} className="pai-doc-modal__spacer" />
               )
-            : <p className="pai-doc-modal__empty">{t("documents.no_content")}</p>
+            : !doc.file_path && <p className="pai-doc-modal__empty">{t("documents.no_content")}</p>
           }
         </div>
       </div>
@@ -168,7 +182,7 @@ function DeleteModal({ doc, onClose, onConfirm }) {
 }
 
 /* ── Create policy modal ─────────────────────────────────────────────────────── */
-function CreatePolicyModal({ token, documents, onClose, onCreated }) {
+function CreatePolicyModal({  documents, onClose, onCreated }) {
   const { t } = useTranslation();
   const [form, setForm]         = useState({ title: "", description: "", category: "", document_id: "" });
   const [loading, setLoading]   = useState(false);
@@ -310,7 +324,7 @@ function CreatePolicyModal({ token, documents, onClose, onCreated }) {
                         onClick={() => { setForm(f => ({ ...f, document_id: doc.id })); setDocSearch(""); }}
                       >
                         <div className="pai-docs__ext-badge" style={{ color, background: `${color}14`, width: 28, height: 28, fontSize: 7.5, borderRadius: 6, flexShrink: 0 }}>
-                          {ext.toUpperCase()}
+                          {ext.length > 5 ? ext.slice(0, 5).toUpperCase() + "…" : ext.toUpperCase()}
                         </div>
                         <div className="pai-policy-form__doc-item-body">
                           <span className="pai-policy-form__doc-item-title">{doc.title}</span>
@@ -388,7 +402,7 @@ function PolicyModal({ policy, linkedDoc, onClose }) {
                     const color = EXT_COLOR[ext] || "#475569";
                     return (
                       <div className="pai-docs__ext-badge" style={{ color, background: `${color}14`, width: 32, height: 32, fontSize: 7.5, borderRadius: 7 }}>
-                        {ext.toUpperCase()}
+                        {ext.length > 5 ? ext.slice(0, 5).toUpperCase() + "…" : ext.toUpperCase()}
                       </div>
                     );
                   })()}
@@ -454,8 +468,48 @@ function PolicyRow({ policy, documents, onSelect }) {
   );
 }
 
+/* ── Document row ────────────────────────────────────────────────────────────── */
+function DocRow({ doc, customer, isAdmin, t, onSelect, onEdit, onDelete }) {
+  const ext   = doc.file_type?.replace(".", "").toLowerCase() || "doc";
+  const color = EXT_COLOR[ext] || "#475569";
+  return (
+    <div className="pai-docs__row" onClick={() => onSelect(doc)}>
+      <div className="pai-docs__row-name">
+        <div className="pai-docs__ext-badge" style={{ color, background: `${color}14` }}>{ext.length > 5 ? ext.slice(0, 5).toUpperCase() + "…" : ext.toUpperCase()}</div>
+        <div>
+          <div className="pai-docs__doc-title">
+            {doc.title}
+            {customer && (
+              <span className="pai-chip" style={{ marginLeft: 8, color: "#2563EB", background: "#EFF6FF", fontSize: 10 }}>
+                {customer.name}
+              </span>
+            )}
+          </div>
+          <div className="pai-docs__doc-sub">
+            {doc.content?.slice(0, 60) || (doc.file_path ? t("documents.uploaded_file") : "—")}
+          </div>
+        </div>
+      </div>
+      <span className="pai-docs__row-type pai-docs__col-type">{ext.toUpperCase()}</span>
+      <span className="pai-docs__row-date pai-docs__col-date">{formatDate(doc.updated_at || doc.created_at)}</span>
+      <div className="pai-docs__row-actions" onClick={e => e.stopPropagation()}>
+        <button
+          className={`pai-docs__action-btn${!isAdmin ? " pai-docs__action-btn--disabled" : ""}`}
+          title={isAdmin ? t("common.edit") : t("documents.admin_only_edit")}
+          onClick={() => isAdmin && onEdit(doc)}
+        ><EditIcon /></button>
+        <button
+          className={`pai-docs__action-btn pai-docs__action-btn--danger${!isAdmin ? " pai-docs__action-btn--disabled" : ""}`}
+          title={isAdmin ? t("common.delete") : t("documents.admin_only_delete")}
+          onClick={() => isAdmin && onDelete(doc)}
+        ><TrashIcon /></button>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main component ──────────────────────────────────────────────────────────── */
-export default function Documents({ documents, loading, isAdmin, token, onUpdateDocument, onDeleteDocument }) {
+export default function Documents({ documents, loading, isAdmin, token, customers = [], onUpdateDocument, onDeleteDocument }) {
   const { t } = useTranslation();
   const [tab, setTab]       = useState("documents");
   const [selected, setSelected] = useState(null);
@@ -479,9 +533,12 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
       .finally(() => setLoadingP(false));
   }, [token]);
 
+  const internalDocs = documents.filter(d => !d.customer_id);
+  const customerDocs = documents.filter(d => d.customer_id);
+
   const ALL_LABEL = t("documents.all_categories");
-  const cats     = [ALL_CAT, ...new Set(documents.map(d => d.file_type || "Altro").filter(Boolean))];
-  const filtered = activeCat === ALL_CAT ? documents : documents.filter(d => (d.file_type || "Altro") === activeCat);
+  const cats     = [ALL_CAT, ...new Set(internalDocs.map(d => d.file_type || "Altro").filter(Boolean))];
+  const filtered = activeCat === ALL_CAT ? internalDocs : internalDocs.filter(d => (d.file_type || "Altro") === activeCat);
 
   return (
     <div className="pai-view pai-docs-wrapper">
@@ -496,7 +553,17 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
           </svg>
           {t("documents.tab_docs")}
-          <span className="pai-docs-tab__count">{documents.length}</span>
+          <span className="pai-docs-tab__count">{internalDocs.length}</span>
+        </button>
+        <button
+          className={`pai-docs-tab${tab === "customer_documents" ? " pai-docs-tab--active" : ""}`}
+          onClick={() => setTab("customer_documents")}
+        >
+          <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+            <path d="M3 21h18M5 21V7l8-4v18M13 21V11l6 3v7M9 9v.01M9 12v.01M9 15v.01" />
+          </svg>
+          {t("documents.tab_customer_docs")}
+          <span className="pai-docs-tab__count">{customerDocs.length}</span>
         </button>
         <button
           className={`pai-docs-tab${tab === "policies" ? " pai-docs-tab--active" : ""}`}
@@ -539,35 +606,48 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
               </div>
               {loading && <div className="pai-docs__loading">{t("documents.loading")}</div>}
               {!loading && filtered.length === 0 && <div className="pai-docs__empty">{t("documents.empty")}</div>}
-              {filtered.map(doc => {
-                const ext   = doc.file_type?.replace(".", "").toLowerCase() || "doc";
-                const color = EXT_COLOR[ext] || "#475569";
-                return (
-                  <div key={doc.id} className="pai-docs__row" onClick={() => setSelected(doc)}>
-                    <div className="pai-docs__row-name">
-                      <div className="pai-docs__ext-badge" style={{ color, background: `${color}14` }}>{ext.toUpperCase()}</div>
-                      <div>
-                        <div className="pai-docs__doc-title">{doc.title}</div>
-                        <div className="pai-docs__doc-sub">{doc.content?.slice(0, 60) || "—"}</div>
-                      </div>
-                    </div>
-                    <span className="pai-docs__row-type pai-docs__col-type">{ext.toUpperCase()}</span>
-                    <span className="pai-docs__row-date pai-docs__col-date">{formatDate(doc.updated_at || doc.created_at)}</span>
-                    <div className="pai-docs__row-actions" onClick={e => e.stopPropagation()}>
-                      <button
-                        className={`pai-docs__action-btn${!isAdmin ? " pai-docs__action-btn--disabled" : ""}`}
-                        title={isAdmin ? t("common.edit") : t("documents.admin_only_edit")}
-                        onClick={() => isAdmin && setEditing(doc)}
-                      ><EditIcon /></button>
-                      <button
-                        className={`pai-docs__action-btn pai-docs__action-btn--danger${!isAdmin ? " pai-docs__action-btn--disabled" : ""}`}
-                        title={isAdmin ? t("common.delete") : t("documents.admin_only_delete")}
-                        onClick={() => isAdmin && setDeleting(doc)}
-                      ><TrashIcon /></button>
-                    </div>
-                  </div>
-                );
-              })}
+              {filtered.map(doc => (
+                <DocRow
+                  key={doc.id}
+                  doc={doc}
+                  customer={null}
+                  isAdmin={isAdmin}
+                  t={t}
+                  onSelect={setSelected}
+                  onEdit={setEditing}
+                  onDelete={setDeleting}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Customer documents tab ── */}
+      {tab === "customer_documents" && (
+        <div className="pai-docs">
+          <div className="pai-docs__main" style={{ width: "100%" }}>
+            <div className="pai-card pai-docs__table">
+              <div className="pai-docs__table-header">
+                <span>{t("documents.col_name")}</span>
+                <span className="pai-docs__col-type">{t("documents.col_type")}</span>
+                <span className="pai-docs__col-date">{t("documents.col_updated")}</span>
+                <span>{t("documents.col_actions")}</span>
+              </div>
+              {loading && <div className="pai-docs__loading">{t("documents.loading")}</div>}
+              {!loading && customerDocs.length === 0 && <div className="pai-docs__empty">{t("documents.customer_docs_empty")}</div>}
+              {customerDocs.map(doc => (
+                <DocRow
+                  key={doc.id}
+                  doc={doc}
+                  customer={customers.find(c => c.id === doc.customer_id) || null}
+                  isAdmin={isAdmin}
+                  t={t}
+                  onSelect={setSelected}
+                  onEdit={setEditing}
+                  onDelete={setDeleting}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -618,7 +698,13 @@ export default function Documents({ documents, loading, isAdmin, token, onUpdate
         </div>
       )}
 
-      {selected && <DocModal doc={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <DocModal
+          doc={selected}
+          customerName={selected.customer_id ? customers.find(c => c.id === selected.customer_id)?.name : null}
+          onClose={() => setSelected(null)}
+        />
+      )}
       {editing && (
         <EditModal
           doc={editing}

@@ -4,7 +4,7 @@ import Heximus_Logo_AI_Platform from "./assets/Heximus_Logo_AI_Platform_NoBG.png
 
 const API_BASE = "http://localhost:8000";
 
-function AuthPage({ onAuth }) {
+function AuthPage({ onAuth, sessionExpired }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("login");
 
@@ -142,6 +142,12 @@ function AuthPage({ onAuth }) {
 
             <div className="card auth-card border-0">
               <div className="card-body p-4">
+
+                {sessionExpired && (
+                  <div className="alert alert-warning py-2 small mb-3">
+                    {t("auth.session_expired")}
+                  </div>
+                )}
 
                 <ul className="nav nav-pills nav-fill mb-4 auth-tabs">
                   <li className="nav-item">

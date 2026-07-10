@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import AuthPage from "./components/AuthPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import ProcedAIPage from "./components/ProcedAIPage";
+import { installSessionGuard } from "./api/sessionGuard";
 
 const API_BASE = "http://localhost:8000";
 
@@ -16,6 +17,20 @@ function App() {
   // action lo usano solo per decidere se fare la fetch, non piu' per un header).
   const [authChecked, setAuthChecked] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  // Installato prima di qualunque altra fetch (deve stare prima dell'effect di
+  // auth-check qui sotto): su un 401 non atteso, sloggo e mostro un avviso solo
+  // se l'utente era effettivamente loggato (evita un falso "sessione scaduta"
+  // al primissimo controllo /auth/me quando non si e' mai fatto login).
+  useEffect(() => {
+    installSessionGuard(() => {
+      setUserInfo(prev => {
+        if (prev) setSessionExpired(true);
+        return null;
+      });
+    });
+  }, []);
 
   const checkSession = useCallback(async () => {
     try {
@@ -48,7 +63,7 @@ function App() {
     return () => { cancelled = true; };
   }, []);
 
-  const handleAuth = () => { checkSession(); };
+  const handleAuth = () => { setSessionExpired(false); checkSession(); };
 
   const handleLogout = useCallback(async () => {
     try {
@@ -62,7 +77,7 @@ function App() {
   if (pathname === "/reset-password") return <ResetPasswordPage />;
 
   if (!authChecked) return null;
-  if (!userInfo) return <AuthPage onAuth={handleAuth} />;
+  if (!userInfo) return <AuthPage onAuth={handleAuth} sessionExpired={sessionExpired} />;
 
   return <ProcedAIPage token={true} onLogout={handleLogout} userInfo={userInfo} onProfileUpdate={checkSession} />;
 }

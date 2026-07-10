@@ -20,7 +20,7 @@ class ProcedureReviewFinding(Base):
     severity = Column(String(20), nullable=False, default="medium")
     # inefficiency | outdated | policy_violation | duplication | clarity | missing_step
     category = Column(String(30), nullable=False, default="inefficiency")
-    summary = Column(String(255), nullable=False)
+    summary = Column(Text, nullable=False)
     rationale = Column(Text, nullable=False)
     # Lista di {step_number, field, current_value, proposed_value}
     proposed_changes = Column(JSONB, nullable=False, default=list)

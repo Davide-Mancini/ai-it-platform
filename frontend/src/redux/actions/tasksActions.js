@@ -23,11 +23,15 @@ export const fetchAllTasks = (token, lang) => async (dispatch) => {
   }
 };
 
-export const createTask = (token, procedureId, title, priority = "low", requiresCustomerInput = false) => async (dispatch) => {
+export const createTask = (token, procedureId, title, priority = "low", requiresCustomerInput = false, requiredFields = []) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/tasks/procedures/${procedureId}/tasks`, {
     method: "POST",
     credentials: "include", headers: headers(token, true),
-    body: JSON.stringify({ title, priority, requires_customer_input: requiresCustomerInput }),
+    body: JSON.stringify({
+      title, priority,
+      requires_customer_input: requiresCustomerInput,
+      required_fields: requiresCustomerInput && requiredFields.length > 0 ? requiredFields : null,
+    }),
   });
   if (res.ok) {
     const task = await res.json();
@@ -64,11 +68,11 @@ export const updateTaskPriority = (token, taskId, newPriority, lang) => async (d
   }
 };
 
-export const submitTaskCustomerResponse = (token, taskId, customerResponse) => async (dispatch) => {
+export const submitTaskCustomerResponse = (token, taskId, responseData) => async (dispatch) => {
   const res = await fetch(`${API_BASE}/api/tasks/tasks/${taskId}/customer-response`, {
     method: "PATCH",
     credentials: "include", headers: headers(token, true),
-    body: JSON.stringify({ customer_response: customerResponse }),
+    body: JSON.stringify({ response_data: responseData }),
   });
   if (res.ok) {
     const updatedTask = await res.json();

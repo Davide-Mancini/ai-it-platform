@@ -10,3 +10,5 @@ htmlcov/
 # Node
 node_modules/
 .env.local
+# Uploaded files (customer documents, etc.)
+backend/uploads/

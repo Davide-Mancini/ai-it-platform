@@ -12,6 +12,7 @@ from repository import procedure_repository, task_repository
 from models.associations import task_user_assignments
 
 PRIORITY_ORDER = ["critical", "high", "medium", "low"]
+ALLOWED_TASK_STATUSES = {"pending", "in_progress", "done", "clarification_needed"}
 
 
 def _is_admin(user: models.User) -> bool:
@@ -76,7 +77,8 @@ def create_task_for_procedure(
         status=task_data.status,
         priority=task_data.priority,
         procedure_id=procedure_id,
-        requires_customer_input=task_data.requires_customer_input
+        requires_customer_input=task_data.requires_customer_input,
+        required_fields=[f.model_dump() for f in task_data.required_fields] if task_data.required_fields else None,
     )
     log_action(
         db, current_user, "TASK CREATED", ip_address, user_agent,
@@ -110,11 +112,16 @@ def update_task_status(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    if status_update.status not in ALLOWED_TASK_STATUSES:
+        raise HTTPException(status_code=400, detail="Stato non valido")
     db_task = task_repository.get_task_by_id(db, task_id)
     if not db_task:
         raise HTTPException(status_code=404, detail="Task non trovato")
-    if _is_customer(current_user) and db_task.procedure.customer_id != current_user.customer_id:
-        raise HTTPException(status_code=403, detail="Non autorizzato a modificare questo task")
+    if _is_customer(current_user):
+        if db_task.procedure.customer_id != current_user.customer_id:
+            raise HTTPException(status_code=403, detail="Non autorizzato a modificare questo task")
+        if status_update.status == "clarification_needed":
+            raise HTTPException(status_code=403, detail="Solo lo staff può richiedere un chiarimento")
     log_action(
         db, current_user, "TASK UPDATED", ip_address, user_agent,
         "Tasks", db_task.procedure_id
@@ -140,7 +147,11 @@ def submit_customer_response(
         raise HTTPException(status_code=403, detail="Non autorizzato a modificare questo task")
     if not db_task.requires_customer_input:
         raise HTTPException(status_code=400, detail="Questo task non richiede dati dal cliente")
-    db_task.customer_response = response_update.customer_response
+    if db_task.required_fields:
+        allowed_keys = {f["key"] for f in db_task.required_fields}
+        if not set(response_update.response_data.keys()).issubset(allowed_keys):
+            raise HTTPException(status_code=400, detail="Uno o più campi inviati non sono richiesti da questo task")
+    db_task.customer_response_data = response_update.response_data
     log_action(
         db, current_user, "TASK CUSTOMER RESPONSE", ip_address, user_agent,
         "Tasks", db_task.procedure_id
