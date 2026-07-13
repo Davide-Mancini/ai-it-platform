@@ -1,12 +1,10 @@
 import { useState } from "react";
-import "./UsersPage.css";
+import "../../style/UsersPage.css";
 import { useTranslation } from "react-i18next";
 import { ChartCard, HorizontalBarChart } from "./ChartPrimitives";
 import { ROLE_COLORS } from "./constants";
 import Pager from "./Pager";
-
-
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../config/api";
 
 function Avatar({ firstName, lastName }) {
   const initials = `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();

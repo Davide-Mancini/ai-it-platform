@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import "./AIChat.css";
+import "../../style/AIChat.css";
 import { useTranslation } from "react-i18next";
 function SparkleIcon({ size = 17 }) {
   return (

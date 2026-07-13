@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Pager from "./Pager";
-import "./ProcedureList.css";
+import "../../style/ProcedureList.css";
 
 function Icon({ path, size = 16, color = "currentColor" }) {
   return (

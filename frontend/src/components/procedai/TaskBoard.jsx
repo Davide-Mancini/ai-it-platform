@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import "./TaskBoard.css";
+import "../../style/TaskBoard.css";
 
 function getPriorities(t) {
   return [

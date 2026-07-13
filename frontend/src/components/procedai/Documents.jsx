@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import "./Documents.css";
+import "../../style/Documents.css";
+import { API_BASE } from "../../config/api";
 
-const API_BASE  = "http://localhost:8000";
 const ALL_CAT   = "__all__";
 const EXT_COLOR = { pdf: "#DC2626", docx: "#2563EB", xlsx: "#059669", txt: "#475569" };
 

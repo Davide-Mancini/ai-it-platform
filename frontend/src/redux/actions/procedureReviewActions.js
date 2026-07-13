@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../config/api";
 
 export const REVIEW_FINDINGS_LOADING = "REVIEW_FINDINGS_LOADING";
 export const REVIEW_FINDINGS_SUCCESS = "REVIEW_FINDINGS_SUCCESS";

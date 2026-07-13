@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import "./AgentReview.css";
+import "../../style/AgentReview.css";
 import { PRIORITY } from "./constants";
 import Pager from "./Pager";
 

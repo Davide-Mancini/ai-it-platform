@@ -1,4 +1,4 @@
-import "./CreateModal.css";
+import "../../style/CreateModal.css";
 import { useTranslation } from "react-i18next";
 function SparkleIcon({ size = 20 }) {
   return (

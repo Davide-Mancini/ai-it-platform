@@ -6,7 +6,7 @@ import { PRIORITY, LANGUAGES } from "./constants";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-import "./Analytics.css";
+import "../../style/Analytics.css";
 
 function ProceduresTrendChart({ trendStats }) {
   const { t, i18n } = useTranslation();

@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
-import "./Settings.css";
+import "../../style/Settings.css";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
-
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../config/api";
 
 function SettingRow({ label, desc, children }) {
   return (

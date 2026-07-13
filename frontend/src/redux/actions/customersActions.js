@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../config/api";
 
 // Il token viaggia in un cookie httpOnly gestito dal browser: qui serve solo
 // impostare Content-Type quando c'e' un body JSON.

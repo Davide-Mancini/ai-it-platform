@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { NOTIFICATION_RECEIVED } from "../redux/actions/notificationsActions";
-
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../config/api";
 
 export function useNotificationsSSE(token) {
   const dispatch = useDispatch();

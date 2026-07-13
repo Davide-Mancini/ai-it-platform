@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "./constants";
-import "./TopBar.css";
+import "../../style/TopBar.css";
 
 function BellIcon() {
   return (

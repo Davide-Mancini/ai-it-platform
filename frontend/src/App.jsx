@@ -6,8 +6,7 @@ import AuthPage from "./components/AuthPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import ProcedAIPage from "./components/ProcedAIPage";
 import { installSessionGuard } from "./api/sessionGuard";
-
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "./config/api";
 
 function App() {
   const { pathname } = useLocation();

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import "./Dashboard.css";
+import "../../style/Dashboard.css";
 
 function relativeTime(isoString, t) {
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);

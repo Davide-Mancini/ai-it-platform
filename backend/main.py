@@ -74,7 +74,10 @@ app = FastAPI(title="AI Assisted IT Platform API")
 # Configurazione CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"],
+    # Regex invece di una lista fissa di origin: copre sia localhost sia
+    # qualunque IP della rete locale (es. http://192.168.1.x:5173), cosi'
+    # il frontend e' raggiungibile anche da altri dispositivi sulla stessa WiFi.
+    allow_origin_regex=r"http://(localhost|(\d{1,3}\.){3}\d{1,3}):(5173|3000|5174)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

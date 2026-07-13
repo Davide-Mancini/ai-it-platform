@@ -1,4 +1,4 @@
-import "./ManualForm.css";
+import "../../style/ManualForm.css";
 import { useTranslation } from "react-i18next";
 export default function ManualForm({ form, onChange, onSubmit, onClose, loading, error, customers = [] }) {
   const {t} = useTranslation();

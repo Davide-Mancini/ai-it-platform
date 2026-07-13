@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../config/api";
 
 // Converte una stringa base64url (come la VAPID public key) in Uint8Array.
 // pushManager.subscribe() richiede esattamente questo formato.

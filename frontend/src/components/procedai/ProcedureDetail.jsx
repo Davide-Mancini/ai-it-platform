@@ -1,5 +1,5 @@
 import { STEP_STATUS, stepNextStatus } from "./constants";
-import "./ProcedureDetail.css";
+import "../../style/ProcedureDetail.css";
 import { useTranslation } from "react-i18next";
 
 function Icon({ path, size = 16, color = "currentColor" }) {

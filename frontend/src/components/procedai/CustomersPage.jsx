@@ -1,6 +1,6 @@
 import { useState } from "react";
-import "./UsersPage.css";
-import "./CustomersPage.css";
+import "../../style/UsersPage.css";
+import "../../style/CustomersPage.css";
 
 function CustomerFormModal({ customer, onClose, onSave, saving, error }) {
   const isEdit = !!customer;

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import "./UsersPage.css";
-
-const API_ORIGIN = "http://localhost:8000";
+import "../../style/UsersPage.css";
+import { API_BASE as API_ORIGIN } from "../../config/api";
 
 function formatDate(dateStr) {
   if (!dateStr) return "";

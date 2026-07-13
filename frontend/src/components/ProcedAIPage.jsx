@@ -30,9 +30,9 @@ import CustomerDocumentsPage from "./procedai/CustomerDocumentsPage";
 import CreateModal     from "./procedai/CreateModal";
 import ManualForm      from "./procedai/ManualForm";
 import AIChat          from "./procedai/AIChat";
-import "./procedai/ProcedAIPage.css";
+import "../style/ProcedAIPage.css";
+import { API_BASE } from "../config/api";
 
-const API_BASE = "http://localhost:8000";
 const AI_PROMPT_MAX_LENGTH = 2000;
 
 export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdate }) {

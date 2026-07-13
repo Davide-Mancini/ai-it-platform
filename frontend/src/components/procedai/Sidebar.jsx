@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { NAV_ITEMS } from "./constants";
-import "./Sidebar.css";
+import "../../style/Sidebar.css";
 import Heximus_Logo_AI_Platform from "/favicon-96x96.png"
 
 function Icon({ path, size = 17 }) {

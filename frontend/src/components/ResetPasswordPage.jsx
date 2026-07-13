@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Heximus_Logo_AI_Platform from "./assets/Heximus_Logo_AI_Platform_NoBG.png";
-
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../config/api";
 
 function ResetPasswordPage() {
   const { t } = useTranslation();

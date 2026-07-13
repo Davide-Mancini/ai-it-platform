@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import "./Pager.css";
+import "../../style/Pager.css";
 
 export default function Pager({ page, pageSize, total, onPageChange }) {
   const { t } = useTranslation();

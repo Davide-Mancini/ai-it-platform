@@ -3,7 +3,7 @@ import {
   Tooltip, Cell, LabelList, ResponsiveContainer,
 } from "recharts";
 import { GRID_STROKE, AXIS_TICK } from "./chartUtils";
-import "./ChartPrimitives.css";
+import "../../style/ChartPrimitives.css";
 
 export function ChartCard({ title, sub, children, empty }) {
   return (
