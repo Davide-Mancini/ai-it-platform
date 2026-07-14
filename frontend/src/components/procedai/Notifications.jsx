@@ -104,9 +104,9 @@ export default function Notifications({ notifications, onMarkRead, onMarkAllRead
                 <div className="pai-notif-row__msg">{n.message}</div>
                 <div className="pai-notif-row__time">{relativeTime(n.created_at, t)}</div>
               </div>
-              {!n.is_read && <div className="pai-notif-row__dot" />}
+              {!n.is_read && <div className="pai-notif-row__dot my-auto" />}
               <button
-                className="pai-notif-row__delete"
+                className="pai-notif-row__delete my-auto"
                 onClick={e => { e.stopPropagation(); onDelete(n.id); }}
                 title={t("notifications.delete_one_title")}
               >

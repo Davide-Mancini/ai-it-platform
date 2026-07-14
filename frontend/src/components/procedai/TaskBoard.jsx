@@ -299,7 +299,7 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
           />
         )}
         <div className="pai-task-card__spacer" />
-        {canManage && task.requires_customer_input && (colId === "in_progress" || colId === "done") && (
+        {canManage && (colId === "in_progress" || colId === "done") && (
           <button
             className="pai-task-card__btn pai-task-card__btn--clarify"
             onClick={() => onStatusChange(task.id, "clarification_needed")}

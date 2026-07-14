@@ -474,7 +474,7 @@ function DocRow({ doc, customer, isAdmin, t, onSelect, onEdit, onDelete }) {
   const color = EXT_COLOR[ext] || "#475569";
   return (
     <div className="pai-docs__row" onClick={() => onSelect(doc)}>
-      <div className="pai-docs__row-name">
+      <div className="-name">
         <div className="pai-docs__ext-badge" style={{ color, background: `${color}14` }}>{ext.length > 5 ? ext.slice(0, 5).toUpperCase() + "…" : ext.toUpperCase()}</div>
         <div>
           <div className="pai-docs__doc-title">
