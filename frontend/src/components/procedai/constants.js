@@ -61,7 +61,7 @@ export const TASK_STATUS = {
 
 export const PRIORITY = {
   critical: { label: "Critico", color: "#DC2626", bg: "#FEF2F2" },
-  high: { label: "Alto", color: "#D97706", bg: "#FFFBEB" },
+  high: { label: "Alto", color: "#EA580C", bg: "#FFF7ED" },
   medium: { label: "Medio", color: "#CA8A04", bg: "#FEFCE8" },
   low: { label: "Basso", color: "#94A3B8", bg: "#F8FAFC" },
 };

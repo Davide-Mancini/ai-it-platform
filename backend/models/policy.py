@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Text, Boolean,ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from db.database import Base
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class Policy (Base):
@@ -16,6 +16,6 @@ class Policy (Base):
     is_active = Column(Boolean, default=True, nullable=False)
     #Collegamento a documenti
     document_id = Column(UUID(as_uuid=True), ForeignKey('documents.id', ondelete='SET NULL'), nullable= True)
-    created_at= Column(DateTime, default=datetime.now,nullable=False)
-    updated_at=Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at= Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),nullable=False)
+    updated_at=Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     relationship('Documents', backref='policies')

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Text, Boolean, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from db.database import Base
 import uuid
 
@@ -24,5 +24,5 @@ class AIRecommendation(Base):
     language = Column(String(5), nullable=False, default="it", server_default="it")
     # Cliente selezionato al momento della richiesta, riportato sulla Procedure se la raccomandazione viene accettata
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime, default=datetime.now, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     user = relationship("User")

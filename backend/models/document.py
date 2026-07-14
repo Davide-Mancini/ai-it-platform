@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from db.database import Base
@@ -19,5 +19,5 @@ class Document(Base):
     # Se valorizzato, il documento e' un allegato a un task specifico; se nullo (con customer_id
     # presente), e' un documento generale del profilo azienda
     task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True)
-    created_at= Column(DateTime, default=datetime.now,nullable=False)
-    updated_at=Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at= Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),nullable=False)
+    updated_at=Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

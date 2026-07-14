@@ -68,6 +68,24 @@ with engine.connect() as _conn:
     _conn.execute(text(
         "ALTER TABLE procedure_review_findings ALTER COLUMN summary TYPE TEXT"
     ))
+    # Le colonne created_at/updated_at qui sotto erano state salvate come TIMESTAMP
+    # naive (ora locale del server) invece che UTC-aware: questo causava attivita'
+    # mostrate con un orario sfasato rispetto a quello reale (es. "3 ore fa" appena
+    # eseguite). Riconvertite a TIMESTAMPTZ interpretando i valori esistenti come UTC.
+    for _table, _column in [
+        ("audit_logs", "created_at"),
+        ("ai_recommendations", "created_at"),
+        ("customers", "created_at"),
+        ("customers", "updated_at"),
+        ("documents", "created_at"),
+        ("documents", "updated_at"),
+        ("policies", "created_at"),
+        ("policies", "updated_at"),
+    ]:
+        _conn.execute(text(
+            f"ALTER TABLE {_table} ALTER COLUMN {_column} TYPE TIMESTAMP WITH TIME ZONE "
+            f"USING {_column} AT TIME ZONE 'UTC'"
+        ))
     _conn.commit()
 app = FastAPI(title="AI Assisted IT Platform API")
 

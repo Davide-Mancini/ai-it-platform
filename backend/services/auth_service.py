@@ -1,4 +1,5 @@
 import hashlib
+import os
 import secrets
 from datetime import datetime, timedelta
 from fastapi import  HTTPException, status,Response
@@ -16,6 +17,13 @@ from mail_sender import send_simple_message, send_custom_email
 RESET_TOKEN_EXPIRE_MINUTES = 30
 # Dev: l'app gira su questa origine. In un deploy reale andrebbe letto da config/env.
 FRONTEND_BASE_URL = "http://localhost:5173"
+# Un cookie "Secure" viene salvato dal browser solo su HTTPS (o su "localhost",
+# che i browser trattano come contesto sicuro anche in HTTP). Aprendo l'app in
+# LAN da un altro dispositivo (es. http://192.168.x.x:5173) la pagina non e'
+# ne' HTTPS ne' localhost, quindi il cookie verrebbe scartato in silenzio e il
+# login sembrerebbe "non fare nulla". Default a False per l'uso in LAN/dev
+# attuale; impostare COOKIE_SECURE=true quando l'app girera' dietro HTTPS.
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
 
 
 def _hash_reset_token(token: str) -> str:
@@ -85,7 +93,7 @@ def login(
     key="access_token",
     value=access_token,
     httponly=True,
-    secure=True,
+    secure=COOKIE_SECURE,
     samesite="lax",
     max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     path="/"
