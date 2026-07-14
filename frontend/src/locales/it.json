@@ -135,6 +135,7 @@
     "action_TASK_UPDATED": "ha aggiornato un task",
     "action_LOGIN": "ha effettuato l'accesso",
     "action_AI_RECOMMENDATION_ACCEPTED": "ha accettato una raccomandazione AI",
+    "action_AI_RECOMMENDATION_REJECTED": "ha rifiutato una raccomandazione AI",
     "action_REVIEW_ACCEPTED": "ha accettato una revisione AI",
     "action_REVIEW_DISMISSED": "ha scartato una revisione AI"
   },

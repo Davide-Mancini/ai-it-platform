@@ -135,6 +135,7 @@
     "action_TASK_UPDATED": "atnaujino užduotį",
     "action_LOGIN": "prisijungė",
     "action_AI_RECOMMENDATION_ACCEPTED": "priėmė DI rekomendaciją",
+    "action_AI_RECOMMENDATION_REJECTED": "atmetė DI rekomendaciją",
     "action_REVIEW_ACCEPTED": "priėmė DI peržiūrą",
     "action_REVIEW_DISMISSED": "atmesti DI peržiūrą"
   },

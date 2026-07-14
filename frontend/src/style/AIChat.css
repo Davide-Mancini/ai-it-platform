@@ -101,6 +101,7 @@
 .pai-chat__accept:hover { filter: brightness(1.08); }
 .pai-chat__reject { border: 1px solid #E2E8F0; background: transparent; color: #64748B; }
 .pai-chat__reject:hover { background: #F8FAFC; }
+.pai-chat__accept:disabled, .pai-chat__reject:disabled { cursor: default; opacity: .7; filter: none; }
 
 /* Typing */
 .pai-chat__typing { display: flex; align-items: center; gap: 8px; }

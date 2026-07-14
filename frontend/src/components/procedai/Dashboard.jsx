@@ -63,7 +63,6 @@ function CheckIcon() {
 export default function Dashboard({ procedures, tasks, stepsById = {}, recentActivity = [], notifications = [], onProcedureClick, onViewChange, onRefreshActivity }) {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
-
   const handleRefreshActivity = async () => {
     if (!onRefreshActivity || refreshing) return;
     setRefreshing(true);

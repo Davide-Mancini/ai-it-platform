@@ -135,6 +135,7 @@
     "action_TASK_UPDATED": "updated a task",
     "action_LOGIN": "signed in",
     "action_AI_RECOMMENDATION_ACCEPTED": "accepted an AI recommendation",
+    "action_AI_RECOMMENDATION_REJECTED": "rejected an AI recommendation",
     "action_REVIEW_ACCEPTED": "accepted an AI review",
     "action_REVIEW_DISMISSED": "dismissed an AI review"
   },
