@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import Depends, HTTPException, UploadFile
+from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 import models
 import schemas

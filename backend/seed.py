@@ -71,6 +71,7 @@ def seed_document(db: Session):
 def seed_role(db:Session):
     default_roles=[
         {"name": "Admin", "description":"Total access"},
+        {"name": "Basic User", "description":"Newly registered account awaiting role assignment from an admin. No platform access until then."},
         {"name": "Engineer", "description":"Executes technical tasks and validates tehnical data"},
         {"name": "IT Manager","description": "Approves proceudres,assigns respnsability,review reports"},
         {"name": "Sales","description":"Communicates with customers and collects required information"},

@@ -11,7 +11,6 @@ import schemas
 from db.database import get_db
 from services import auth_service
 from repository import auth_repository
-from services import auth_service
 from services.sliding_window_limiter import IPRateLimiter
 from mail_sender import send_custom_email
 from models.push_subscription import PushSubscription

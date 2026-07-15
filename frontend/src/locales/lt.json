@@ -53,6 +53,11 @@
     "cancel": "Atšaukti",
     "confirm": "Atsijungti"
   },
+  "pending_approval": {
+    "title": "Paskyra laukia patvirtinimo",
+    "message": "Jūsų paskyra sukurta, bet jai dar nepriskirtas vaidmuo. Palaukite, kol administratorius suteiks jums prieigą — galėsite prisijungti įprastai, kai vaidmuo bus priskirtas.",
+    "logout_btn": "Atsijungti"
+  },
   "topbar": {
     "greeting": "Labas rytas, ",
     "procedure_detail": "Procedūros informacija",

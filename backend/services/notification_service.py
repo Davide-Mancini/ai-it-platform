@@ -1,5 +1,6 @@
 from uuid import UUID
 from sqlalchemy.orm import Session
+import models
 from repository import notification_repository
 from services.sse_manager import sse_manager
 from services.push_service import send_push_to_user
@@ -25,6 +26,17 @@ def create_notification(db: Session, user_id: UUID, title: str, message: str, ty
     send_push_to_user(db, user_id, n.title, n.message, str(n.id))
 
     return n
+
+
+def notify_role(db: Session, role_name: str, title: str, message: str, type: str = "system"):
+    recipients = (
+        db.query(models.User)
+        .join(models.Role)
+        .filter(models.Role.name == role_name)
+        .all()
+    )
+    for recipient in recipients:
+        create_notification(db, recipient.id, title, message, type)
 
 
 def get_notifications(db: Session, user_id: UUID):

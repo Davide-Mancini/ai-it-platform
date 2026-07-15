@@ -13,6 +13,7 @@ import schemas
 from repository import auth_repository
 from models import Role
 from mail_sender import send_simple_message, send_custom_email
+from services import notification_service
 
 RESET_TOKEN_EXPIRE_MINUTES = 30
 # Dev: l'app gira su questa origine. In un deploy reale andrebbe letto da config/env.
@@ -36,7 +37,7 @@ def create_user(user: schemas.UserCreate, db: Session):
     if db_user:
         raise HTTPException(status_code=400, detail="Email già registrata")
     
-    default_role= db.query(Role).filter(Role.name=='Engineer').first()
+    default_role= db.query(Role).filter(Role.name=='Basic User').first()
     if not default_role:
         raise HTTPException(status_code=500, detail="Configurazione di sistema incompleta")
     #cripto la password utilizzando la funzione importatata da security
@@ -55,6 +56,13 @@ def create_user(user: schemas.UserCreate, db: Session):
         db.rollback()
         raise HTTPException(status_code=400, detail="Email già registrata")
     send_simple_message(user.email,user.first_name)
+    notification_service.notify_role(
+        db,
+        "Admin",
+        title="Nuova registrazione in attesa di approvazione",
+        message=f"{new_user.first_name} {new_user.last_name} ({new_user.email}) si è registrato ed è in attesa dell'assegnazione di un ruolo.",
+        type="user_registration",
+    )
     return new_user
 
 

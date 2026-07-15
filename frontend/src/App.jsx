@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import AuthPage from "./components/AuthPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import ProcedAIPage from "./components/ProcedAIPage";
+import PendingApprovalPage from "./components/PendingApprovalPage";
 import { installSessionGuard } from "./api/sessionGuard";
 import { API_BASE } from "./config/api";
 
@@ -77,6 +78,7 @@ function App() {
 
   if (!authChecked) return null;
   if (!userInfo) return <AuthPage onAuth={handleAuth} sessionExpired={sessionExpired} />;
+  if (userInfo.role?.name === "Basic User") return <PendingApprovalPage onLogout={handleLogout} />;
 
   return <ProcedAIPage token={true} onLogout={handleLogout} userInfo={userInfo} onProfileUpdate={checkSession} />;
 }
