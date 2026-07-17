@@ -12,6 +12,7 @@ def send_simple_message(email, first_name):
     response = requests.post(
         f"https://api.mailgun.net/v3/{domain}/messages",
         auth=("api", api_key),
+        timeout=10,
         data={
             "from": f"Heximus AI Platform <postmaster@{domain}>",
             "to": email,

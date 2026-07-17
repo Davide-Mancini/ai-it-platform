@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 import models
 import schemas
 from db.database import get_db
-from api.endpoints.auth import get_current_user
+from api.endpoints.auth import get_current_approved_user
 from services import customer_service
+from services.gemini_service import allow_it_creators
 
 router = APIRouter()
 
@@ -13,17 +14,18 @@ router = APIRouter()
 @router.get('/', response_model=List[schemas.CustomerOut])
 def list_customers(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     return customer_service.list_customers(db)
 
-#endpoint creazione nuovo cliente
+#endpoint creazione nuovo cliente — riservato ad Admin/IT Manager, come le altre
+#operazioni che toccano dati di business (stesso RoleChecker usato per le procedure)
 @router.post('/', response_model=schemas.CustomerOut)
 def new_customer(
     customer: schemas.CustomerCreate,
     request: Request,
     db:Session= Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(allow_it_creators)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -36,7 +38,7 @@ def update_customer(
     customer: schemas.CustomerUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(allow_it_creators)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -49,7 +51,7 @@ def patch_customer(
     request: Request,
     customer: schemas.CustomerUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(allow_it_creators)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -60,7 +62,7 @@ def delete_customer(
     customer_id:str,
     request: Request,
     db:Session= Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(allow_it_creators)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")

@@ -60,7 +60,13 @@ def create_user(user: schemas.UserCreate, db: Session):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=400, detail="Email già registrata")
-    send_simple_message(user.email,user.first_name)
+    try:
+        send_simple_message(user.email, user.first_name)
+    except Exception:
+        # L'account e' gia' stato creato: un problema con Mailgun (timeout,
+        # servizio giu', ecc.) non deve far fallire la registrazione ne'
+        # impedire la notifica agli admin qui sotto.
+        print(f"[auth_service] Invio email di benvenuto fallito per {user.email}")
     notification_service.notify_role(
         db,
         "Admin",

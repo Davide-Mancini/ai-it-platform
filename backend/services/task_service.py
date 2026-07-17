@@ -80,12 +80,14 @@ def create_task_for_procedure(
         requires_customer_input=task_data.requires_customer_input,
         required_fields=[f.model_dump() for f in task_data.required_fields] if task_data.required_fields else None,
     )
+    #Salvo prima il task: se l'insert fallisse, non deve restare un log di
+    #"TASK CREATED" per un task che in realta' non esiste (i log sono immutabili)
+    task_repository.save_new_task(db, new_task)
     log_action(
         db, current_user, "TASK CREATED", ip_address, user_agent,
         "Tasks", procedure_id
     )
     db.commit()
-    task_repository.save_new_task(db, new_task)
     return new_task
 
 

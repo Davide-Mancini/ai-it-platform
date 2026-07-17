@@ -22,7 +22,7 @@ class RoleChecker:
             )
         return current_user
 
-allow_it_staff = RoleChecker(["Admin", "IT_MANAGER"])
+allow_it_staff = RoleChecker(["Admin", "IT Manager"])
 
 
 @router.post("/{procedure_id}/versions", response_model=schemas.ProcedureVersionPut, status_code=status.HTTP_201_CREATED)

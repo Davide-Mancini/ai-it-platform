@@ -26,14 +26,14 @@ def create_procedure(
         language=procedure.language,
         customer_id=procedure.customer_id
     )
-    
+    #Salvo prima la procedura: new_procedure.id e' un default lato Python (uuid4)
+    #applicato solo al flush, quindi va assegnata prima di finire nel log
+    procedure_repository.save_new_procedure(db, new_procedure)
     log_action(
             db, current_user, "PROCEDURE CREATED", ip_address, user_agent,
             "Procedure", new_procedure.id
         )
     db.commit()
-    #Aggiungo la procedura creata al db
-    procedure_repository.save_new_procedure(db, new_procedure)
     return new_procedure
 
 

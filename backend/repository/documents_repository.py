@@ -22,9 +22,11 @@ def update_document(db: Session, id: UUID, data: dict):
     doc = get_by_id(db, id)
     if not doc:
         return None
+    # `data` arriva gia' filtrato con exclude_unset=True (solo i campi che il
+    # client ha esplicitamente passato): un ulteriore "is not None" qui
+    # impedirebbe di azzerare un campo opzionale (es. content: null) via PATCH.
     for key, value in data.items():
-        if value is not None:
-            setattr(doc, key, value)
+        setattr(doc, key, value)
     db.commit()
     db.refresh(doc)
     return doc

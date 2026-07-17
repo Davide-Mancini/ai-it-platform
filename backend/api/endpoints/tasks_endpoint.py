@@ -4,7 +4,7 @@ from typing import List, Optional
 import models
 import schemas
 from db.database import get_db
-from api.endpoints.auth import get_current_user
+from api.endpoints.auth import get_current_approved_user
 from services import task_service, translation_service
 
 router = APIRouter()
@@ -26,7 +26,7 @@ def _translated_tasks_response(db: Session, tasks: list, lang: Optional[str]) ->
 def get_all_tasks(
     lang: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     tasks = task_service.get_all_tasks(db, current_user)
     return _translated_tasks_response(db, tasks, lang)
@@ -35,7 +35,7 @@ def get_all_tasks(
 @router.get("/stats/resolution-time", response_model=schemas.ResolutionTimeStatsOut)
 def get_resolution_time_stats(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_approved_user),
 ):
     return task_service.get_resolution_time_stats(db, current_user)
 
@@ -46,7 +46,7 @@ def create_task_for_procedure(
     task_data: schemas.TaskCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     client_ip = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -58,7 +58,7 @@ def get_tasks_for_procedure(
     procedure_id: str,
     lang: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     tasks = task_service.get_tasks_for_procedure(procedure_id, db, current_user)
     return _translated_tasks_response(db, tasks, lang)
@@ -70,7 +70,7 @@ def update_task_status(
     status_update: schemas.TaskUpdateStatus,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -83,7 +83,7 @@ def submit_task_customer_response(
     response_update: schemas.TaskCustomerResponse,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -95,7 +95,7 @@ def update_task_priority(
     task_id: str,
     priority_update: schemas.TaskUpdatePriority,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     return task_service.update_task_priority(task_id, priority_update, db, current_user)
 
@@ -105,7 +105,7 @@ def assign_user_to_task(
     task_id: str,
     assign_data: schemas.TaskAssign,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     return task_service.assign_user_to_task(task_id, assign_data.user_id, db, current_user)
 
@@ -115,6 +115,6 @@ def unassign_user_from_task(
     task_id: str,
     user_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     return task_service.unassign_user_from_task(task_id, user_id, db, current_user)

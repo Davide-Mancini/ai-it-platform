@@ -7,7 +7,7 @@ from typing import List
 from db.database import get_db
 from schemas.policy_schema import PolicyCreate, PolicyResponse
 from services.policy_service import PolicyService
-from api.endpoints.auth import get_current_user
+from api.endpoints.auth import get_current_approved_user
 import models
 
 router = APIRouter()
@@ -35,7 +35,7 @@ def get_policy_by_id(id: UUID, db: Session = Depends(get_db)):
 def create_policy(
     data: PolicyCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_approved_user),
 ):
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Solo gli admin possono creare policy")

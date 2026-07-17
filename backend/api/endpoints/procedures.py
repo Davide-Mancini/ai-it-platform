@@ -6,7 +6,7 @@ from typing import List, Optional
 import models
 import schemas
 from db.database import get_db
-from api.endpoints.auth import get_current_user
+from api.endpoints.auth import get_current_approved_user
 from services import procedure_service, translation_service
 
 router = APIRouter()
@@ -17,7 +17,7 @@ def create_procedure(
     procedure: schemas.ProcedureCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -34,7 +34,7 @@ def get_all_procedures(
     page_size: Optional[int] = Query(default=None, ge=1, le=100),
     search: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     query = db.query(models.Procedure)
     if current_user.role and current_user.role.name == "Customer":
@@ -72,7 +72,7 @@ def get_all_procedures(
 @router.get("/stats/by-language", response_model=List[schemas.LanguageCountOut])
 def get_procedures_by_language(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_approved_user),
 ):
     rows = (
         db.query(models.Procedure.language, func.count(models.Procedure.id))
@@ -88,7 +88,7 @@ def get_procedures_by_language(
 def get_procedures_created_trend(
     days: int = Query(default=14, ge=1, le=90),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_approved_user),
 ):
     today = datetime.now(timezone.utc).date()
     start = today - timedelta(days=days - 1)
@@ -114,7 +114,7 @@ def get_procedure_by_id(
     id: str,
     lang: Optional[str] = Query(None),
     db: Session= Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     procedure = procedure_service.get_procedure_by_id(db, id, current_user)
     if not lang or lang == procedure.language:
@@ -133,7 +133,7 @@ def update_procedure(
     request: Request,
     procedure: schemas.ProcedureCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -145,7 +145,7 @@ def delete_procedure(
     id: str,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
@@ -159,7 +159,7 @@ def get_steps_for_procedure(
     procedure_id: str,
     lang: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     """Returns steps from the latest version of a procedure."""
     latest_version = (
@@ -192,7 +192,7 @@ def update_step_status(
     step_id: str,
     status_update: schemas.TaskUpdateStatus,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_approved_user)
 ):
     """Toggle step status: todo → inprogress → done."""
     step = db.query(models.ProcedureStep).filter(models.ProcedureStep.id == step_id).first()

@@ -71,6 +71,15 @@ def _translate_batch(items: list[tuple[int, str, str | None]], target_language: 
         return []
 
 
+def _has_valid_indices(translated: list, chunk_len: int) -> bool:
+    """Gemini is asked to echo back each item's original index; nothing enforces
+    it stays in range or stays unique. An out-of-range index would raise
+    IndexError on chunk[t.index], and a duplicated one would silently overwrite
+    one item's translation with another's."""
+    indices = [t.index for t in translated]
+    return all(0 <= i < chunk_len for i in indices) and len(set(indices)) == len(indices)
+
+
 def get_translated_procedures(db: Session, procedures: list, target_lang: str) -> dict:
     """Returns {procedure.id: (title, description)}, translating cache-missing procedures in batches."""
     result = {}
@@ -93,7 +102,7 @@ def get_translated_procedures(db: Session, procedures: list, target_lang: str) -
         chunk = to_translate[start:start + BATCH_SIZE]
         items = [(i, p.title, p.description) for i, p in enumerate(chunk)]
         translated = _translate_batch(items, target_lang)
-        if len(translated) != len(chunk):
+        if len(translated) != len(chunk) or not _has_valid_indices(translated, len(chunk)):
             # Mismatch or failure: show source text now, retry translation on a future request.
             for p in chunk:
                 result[p.id] = (p.title, p.description)
@@ -126,7 +135,7 @@ def get_translated_steps(db: Session, steps: list, target_lang: str) -> dict:
         chunk = to_translate[start:start + BATCH_SIZE]
         items = [(i, s.title, s.description) for i, s in enumerate(chunk)]
         translated = _translate_batch(items, target_lang)
-        if len(translated) != len(chunk):
+        if len(translated) != len(chunk) or not _has_valid_indices(translated, len(chunk)):
             for s in chunk:
                 result[s.id] = (s.title, s.description)
             continue
@@ -178,7 +187,7 @@ def get_translated_tasks(db: Session, tasks: list, target_lang: str) -> dict:
         chunk = to_translate[start:start + BATCH_SIZE]
         items = [(i, t.title, "") for i, t in enumerate(chunk)]
         translated = _translate_batch(items, target_lang)
-        if len(translated) != len(chunk):
+        if len(translated) != len(chunk) or not _has_valid_indices(translated, len(chunk)):
             for t in chunk:
                 result[t.id] = t.title
             continue

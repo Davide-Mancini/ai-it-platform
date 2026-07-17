@@ -34,7 +34,25 @@ def get_current_user(access_token: Optional[str] = Cookie(default=None), db: Ses
     user = db.query(models.User).filter(models.User.email == email).first()
     if user is None:
         raise HTTPException(status_code=404, detail="Utente non trovato")
+    # Un utente disattivato dall'admin non deve poter usare un cookie ancora
+    # valido: senza questo controllo manterrebbe accesso fino alla scadenza
+    # del token (fino a ACCESS_TOKEN_EXPIRE_MINUTES), esattamente come al login.
+    if not user.is_active:
+        raise HTTPException(status_code=401, detail="Account non attivo")
     return user
+
+
+# Come get_current_user, ma blocca anche chi non ha ancora un ruolo assegnato
+# ("Basic User": account appena registrato, in attesa di approvazione — vedi
+# seed.py). Da usare come dependency su tutte le rotte che espongono dati/azioni
+# di business, cosi' l'attesa di approvazione e' applicata lato server e non
+# solo dal routing del frontend. Le rotte di self-service (/me, /logout, push)
+# restano invece su get_current_user, cosi' un utente pending puo' comunque
+# vedere il proprio stato ed effettuare logout.
+def get_current_approved_user(current_user: models.User = Depends(get_current_user)) -> models.User:
+    if not current_user.role or current_user.role.name == "Basic User":
+        raise HTTPException(status_code=403, detail="Account in attesa di approvazione da un amministratore")
+    return current_user
 
 
 #Creazione di un nuovo utente con controllo sull'email
@@ -53,7 +71,7 @@ def get_users(
     page_size: Optional[int] = Query(default=None, ge=1, le=100),
     search: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_approved_user),
 ):
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
@@ -65,7 +83,7 @@ def get_users(
 @router.get("/users/stats/roles", response_model=List[schemas.RoleCountOut])
 def get_users_role_stats(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_approved_user),
 ):
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
@@ -155,7 +173,7 @@ def update_me(
 def update_user(
     user_id: str,
     data: schemas.UserUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_approved_user),
     db: Session = Depends(get_db),
 ):
     if current_user.role.name != "Admin":
@@ -191,7 +209,7 @@ def update_user(
 def set_user_active(
     user_id: str,
     data: schemas.UserActiveUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_approved_user),
     db: Session = Depends(get_db),
 ):
     if current_user.role.name != "Admin":
@@ -206,7 +224,7 @@ def set_user_active(
 def get_users_workload(
     limit: int = Query(default=10, le=50),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_approved_user),
 ):
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
@@ -246,7 +264,7 @@ def get_users_workload(
 @router.get("/roles/", response_model=List[schemas.RoleOut])
 def get_roles(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_approved_user),
 ):
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
@@ -257,7 +275,7 @@ def get_roles(
 @router.post("/send-bulk-email")
 def send_bulk_email(
     data: schemas.BulkEmailRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_approved_user),
     db: Session = Depends(get_db),
 ):
     if current_user.role.name != "Admin":

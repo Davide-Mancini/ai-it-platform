@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from uuid import UUID
-from api.endpoints.auth import get_current_user
+from api.endpoints.auth import get_current_approved_user
 import models
 import schemas
 from db.database import get_db
@@ -15,7 +15,7 @@ _BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 CUSTOMER_UPLOAD_DIR = os.path.join(_BACKEND_DIR, "uploads", "customer_documents")
 
 @router.get('/documents', response_model=List[schemas.DocumentResponse])
-def get_all(db:Session= Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def get_all(db:Session= Depends(get_db), current_user: models.User = Depends(get_current_approved_user)):
     return document_service.get_all(db, current_user)
 
 @router.post('/documents/upload', response_model=schemas.DocumentResponse)
@@ -24,7 +24,7 @@ def upload_customer_document(
     task_id: Optional[UUID] = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_approved_user),
 ):
     if current_user.role.name != "Customer":
         raise HTTPException(status_code=403, detail="Solo un utente con ruolo Customer può caricare questo documento")
@@ -46,7 +46,7 @@ def upload_customer_document(
 def new_document(
     document: schemas.DocumentCreate,
     db:Session=Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_current_approved_user)
         ):
     return document_service.create_document(db, document,current_user)
 
@@ -55,7 +55,7 @@ def update_document(
     id: UUID,
     data: schemas.DocumentUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user = Depends(get_current_approved_user),
 ):
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
@@ -68,7 +68,7 @@ def update_document(
 def delete_document(
     id: UUID,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user = Depends(get_current_approved_user),
 ):
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
