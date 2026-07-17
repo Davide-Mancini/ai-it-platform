@@ -6,12 +6,18 @@ from dotenv import load_dotenv
 
 
 #Carica le variabili d'ambiente dal file .env
-load_dotenv() 
+load_dotenv()
 username = os.getenv("DB_USERNAME")
 password = os.getenv("DB_PASSWORD")
 db_name = os.getenv("DB_NAME")
+#Host/porta configurabili: in locale il default resta 127.0.0.1:5433 (porta
+#esposta da docker-compose per il solo servizio db); dentro docker-compose
+#con anche backend/frontend containerizzati, DB_HOST=db e DB_PORT=5432
+#(porta interna del servizio Postgres nella rete Docker).
+db_host = os.getenv("DB_HOST", "127.0.0.1")
+db_port = os.getenv("DB_PORT", "5433")
 #Creo l'url di connessione al db
-SQLALCHEMY_DATABASE_URL = f"postgresql://{username}:{password}@127.0.0.1:5433/{db_name}"
+SQLALCHEMY_DATABASE_URL = f"postgresql://{username}:{password}@{db_host}:{db_port}/{db_name}"
 
 #Creo il motore di connessione al db
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

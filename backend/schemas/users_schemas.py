@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List, Optional
 from uuid import UUID
 from pydantic import BaseModel,EmailStr,Field,field_validator
 
@@ -20,6 +20,7 @@ class UserOut(UserBase):
     id: UUID
     is_active: bool
     role: str
+    customer_id: Optional[UUID] = None
     
     @field_validator('role', mode='before')
     @classmethod
@@ -49,6 +50,7 @@ class UserUpdate(BaseModel):
     last_name: str = Field(min_length=1, max_length=50)
     email: EmailStr
     role_id: UUID
+    customer_id: Optional[UUID] = None
 
     model_config = {"from_attributes": True}
 
@@ -82,6 +84,15 @@ class BulkEmailRequest(BaseModel):
 
     model_config = {"from_attributes": True}
 
+# Schema per la richiesta di recupero password (solo email)
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+# Schema per l'impostazione della nuova password tramite il token ricevuto via email
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8, max_length=25, description="La password deve contenere\n .almeno 8 caratteri\n .una lettera maiuscola\n una lettera minuscola\n un numero\n un carattere speciale ")
+
 # Schema per i ruoli
 class RoleOut(BaseModel):
     id: UUID
@@ -89,3 +100,24 @@ class RoleOut(BaseModel):
     description: str | None = None
 
     model_config = {"from_attributes": True}
+
+# Schema per il grafico "workload" nella pagina Utenti (solo admin)
+class UserWorkloadOut(BaseModel):
+    user_id: str
+    first_name: str
+    last_name: str
+    open_tasks: int
+    done_tasks: int
+
+# Risposta paginata per l'elenco utenti (usata dalla tabella con ricerca;
+# se page/page_size non sono passati, l'endpoint restituisce tutto in una sola "pagina")
+class PaginatedUsersOut(BaseModel):
+    items: List[UserOut]
+    total: int
+    page: int
+    page_size: int
+
+# Conteggio utenti per ruolo, per il grafico nella pagina Utenti (solo admin)
+class RoleCountOut(BaseModel):
+    role: str
+    count: int

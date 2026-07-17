@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import "./Notifications.css";
+import "../../style/Notifications.css";
 
 const TYPE_ICON = {
   task:      { path: "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11", color: "#2563EB", bg: "#EFF6FF" },
   procedure: { path: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2", color: "#7C3AED", bg: "#F5F3FF" },
   comment:   { path: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z", color: "#059669", bg: "#ECFDF5" },
   system:    { path: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z", color: "#64748B", bg: "#F1F5F9" },
+  user_registration: { path: "M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M8.5 11a4 4 0 100-8 4 4 0 000 8zM20 8v6M23 11h-6", color: "#D97706", bg: "#FFFBEB" },
 };
 
 function Icon({ path, size = 16, color = "currentColor" }) {
@@ -104,9 +105,9 @@ export default function Notifications({ notifications, onMarkRead, onMarkAllRead
                 <div className="pai-notif-row__msg">{n.message}</div>
                 <div className="pai-notif-row__time">{relativeTime(n.created_at, t)}</div>
               </div>
-              {!n.is_read && <div className="pai-notif-row__dot" />}
+              {!n.is_read && <div className="pai-notif-row__dot my-auto" />}
               <button
-                className="pai-notif-row__delete"
+                className="pai-notif-row__delete my-auto"
                 onClick={e => { e.stopPropagation(); onDelete(n.id); }}
                 title={t("notifications.delete_one_title")}
               >

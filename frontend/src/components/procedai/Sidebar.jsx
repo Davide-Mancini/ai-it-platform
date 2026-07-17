@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { NAV_ITEMS } from "./constants";
-import "./Sidebar.css";
-import Heximus_Logo_AI_Platform from "../assets/Heximus_Logo_AI_Platform.png"
+import "../../style/Sidebar.css";
+import Heximus_Logo_AI_Platform from "/favicon-96x96.png"
 
 function Icon({ path, size = 17 }) {
   return (
@@ -27,6 +27,15 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
     ? [userInfo.first_name, userInfo.last_name].filter(Boolean).join(" ") || userInfo.email
     : t("sidebar.user_fallback");
   const roleName = userInfo?.role?.name || userInfo?.role || t("sidebar.role_fallback");
+  const isCustomerRole = roleName === "Customer";
+  const canManageCustomers = ["Admin", "IT Manager", "Sales"].includes(roleName);
+  const canReviewProcedures = ["Admin", "IT Manager"].includes(roleName);
+  // Il ruolo Customer ha una navigazione ridotta: solo le proprie procedure/task,
+  // niente sezioni interne (analytics, documenti, team)
+  const CUSTOMER_ALLOWED_NAV = new Set(["dashboard", "procedures", "tasks", "notifications", "settings"]);
+  const visibleNavItems = isCustomerRole
+    ? NAV_ITEMS.filter(item => CUSTOMER_ALLOWED_NAV.has(item.id))
+    : NAV_ITEMS;
 
   return (
     <aside className={`pai-sidebar${collapsed ? " pai-sidebar--collapsed" : ""}`}>
@@ -55,7 +64,7 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
       {/* Nav */}
       <nav className="pai-sidebar__nav">
         <div className="pai-sidebar__section-label">{t("sidebar.menu")}</div>
-        {NAV_ITEMS.map(item => {
+        {visibleNavItems.map(item => {
           const count = item.badge ? unreadCount : 0;
           return (
             <NavLink
@@ -76,23 +85,71 @@ export default function Sidebar({ userInfo, onLogout, unreadCount }) {
           );
         })}
 
-        {/* Voce admin-only */}
-        {roleName === "Admin" && (
+        {isCustomerRole && (
+          <NavLink
+            to="/my-documents"
+            className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
+            title={collapsed ? t("nav.my_documents") : undefined}
+          >
+            <div className="pai-sidebar__item-icon">
+              <Icon
+                path="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M9 15h6 M9 11h6"
+                size={17}
+              />
+            </div>
+            <span className="pai-sidebar__item-label">{t("nav.my_documents")}</span>
+          </NavLink>
+        )}
+
+        {/* Voci riservate: gestione utenti (admin), clienti (admin/IT manager/sales) e revisione AI (admin/IT manager) */}
+        {(roleName === "Admin" || canManageCustomers || canReviewProcedures) && (
           <>
             <div className="pai-sidebar__section-label" style={{ marginTop: 16 }}>{t("sidebar.admin")}</div>
-            <NavLink
-              to="/users"
-              className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
-              title={collapsed ? t("nav.users") : undefined}
-            >
-              <div className="pai-sidebar__item-icon">
-                <Icon
-                  path="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
-                  size={17}
-                />
-              </div>
-              <span className="pai-sidebar__item-label">{t("nav.users")}</span>
-            </NavLink>
+            {canReviewProcedures && (
+              <NavLink
+                to="/agent-review"
+                className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
+                title={collapsed ? t("nav.agent_review") : undefined}
+              >
+                <div className="pai-sidebar__item-icon">
+                  <Icon
+                    path="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3zM5 17l.75 2.25L8 20l-2.25.75L5 23l-.75-2.25L2 20l2.25-.75L5 17z"
+                    size={17}
+                  />
+                </div>
+                <span className="pai-sidebar__item-label">{t("nav.agent_review")}</span>
+              </NavLink>
+            )}
+            {roleName === "Admin" && (
+              <NavLink
+                to="/users"
+                className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
+                title={collapsed ? t("nav.users") : undefined}
+              >
+                <div className="pai-sidebar__item-icon">
+                  <Icon
+                    path="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                    size={17}
+                  />
+                </div>
+                <span className="pai-sidebar__item-label">{t("nav.users")}</span>
+              </NavLink>
+            )}
+            {canManageCustomers && (
+              <NavLink
+                to="/customers"
+                className={({ isActive }) => `pai-sidebar__item${isActive ? " pai-sidebar__item--active" : ""}`}
+                title={collapsed ? "Clienti" : undefined}
+              >
+                <div className="pai-sidebar__item-icon">
+                  <Icon
+                    path="M3 21h18M5 21V7l8-4v18M13 21V11l6 3v7M9 9v.01M9 12v.01M9 15v.01"
+                    size={17}
+                  />
+                </div>
+                <span className="pai-sidebar__item-label">Clienti</span>
+              </NavLink>
+            )}
           </>
         )}
       </nav>

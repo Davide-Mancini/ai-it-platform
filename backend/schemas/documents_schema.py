@@ -6,7 +6,7 @@ from typing import Optional
 #Campi condivisi tra creazione e lettura
 class DocumentBase(BaseModel):
     title: str
-    content: str
+    content: Optional[str] = None
     file_path: Optional[str] = None
     file_type: Optional[str] = None
 
@@ -25,6 +25,8 @@ class DocumentUpdate(BaseModel):
 class DocumentResponse(DocumentBase):
     id: UUID
     user_id: Optional[UUID]
+    customer_id: Optional[UUID] = None
+    task_id: Optional[UUID] = None
     created_at: datetime
     updated_at: Optional[datetime]
 

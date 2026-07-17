@@ -1,4 +1,5 @@
 from services import gemini_service
+from services.rate_limiter import RateLimiter
 from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session
 import models
@@ -14,16 +15,38 @@ router = APIRouter()
 # Solo Administrator e IT Manager possono approvare o rifiutare le procedure dell'IA
 allow_it_creators = gemini_service.RoleChecker(["Admin", "IT Manager"])
 
+# Max 5 richieste di generazione AI ogni 60 secondi, per utente
+ai_rate_limit = RateLimiter(max_calls=5, period_seconds=60)
+
 #Rotta per generare le procedure tramite l'ai
 @router.post("/generate", response_model=schemas.AIRecommendationOut)
 def generate_procedure_with_ai(
     payload: schemas.AIRequest,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(gemini_service.allow_it_creators)
+    current_user: models.User = Depends(gemini_service.allow_it_creators),
+    _rate_limit: models.User = Depends(ai_rate_limit),
 ):
     #Richiamo la funzione scritta all'interno dei service
     new_ai_procedure = gemini_service.generate_procedure_with_ai(payload, db, current_user)
     return new_ai_procedure
+
+
+@router.get("/recommendations/stats", response_model=schemas.RecommendationStatsOut)
+def get_recommendation_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(allow_it_creators),
+):
+    is_admin = current_user.role and current_user.role.name == "Admin"
+
+    query = db.query(AIRecommendation)
+    if not is_admin:
+        query = query.filter(AIRecommendation.user_id == current_user.id)
+
+    accepted = query.filter(AIRecommendation.is_accepted.is_(True)).count()
+    rejected = query.filter(AIRecommendation.is_accepted.is_(False)).count()
+    pending = query.filter(AIRecommendation.is_accepted.is_(None)).count()
+
+    return schemas.RecommendationStatsOut(accepted=accepted, rejected=rejected, pending=pending)
 
 
 @router.post("/recommendations/{recommendation_id}/accept", status_code=status.HTTP_201_CREATED)
@@ -58,7 +81,9 @@ def accept_recommendation(
         new_procedure = models.Procedure(
             title=procedure_data.get("title"),
             description=procedure_data.get("description"),
-            user_id=recommendation.user_id
+            user_id=recommendation.user_id,
+            language=recommendation.language,
+            customer_id=recommendation.customer_id
         )
         db.add(new_procedure)
         db.flush()

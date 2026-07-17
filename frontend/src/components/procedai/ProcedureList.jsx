@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import "./ProcedureList.css";
+import Pager from "./Pager";
+import "../../style/ProcedureList.css";
 
 function Icon({ path, size = 16, color = "currentColor" }) {
   return (
@@ -144,18 +145,15 @@ function DeleteModal({ procedure, onClose, onConfirm, deleting }) {
 }
 
 /* ── Componente principale ───────────────────────────────────────────────── */
-export default function ProcedureList({ procedures, isAdmin, onProcedureClick, onCreateClick, onEditProcedure, onDeleteProcedure }) {
+export default function ProcedureList({ browse, search, onSearchChange, onPageChange, isAdmin, canCreate = true, onProcedureClick, onCreateClick, onEditProcedure, onDeleteProcedure }) {
   const { t } = useTranslation();
-  const [search, setSearch] = useState("");
   const [editTarget,   setEditTarget]   = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [saving,   setSaving]   = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [editError, setEditError] = useState("");
 
-  const filtered = procedures.filter(p =>
-    p.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = browse.items;
 
   const formatDate = (dt) => dt
     ? new Date(dt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
@@ -196,13 +194,15 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
             className="pai-proc-list__search"
             placeholder={t("procedures.search_placeholder")}
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => onSearchChange(e.target.value)}
           />
         </div>
-        <button className="pai-btn pai-btn--primary" onClick={onCreateClick}>
-          <Icon path="M12 5v14M5 12h14" size={15} color="white" />
-          {t("procedures.new_btn")}
-        </button>
+        {canCreate && (
+          <button className="pai-btn pai-btn--primary" onClick={onCreateClick}>
+            <Icon path="M12 5v14M5 12h14" size={15} color="white" />
+            {t("procedures.new_btn")}
+          </button>
+        )}
       </div>
 
       {/* Grid */}
@@ -213,10 +213,12 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
           </div>
           <div className="pai-proc-list__empty-title">{t("procedures.empty_title")}</div>
           <div className="pai-proc-list__empty-sub">{t("procedures.empty_sub")}</div>
-          <button className="pai-btn pai-btn--primary" onClick={onCreateClick} style={{ marginTop: 16 }}>
-            <Icon path="M12 5v14M5 12h14" size={15} color="white" />
-            {t("procedures.create_btn")}
-          </button>
+          {canCreate && (
+            <button className="pai-btn pai-btn--primary" onClick={onCreateClick} style={{ marginTop: 16 }}>
+              <Icon path="M12 5v14M5 12h14" size={15} color="white" />
+              {t("procedures.create_btn")}
+            </button>
+          )}
         </div>
       ) : (
         <div className="pai-proc-list__grid">
@@ -249,6 +251,15 @@ export default function ProcedureList({ procedures, isAdmin, onProcedureClick, o
             </div>
           ))}
         </div>
+      )}
+
+      {filtered.length > 0 && (
+        <Pager
+          page={browse.page}
+          pageSize={browse.pageSize}
+          total={browse.total}
+          onPageChange={onPageChange}
+        />
       )}
 
       {editTarget && (

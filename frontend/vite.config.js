@@ -8,4 +8,14 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  server: {
+    // Su bind mount Docker/Windows gli eventi filesystem nativi spesso non
+    // arrivano al watcher di Vite, lasciando il dev server servire versioni
+    // stale dei file finché non viene riavviato manualmente. Il polling
+    // forza un controllo periodico che funziona sempre in questo setup.
+    watch: {
+      usePolling: true,
+      interval: 300,
+    },
+  },
 })

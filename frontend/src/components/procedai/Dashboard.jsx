@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import "./Dashboard.css";
+import "../../style/Dashboard.css";
 
 function relativeTime(isoString, t) {
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
@@ -63,7 +63,6 @@ function CheckIcon() {
 export default function Dashboard({ procedures, tasks, stepsById = {}, recentActivity = [], notifications = [], onProcedureClick, onViewChange, onRefreshActivity }) {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
-
   const handleRefreshActivity = async () => {
     if (!onRefreshActivity || refreshing) return;
     setRefreshing(true);

@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, DateTime, JSON, ForeignKey,event
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 from db.database import Base
 from sqlalchemy.dialects.postgresql import UUID
@@ -15,7 +15,7 @@ class AuditLog(Base):
     target_type = Column(String, nullable= True)
     target_id = Column(String, nullable=True)
     details = Column(JSON, nullable=True)
-    created_at= Column(DateTime, default=datetime.now, nullable=False)
+    created_at= Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     
   
 

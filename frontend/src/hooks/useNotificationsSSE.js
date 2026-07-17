@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { NOTIFICATION_RECEIVED } from "../redux/actions/notificationsActions";
-
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../config/api";
 
 export function useNotificationsSSE(token) {
   const dispatch = useDispatch();
@@ -10,7 +9,9 @@ export function useNotificationsSSE(token) {
   useEffect(() => {
     if (!token) return;
 
-    const es = new EventSource(`${API_BASE}/api/notifications/stream?token=${token}`);
+    // Il cookie httpOnly viene inviato automaticamente da EventSource con withCredentials,
+    // niente piu' token esposto nella query string (che finirebbe in log/cronologia).
+    const es = new EventSource(`${API_BASE}/api/notifications/stream`, { withCredentials: true });
 
     es.onmessage = (e) => {
       try {

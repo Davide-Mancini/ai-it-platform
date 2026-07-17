@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
-import "./Settings.css";
+import "../../style/Settings.css";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
-
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../config/api";
 
 function SettingRow({ label, desc, children }) {
   return (
@@ -60,9 +59,9 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
     try {
       const res = await fetch(`${API_BASE}/api/auth/me`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(form),
       });
@@ -223,6 +222,7 @@ export default function Settings({ userInfo, token, onProfileUpdate }) {
               {[
                 { code: "it", label: "🇮🇹 Italiano" },
                 { code: "en", label: "🇬🇧 English" },
+                { code: "lt", label: "🇱🇹 Lietuvių" },
               ].map(lang => (
                 <button
                   key={lang.code}

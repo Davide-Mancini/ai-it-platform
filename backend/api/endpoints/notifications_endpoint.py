@@ -1,7 +1,7 @@
 import asyncio
 import json
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from typing import List, Optional
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import models
@@ -18,11 +18,15 @@ router = APIRouter()
 @router.get("/stream")
 async def notifications_stream(
     request: Request,
-    token: str = Query(...),
+    access_token: Optional[str] = Cookie(default=None),
     db: Session = Depends(get_db),
 ):
-    """SSE endpoint — il client si connette qui e riceve le notifiche in tempo reale."""
-    email = verify_access_token(token)
+    """SSE endpoint — il client si connette qui e riceve le notifiche in tempo reale.
+    EventSource non supporta header custom, ma invia i cookie automaticamente
+    (withCredentials lato client), quindi l'autenticazione passa dal cookie httpOnly."""
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Non autenticato")
+    email = verify_access_token(access_token)
     if not email:
         raise HTTPException(status_code=401, detail="Token non valido")
     user = db.query(models.User).filter(models.User.email == email).first()

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import "./TopBar.css";
+import { LANGUAGES } from "./constants";
+import "../../style/TopBar.css";
 
 function BellIcon() {
   return (
@@ -11,9 +13,17 @@ function BellIcon() {
 }
 
 export default function TopBar({ userInfo, unreadCount, isProcedureDetail = false }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
+
+  const handleLangChange = (code) => {
+    i18n.changeLanguage(code);
+    localStorage.setItem("lang", code);
+    setLangMenuOpen(false);
+  };
 
   const PATH_TITLES = {
     "/dashboard":     { key: "nav.dashboard",     greeting: true },
@@ -53,6 +63,32 @@ export default function TopBar({ userInfo, unreadCount, isProcedureDetail = fals
         <div className="pai-topbar__notif-wrap" onClick={() => navigate("/notifications")}>
           <button className="pai-topbar__notif-btn"><BellIcon /></button>
           {unreadCount > 0 && <span className="pai-topbar__notif-dot">{unreadCount}</span>}
+        </div>
+
+        <div className="pai-topbar__lang-wrap">
+          <button
+            className="pai-topbar__lang-btn"
+            onClick={() => setLangMenuOpen(o => !o)}
+            title={t("topbar.change_language")}
+          >
+            {currentLang.flag}
+          </button>
+          {langMenuOpen && (
+            <>
+              <div className="pai-topbar__lang-backdrop" onClick={() => setLangMenuOpen(false)} />
+              <div className="pai-topbar__lang-menu">
+                {LANGUAGES.map(lang => (
+                  <button
+                    key={lang.code}
+                    className={`pai-topbar__lang-option${lang.code === i18n.language ? " pai-topbar__lang-option--active" : ""}`}
+                    onClick={() => handleLangChange(lang.code)}
+                  >
+                    <span>{lang.flag}</span> {lang.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="pai-topbar__avatar" onClick={() => navigate("/settings")}>{initials}</div>

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import "./Team.css";
+import "../../style/Team.css";
 
 const AVATAR_COLORS = ["#2563EB", "#7C3AED", "#059669", "#D97706", "#DC2626"];
 

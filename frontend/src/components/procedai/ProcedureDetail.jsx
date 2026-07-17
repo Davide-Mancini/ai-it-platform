@@ -1,5 +1,6 @@
 import { STEP_STATUS, stepNextStatus } from "./constants";
-import "./ProcedureDetail.css";
+import "../../style/ProcedureDetail.css";
+import { useTranslation } from "react-i18next";
 
 function Icon({ path, size = 16, color = "currentColor" }) {
   return (
@@ -19,10 +20,11 @@ function CheckIcon({ size = 14 }) {
 }
 
 function StepBadge({ status }) {
+  const { t } = useTranslation();
   const s = STEP_STATUS[status] || STEP_STATUS.todo;
   return (
     <span className="pai-chip" style={{ color: s.text, background: s.bg, fontSize: 11 }}>
-      {s.label}
+      {t(s.labelKey)}
     </span>
   );
 }
@@ -31,14 +33,14 @@ function StepRow({ step, index, total, onToggle, loading }) {
   const status = step.status || "todo";
   const isDone = status === "done";
   const isInProgress = status === "inprogress";
-
+  const {t} = useTranslation();
   const circleStyle = {
     background: isDone ? "#059669" : isInProgress ? "#2563EB" : "#F1F5F9",
     color: (isDone || isInProgress) ? "white" : "#94A3B8",
     outline: isInProgress ? "3px solid #BFDBFE" : "none",
     outlineOffset: "1px",
   };
-
+   
   return (
     <div className={`pai-step-row${isDone ? " pai-step-row--done" : ""}`}>
       {/* Timeline */}
@@ -68,10 +70,10 @@ function StepRow({ step, index, total, onToggle, loading }) {
           disabled={loading}
         >
           {isDone
-            ? "↩ Segna come da fare"
+            ? t("procedures.todo_step_btn")
             : isInProgress
-              ? "✓ Segna come fatto"
-              : "→ Inizia step"}
+              ? t("procedures.done_step_btn")
+              : t("procedures.start_step_btn")}
         </button>
       </div>
     </div>
@@ -116,13 +118,14 @@ export default function ProcedureDetail({
   const total = steps.length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   const procTasks = tasks.filter(t => t.procedure_id === procedure.id);
+  const {t} = useTranslation();
 
   return (
     <div className="pai-view">
       {/* Back */}
       <button className="pai-detail__back" onClick={onBack}>
         <Icon path="M19 12H5M12 19l-7-7 7-7" size={15} color="#64748B" />
-        Torna alle procedure
+        {t("procedures.back_to_procedures")}
       </button>
 
       <div className="pai-detail__layout">
@@ -131,8 +134,8 @@ export default function ProcedureDetail({
           {/* Header card */}
           <div className="pai-card pai-detail__header-card">
             <div className="pai-detail__meta-chips">
-              <span className="pai-chip" style={{ color: "#475569", background: "#F1F5F9" }}>Procedura</span>
-              <span className="pai-chip" style={{ color: "#059669", background: "#ECFDF5" }}>Attiva</span>
+              <span className="pai-chip" style={{ color: "#475569", background: "#F1F5F9" }}>{t("procedures.name")}</span>
+              <span className="pai-chip" style={{ color: "#059669", background: "#ECFDF5" }}>{t("procedures.tag_active")}</span>
             </div>
             <h1 className="pai-detail__title">{procedure.title}</h1>
             {procedure.description && (
@@ -140,19 +143,19 @@ export default function ProcedureDetail({
             )}
             <div className="pai-detail__stats-row">
               <div className="pai-detail__stat">
-                <div className="pai-detail__stat-label">Creata il</div>
+                <div className="pai-detail__stat-label">{t("procedures.create_on")}</div>
                 <div className="pai-detail__stat-value">{formatDate(procedure.created_at)}</div>
               </div>
               <div className="pai-detail__stat">
-                <div className="pai-detail__stat-label">Steps totali</div>
+                <div className="pai-detail__stat-label">{t("procedures.total_steps")}</div>
                 <div className="pai-detail__stat-value">{total || "—"}</div>
               </div>
               <div className="pai-detail__stat">
-                <div className="pai-detail__stat-label">Completati</div>
+                <div className="pai-detail__stat-label">{t("procedures.complete")}</div>
                 <div className="pai-detail__stat-value">{done}</div>
               </div>
               <div className="pai-detail__stat">
-                <div className="pai-detail__stat-label">Progresso</div>
+                <div className="pai-detail__stat-label">{t("procedures.progress")}</div>
                 <div className="pai-detail__stat-value">{total > 0 ? `${pct}%` : "—"}</div>
               </div>
             </div>
@@ -169,8 +172,8 @@ export default function ProcedureDetail({
           <div className="pai-card pai-detail__steps-card">
             <div className="pai-detail__steps-header">
               <div className="pai-detail__steps-title">
-                Steps della procedura
-                {loadingSteps && <span className="pai-detail__steps-loading"> (caricamento…)</span>}
+                {t("procedures.procedure_steps")}
+                {loadingSteps && <span className="pai-detail__steps-loading ms-1">{t("procedures.loading")}</span>}
               </div>
             </div>
 
@@ -178,8 +181,9 @@ export default function ProcedureDetail({
               <div className="pai-detail__steps-empty">
                 <Icon path="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h4" size={28} color="#CBD5E1" />
                 <div className="pai-detail__steps-empty-text">
-                  Nessuno step trovato.<br />
-                  <small>Genera questa procedura con AI per ottenere step strutturati automaticamente.</small>
+                  {t("procedures.no_steps")}
+                  <br />
+                  <small>{t("procedures.generate_ai")}</small>
                 </div>
               </div>
             )}
@@ -203,10 +207,10 @@ export default function ProcedureDetail({
         <div className="pai-detail__sidebar">
           <div className="pai-card pai-detail__tasks-card">
             <div className="pai-detail__tasks-header">
-              <span className="pai-detail__tasks-title">Task correlati</span>
+              <span className="pai-detail__tasks-title">{t("procedures.correlated_tasks")}</span>
             </div>
             {procTasks.length === 0 ? (
-              <div className="pai-detail__tasks-empty">Nessun task per questa procedura</div>
+              <div className="pai-detail__tasks-empty">{t("procedures.no_tasks")}</div>
             ) : (
               <div className="pai-detail__tasks-list">
                 {procTasks.map(t => <TaskRow key={t.id} task={t} />)}

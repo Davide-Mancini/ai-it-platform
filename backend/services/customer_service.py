@@ -42,6 +42,10 @@ def create_new_customer(
         )
         
         
+def list_customers(db: Session):
+    return customer_repository.get_all_customers(db)
+
+
 def update_customer(
     id: str,
     ip_address: str,

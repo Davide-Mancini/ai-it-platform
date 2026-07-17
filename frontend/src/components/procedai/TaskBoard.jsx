@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import "./TaskBoard.css";
+import "../../style/TaskBoard.css";
 
 function getPriorities(t) {
   return [
@@ -14,19 +14,33 @@ function getPriorities(t) {
 
 function getCols(t) {
   return [
-    { id: "pending",     label: t("tasks.col_pending"),     dot: "#94A3B8" },
-    { id: "in_progress", label: t("tasks.col_in_progress"), dot: "#2563EB" },
-    { id: "done",        label: t("tasks.col_done"),        dot: "#059669" },
+    { id: "pending",             label: t("tasks.col_pending"),             dot: "#94A3B8" },
+    { id: "in_progress",         label: t("tasks.col_in_progress"),         dot: "#2563EB" },
+    { id: "clarification_needed", label: t("tasks.col_clarification_needed"), dot: "#D97706" },
+    { id: "done",                label: t("tasks.col_done"),                dot: "#059669" },
   ];
 }
 
-function PriorityBadge({ priority, onChangePriority }) {
+function slugifyFieldLabel(label, index) {
+  const slug = label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return slug ? `field_${index}_${slug}` : `field_${index}`;
+}
+
+function PriorityBadge({ priority, onChangePriority, canManage = true }) {
   const { t } = useTranslation();
   const PRIORITIES = getPriorities(t);
   const [open, setOpen] = useState(false);
   const [pos, setPos]   = useState({ top: 0, left: 0 });
   const ref = useRef(null);
   const cfg = PRIORITIES.find(p => p.id === priority) || PRIORITIES[0];
+
+  if (!canManage) {
+    return (
+      <span className="pai-task-priority" style={{ color: cfg.color, background: cfg.bg }}>
+        {cfg.label}
+      </span>
+    );
+  }
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -120,7 +134,9 @@ function AssignDropdown({ task, users, onAssign }) {
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef(null);
   const assignedIds = new Set((task.assigned_users || []).map(u => u.id));
-  const unassigned = users.filter(u => !assignedIds.has(u.id));
+  // Un customer non va assegnato come "responsabile interno": interagisce col task
+  // tramite il flag requires_customer_input, non tramite l'assegnazione da workload
+  const unassigned = users.filter(u => !assignedIds.has(u.id) && u.role !== "Customer");
 
   const handleOpen = (e) => {
     e.stopPropagation();
@@ -177,9 +193,33 @@ function AssignDropdown({ task, users, onAssign }) {
   );
 }
 
-function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, isAdmin, users, onAssignUser, onUnassignUser }) {
+function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, isAdmin, canManage = true, users, onAssignUser, onUnassignUser, onSubmitResponse }) {
   const { t } = useTranslation();
   const proc = procedures.find(p => p.id === task.procedure_id);
+  const fields = (task.required_fields && task.required_fields.length > 0)
+    ? task.required_fields
+    : [{ key: "response", label: task.title }];
+  const existingData = task.customer_response_data || {};
+  const [responseDraft, setResponseDraft] = useState(
+    Object.fromEntries(fields.map(f => [f.key, existingData[f.key] || ""]))
+  );
+  const [submittingResponse, setSubmittingResponse] = useState(false);
+  const hasExistingResponse = Object.keys(existingData).length > 0;
+  const hasDraftContent = Object.values(responseDraft).some(v => v.trim());
+
+  const handleSubmitResponse = async () => {
+    if (!hasDraftContent || submittingResponse) return;
+    setSubmittingResponse(true);
+    try {
+      const trimmed = Object.fromEntries(
+        Object.entries(responseDraft).filter(([, v]) => v.trim()).map(([k, v]) => [k, v.trim()])
+      );
+      await onSubmitResponse(task.id, trimmed);
+    } finally {
+      setSubmittingResponse(false);
+    }
+  };
+
   return (
     <div className="pai-task-card">
       <div className="pai-task-card__title">{task.title}</div>
@@ -188,13 +228,54 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
         <PriorityBadge
           priority={task.priority || "low"}
           onChangePriority={(p) => onPriorityChange(task.id, p)}
+          canManage={canManage}
         />
+        {task.requires_customer_input && (
+          <span className="pai-task-card__customer-flag" title={t("tasks.customer_flag_title")}>
+            {t("tasks.customer_flag_label")}
+          </span>
+        )}
         {task.created_at && (
           <span className="pai-task-card__date">{formatDate(task.created_at)}</span>
         )}
       </div>
 
       {proc && <div className="pai-task-card__proc">{proc.title}</div>}
+
+      {canManage && task.requires_customer_input && hasExistingResponse && (
+        <div className="pai-task-card__customer-response">
+          <div className="pai-task-card__customer-response-label">{t("tasks.customer_response_label")}</div>
+          {fields.map(f => existingData[f.key] && (
+            <div key={f.key} className="pai-task-card__customer-response-text">
+              <strong>{f.label}:</strong> {existingData[f.key]}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!canManage && task.requires_customer_input && (
+        <div className="pai-task-card__customer-input" onClick={e => e.stopPropagation()}>
+          {fields.map(f => (
+            <div key={f.key} className="pai-task-card__customer-field">
+              <label className="pai-task-card__customer-field-label">{f.label}</label>
+              <textarea
+                className="pai-task-card__customer-textarea"
+                value={responseDraft[f.key] || ""}
+                onChange={e => setResponseDraft(d => ({ ...d, [f.key]: e.target.value }))}
+                placeholder={t("tasks.customer_input_placeholder")}
+                rows={2}
+              />
+            </div>
+          ))}
+          <button
+            className="pai-task-card__customer-submit"
+            onClick={handleSubmitResponse}
+            disabled={submittingResponse || !hasDraftContent}
+          >
+            {submittingResponse ? t("tasks.submitting") : (hasExistingResponse ? t("tasks.update_btn") : t("tasks.send_btn"))}
+          </button>
+        </div>
+      )}
 
       {(task.assigned_users || []).length > 0 && (
         <div className="pai-task-card__avatars">
@@ -218,12 +299,27 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
           />
         )}
         <div className="pai-task-card__spacer" />
-        {colId !== "done" && (
+        {canManage && (colId === "in_progress" || colId === "done") && (
           <button
-            className={`pai-task-card__btn${colId === "in_progress" ? " pai-task-card__btn--done" : ""}`}
-            onClick={() => onStatusChange(task.id, colId === "pending" ? "in_progress" : "done")}
+            className="pai-task-card__btn pai-task-card__btn--clarify"
+            onClick={() => onStatusChange(task.id, "clarification_needed")}
           >
-            {colId === "pending" ? t("tasks.start_btn") : t("tasks.done_btn")}
+            {t("tasks.request_clarification_btn")}
+          </button>
+        )}
+        {colId === "pending" && (
+          <button className="pai-task-card__btn" onClick={() => onStatusChange(task.id, "in_progress")}>
+            {t("tasks.start_btn")}
+          </button>
+        )}
+        {colId === "in_progress" && (
+          <button className="pai-task-card__btn pai-task-card__btn--done" onClick={() => onStatusChange(task.id, "done")}>
+            {t("tasks.done_btn")}
+          </button>
+        )}
+        {colId === "clarification_needed" && canManage && (
+          <button className="pai-task-card__btn" onClick={() => onStatusChange(task.id, "in_progress")}>
+            {t("tasks.recheck_btn")}
           </button>
         )}
         {colId === "done" && (
@@ -239,7 +335,7 @@ function TaskCard({ task, procedures, colId, onStatusChange, onPriorityChange, i
   );
 }
 
-function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick, isAdmin, users, onAssignUser, onUnassignUser }) {
+function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, draggedId, onDragStart, onDragEnd, onDrop, onAddClick, isAdmin, canManage = true, users, onAssignUser, onUnassignUser, onSubmitResponse }) {
   const { t } = useTranslation();
   const [over, setOver] = useState(false);
   const colTasks = tasks.filter(task => task.status === col.id);
@@ -257,7 +353,7 @@ function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, drag
           <span className="pai-kanban-col__label">{col.label}</span>
           <span className="pai-kanban-col__count">{colTasks.length}</span>
         </div>
-        {col.id === "pending" && (
+        {col.id === "pending" && canManage && (
           <button className="pai-kanban-col__add-btn" onClick={onAddClick} title={t("tasks.create_title")}>
             <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
               <line x1={12} y1={5} x2={12} y2={19} /><line x1={5} y1={12} x2={19} y2={12} />
@@ -282,9 +378,11 @@ function Column({ col, tasks, procedures, onStatusChange, onPriorityChange, drag
               onStatusChange={onStatusChange}
               onPriorityChange={onPriorityChange}
               isAdmin={isAdmin}
+              canManage={canManage}
               users={users}
               onAssignUser={onAssignUser}
               onUnassignUser={onUnassignUser}
+              onSubmitResponse={onSubmitResponse}
             />
           </div>
         ))}
@@ -302,12 +400,27 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
   const [title, setTitle]       = useState("");
   const [procId, setProcId]     = useState(procedures[0]?.id || "");
   const [priority, setPriority] = useState("low");
+  const [requiresCustomerInput, setRequiresCustomerInput] = useState(false);
+  const [fieldLabels, setFieldLabels] = useState([]);
   const [error, setError]       = useState("");
+
+  const selectedProc = procedures.find(p => p.id === procId);
+  const hasLinkedCustomer = !!selectedProc?.customer_id;
+
+  useEffect(() => {
+    if (!hasLinkedCustomer) setRequiresCustomerInput(false);
+  }, [hasLinkedCustomer]);
 
   const handleSubmit = () => {
     if (!title.trim()) { setError(t("tasks.err_title")); return; }
     if (!procId) { setError(t("tasks.err_procedure")); return; }
-    onSubmit(title.trim(), procId, priority);
+    const active = requiresCustomerInput && hasLinkedCustomer;
+    const requiredFields = active
+      ? fieldLabels
+          .map((label, i) => label.trim() && { key: slugifyFieldLabel(label, i), label: label.trim() })
+          .filter(Boolean)
+      : [];
+    onSubmit(title.trim(), procId, priority, active, requiredFields);
   };
 
   return (
@@ -371,6 +484,48 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
             </div>
           </div>
 
+          <label className={`pai-task-form__checkbox-row${!hasLinkedCustomer ? " pai-task-form__checkbox-row--disabled" : ""}`}>
+            <input
+              type="checkbox"
+              checked={requiresCustomerInput}
+              disabled={!hasLinkedCustomer}
+              onChange={e => setRequiresCustomerInput(e.target.checked)}
+            />
+            {hasLinkedCustomer
+              ? t("tasks.customer_input_hint_enabled")
+              : t("tasks.customer_input_hint_disabled")}
+          </label>
+
+          {requiresCustomerInput && hasLinkedCustomer && (
+            <div className="pai-task-form__fields">
+              <label className="pai-field__label">{t("tasks.required_fields_label")}</label>
+              {fieldLabels.map((label, i) => (
+                <div key={i} className="pai-task-form__field-row">
+                  <input
+                    className="pai-field__input"
+                    value={label}
+                    onChange={e => setFieldLabels(fs => fs.map((f, idx) => idx === i ? e.target.value : f))}
+                    placeholder={t("tasks.field_label_placeholder")}
+                  />
+                  <button
+                    type="button"
+                    className="pai-task-form__field-remove"
+                    onClick={() => setFieldLabels(fs => fs.filter((_, idx) => idx !== i))}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="pai-btn pai-btn--ghost pai-task-form__field-add"
+                onClick={() => setFieldLabels(fs => [...fs, ""])}
+              >
+                {t("tasks.field_add")}
+              </button>
+            </div>
+          )}
+
           {error && <div className="pai-task-form__error">{error}</div>}
 
           <div className="pai-task-form__actions">
@@ -385,7 +540,7 @@ function CreateTaskModal({ procedures, onClose, onSubmit, loading }) {
   );
 }
 
-export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorityChange, onCreateTask, isAdmin, users, onAssignUser, onUnassignUser }) {
+export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorityChange, onCreateTask, isAdmin, canManage = true, users, onAssignUser, onUnassignUser, onSubmitResponse }) {
   const { t } = useTranslation();
   const COLS = getCols(t);
   const [draggedId, setDraggedId] = useState(null);
@@ -397,10 +552,10 @@ export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorit
     setDraggedId(null);
   };
 
-  const handleSubmit = async (title, procId, priority) => {
+  const handleSubmit = async (title, procId, priority, requiresCustomerInput, requiredFields) => {
     setCreateLoading(true);
     try {
-      await onCreateTask(title, procId, priority);
+      await onCreateTask(title, procId, priority, requiresCustomerInput, requiredFields);
       setShowCreate(false);
     } finally {
       setCreateLoading(false);
@@ -424,9 +579,11 @@ export default function TaskBoard({ tasks, procedures, onStatusChange, onPriorit
             onDrop={handleDrop}
             onAddClick={() => setShowCreate(true)}
             isAdmin={isAdmin}
+            canManage={canManage}
             users={users}
             onAssignUser={onAssignUser}
             onUnassignUser={onUnassignUser}
+            onSubmitResponse={onSubmitResponse}
           />
         ))}
       </div>

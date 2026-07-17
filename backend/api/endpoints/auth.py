@@ -1,24 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request, Response, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import case, func
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from models.user import User
+from models.associations import task_user_assignments as tua
 from security.security import verify_access_token
 import models
 import schemas
 from db.database import get_db
 from services import auth_service
 from repository import auth_repository
-from services import auth_service
+from services.sliding_window_limiter import IPRateLimiter
 from mail_sender import send_custom_email
 from models.push_subscription import PushSubscription
 import os
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+# Max 10 tentativi di login ogni 5 minuti, per indirizzo IP
+login_rate_limit = IPRateLimiter(max_calls=10, period_seconds=300)
+# Max 5 richieste di reset password ogni 15 minuti, per indirizzo IP
+forgot_password_rate_limit = IPRateLimiter(max_calls=5, period_seconds=900)
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> models.User:
-    email = verify_access_token(token)
+# Il token viaggia in un cookie httpOnly (impostato al login), non in un header
+# Authorization: cosi' non e' mai leggibile da JavaScript, anche in caso di XSS.
+def get_current_user(access_token: Optional[str] = Cookie(default=None), db: Session = Depends(get_db)) -> models.User:
+    if access_token is None:
+        raise HTTPException(status_code=401, detail="Non autenticato")
+    email = verify_access_token(access_token)
     if email is None:
         raise HTTPException(status_code=401, detail="Token non valido")
     user = db.query(models.User).filter(models.User.email == email).first()
@@ -33,22 +43,80 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return auth_service.create_user(user, db)
    
 
-# Lista utenti — solo admin
-@router.get("/users/", response_model=List[schemas.UserOut])
+# Lista utenti — solo admin. Se page/page_size non sono passati restituisce tutto
+# (retrocompatibile per i consumer che hanno bisogno della lista intera: dropdown
+# assegnazione task, selezione destinatari email). Passando page/page_size si
+# attiva la paginazione, con ricerca opzionale su nome/cognome/email/ruolo.
+@router.get("/users/", response_model=schemas.PaginatedUsersOut)
 def get_users(
+    page: Optional[int] = Query(default=None, ge=1),
+    page_size: Optional[int] = Query(default=None, ge=1, le=100),
+    search: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     if current_user.role.name != "Admin":
         raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
-    return auth_service.get_users(db)
+    total, items, effective_page, effective_size = auth_service.get_users(db, page, page_size, search)
+    return schemas.PaginatedUsersOut(items=items, total=total, page=effective_page, page_size=effective_size)
+
+
+# Conteggio utenti per ruolo — solo admin, per il grafico nella pagina Utenti
+@router.get("/users/stats/roles", response_model=List[schemas.RoleCountOut])
+def get_users_role_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if current_user.role.name != "Admin":
+        raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
+    rows = (
+        db.query(models.Role.name, func.count(models.User.id))
+        .join(models.User, models.User.role_id == models.Role.id)
+        .group_by(models.Role.name)
+        .order_by(func.count(models.User.id).desc())
+        .all()
+    )
+    return [schemas.RoleCountOut(role=role, count=count) for role, count in rows]
 
 #funzione per il login verifica credenziali e genera token di accesso
 @router.post("/login", response_model=schemas.Token)
-def login(response: Response,request: Request,form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(
+    response: Response,
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+    _rate_limit: None = Depends(login_rate_limit),
+):
     client_ip = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
     return auth_service.login(db,form_data,response,ip_address=client_ip, user_agent=user_agent)
+
+#rotta per richiedere il link di reset password via email — risponde sempre allo
+#stesso modo (non rivela se l'email esiste) per non permettere di scoprire quali
+#indirizzi sono registrati
+@router.post("/forgot-password")
+def forgot_password(
+    data: schemas.ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+    _rate_limit: None = Depends(forgot_password_rate_limit),
+):
+    auth_service.forgot_password(db, data.email)
+    return {"message": "Se l'indirizzo è registrato, riceverai a breve un'email con le istruzioni."}
+
+#rotta per impostare la nuova password tramite il token ricevuto via email
+@router.post("/reset-password")
+def reset_password(
+    data: schemas.ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    auth_service.reset_password(db, data.token, data.new_password)
+    return {"message": "Password reimpostata con successo."}
+
+#rotta di logout: essendo il cookie httpOnly, il frontend non puo' cancellarlo da JS
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(key="access_token")
+    return {"message": "Logout effettuato"}
 
 #rotta che restituisce informazione sul'utente autenticato, utile nel frontend per mostrare il nome dell'utente o il suo ruolo
 @router.get("/me")
@@ -98,6 +166,18 @@ def update_user(
     existing = db.query(models.User).filter(models.User.email == data.email, models.User.id != user_to_modify.id).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email già in uso da un altro utente")
+    new_role = db.query(models.Role).filter(models.Role.id == data.role_id).first()
+    if not new_role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ruolo non trovato")
+    if new_role.name == "Customer":
+        if not data.customer_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Il ruolo Customer richiede un cliente associato")
+        customer = db.query(models.Customer).filter(models.Customer.id == data.customer_id).first()
+        if not customer:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente non trovato")
+        user_to_modify.customer_id = data.customer_id
+    else:
+        user_to_modify.customer_id = None
     user_to_modify.first_name = data.first_name
     user_to_modify.last_name  = data.last_name
     user_to_modify.email      = data.email
@@ -120,6 +200,47 @@ def set_user_active(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Utente {user_id} non trovato")
     return user
+
+# Workload per utente (task aperti/completati assegnati) — solo admin, per il grafico nella pagina Utenti
+@router.get("/users/workload", response_model=List[schemas.UserWorkloadOut])
+def get_users_workload(
+    limit: int = Query(default=10, le=50),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if current_user.role.name != "Admin":
+        raise HTTPException(status_code=403, detail="Accesso riservato agli amministratori")
+
+    open_count = func.sum(case((models.Task.status != "done", 1), else_=0))
+    done_count = func.sum(case((models.Task.status == "done", 1), else_=0))
+
+    rows = (
+        db.query(
+            models.User.id,
+            models.User.first_name,
+            models.User.last_name,
+            open_count.label("open_tasks"),
+            done_count.label("done_tasks"),
+        )
+        .outerjoin(tua, tua.c.user_id == models.User.id)
+        .outerjoin(models.Task, models.Task.id == tua.c.task_id)
+        .group_by(models.User.id, models.User.first_name, models.User.last_name)
+        .order_by(open_count.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        schemas.UserWorkloadOut(
+            user_id=str(row.id),
+            first_name=row.first_name,
+            last_name=row.last_name,
+            open_tasks=int(row.open_tasks or 0),
+            done_tasks=int(row.done_tasks or 0),
+        )
+        for row in rows
+    ]
+
 
 # Lista ruoli disponibili — solo admin
 @router.get("/roles/", response_model=List[schemas.RoleOut])

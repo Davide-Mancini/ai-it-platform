@@ -1,4 +1,4 @@
-import { DOCUMENTS_LOADING, DOCUMENTS_SUCCESS, DOCUMENT_UPDATE, DOCUMENT_REMOVE } from "../actions/documentsActions";
+import { DOCUMENTS_LOADING, DOCUMENTS_SUCCESS, DOCUMENT_UPDATE, DOCUMENT_REMOVE, DOCUMENT_ADDED } from "../actions/documentsActions";
 
 const initialState = {
   list: [],
@@ -23,6 +23,12 @@ export const documentsReducer = (state = initialState, action) => {
       return {
         ...state,
         list: state.list.filter(d => d.id !== action.payload),
+      };
+
+    case DOCUMENT_ADDED:
+      return {
+        ...state,
+        list: [action.payload, ...state.list],
       };
 
     default:

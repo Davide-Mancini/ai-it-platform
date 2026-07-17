@@ -1,7 +1,7 @@
 from uuid import UUID
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import List, Optional, Dict, Any
 
 # Schema base con i campi comuni
 class AuditLogBase(BaseModel):
@@ -38,3 +38,15 @@ class ActivityOut(BaseModel):
     user_first_name: Optional[str] = None
     user_last_name: Optional[str] = None
     user_email: Optional[str] = None
+
+# Conteggio azioni per il grafico "attività per tipo" della dashboard
+class ActionCountOut(BaseModel):
+    action: str
+    count: int
+
+# Risposta paginata per la lista completa degli audit log (solo admin)
+class PaginatedAuditLogOut(BaseModel):
+    items: List[AuditLogOut]
+    total: int
+    page: int
+    page_size: int
