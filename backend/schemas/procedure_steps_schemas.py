@@ -1,0 +1,25 @@
+from uuid import UUID
+from pydantic import BaseModel, Field
+from typing import Optional, List
+from schemas.documents_schema import DocumentResponse
+
+
+class ProcedureStepBase(BaseModel):
+    step_number: int = Field(..., description="Numero sequenziale dello step (es. 1, 2, 3)")
+    title: str = Field(..., max_length=150, description="Titolo del passaggio")
+    description: str = Field(..., description="Contenuto tecnico dettagliato o comandi")
+    estimated_duration: Optional[int] = Field(None, description="Durata stimata in minuti")
+
+
+class ProcedureStepCreate(ProcedureStepBase):
+    document_ids: List[UUID] = Field(default=[], description="ID dei documenti da collegare a questo step")
+
+
+class ProcedureStepOut(ProcedureStepBase):
+    id: UUID
+    version_id: UUID
+    status: str = "todo"
+    documents: List[DocumentResponse] = []
+
+    class Config:
+        from_attributes = True

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker exec *)",
+      "Bash(python -c ' *)",
+      "Bash(python -m pytest tests/test_auth_api.py::test_register_new_user_returns_201_like_response_with_default_role -q)"
+    ]
+  }
+}

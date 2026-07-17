@@ -1,0 +1,382 @@
+.pai-sidebar {
+  width: 232px;
+  min-width: 232px;
+  background: #0B1120;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  flex-shrink: 0;
+  transition: width .25s cubic-bezier(.4,0,.2,1), min-width .25s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+
+.pai-sidebar--collapsed {
+  width: 64px;
+  min-width: 64px;
+}
+
+/* Logo */
+.pai-sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  min-height: 64px;
+}
+.pai-sidebar__logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pai-sidebar__logo-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity .15s .05s, width .25s;
+}
+.pai-sidebar--collapsed .pai-sidebar__logo-text {
+  opacity: 0;
+  width: 0;
+  flex: 0;
+  transition: opacity .1s, width .25s;
+}
+.pai-sidebar__logo-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.pai-sidebar__logo-sub {
+  font-size: 10px;
+  color: #475569;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Toggle button */
+.pai-sidebar__toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .12s;
+  margin-left: auto;
+}
+.pai-sidebar__toggle:hover { background: rgba(255,255,255,.07); }
+
+/* In stato collassato: nascondi icona logo, centra solo il toggle */
+.pai-sidebar--collapsed .pai-sidebar__logo {
+  justify-content: center;
+  padding: 18px 8px;
+  gap:0
+}
+.pai-sidebar--collapsed .pai-sidebar__logo-icon {
+  display: none;
+}
+.pai-sidebar--collapsed .pai-sidebar__toggle {
+  margin-left: 0;
+}
+
+/* Nav */
+.pai-sidebar__nav {
+  flex: 1;
+  padding: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pai-sidebar__section-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 10px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity .15s;
+}
+.pai-sidebar--collapsed .pai-sidebar__section-label {
+  opacity: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.pai-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #64748B;
+  transition: background .12s, color .12s;
+  user-select: none;
+  position: relative;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.pai-sidebar__item:hover {
+  background: rgba(255,255,255,.05);
+  color: #94A3B8;
+}
+.pai-sidebar__item--active {
+  background: #1D3A6B;
+  color: white;
+
+  
+}
+
+/* In stato collassato centra le voci */
+.pai-sidebar--collapsed .pai-sidebar__item {
+  justify-content: center;
+  padding: 8px;
+  gap:0
+}
+
+.pai-sidebar__item-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Pallino rosso sull'icona quando collassato e ci sono notifiche */
+.pai-sidebar__dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #EF4444;
+  border: 1.5px solid #0B1120;
+}
+
+.pai-sidebar__item-label {
+  font-size: 13px;
+  font-weight: 400;
+  flex: 1;
+  line-height: 1;
+  opacity: 1;
+  transition: opacity .1s .05s;
+  overflow: hidden;
+}
+.pai-sidebar--collapsed .pai-sidebar__item-label {
+  opacity: 0;
+  width: 0;
+  flex: 0;
+  transition: opacity .08s;
+}
+.pai-sidebar__item--active .pai-sidebar__item-label {
+  font-weight: 600;
+}
+
+.pai-sidebar__badge {
+  background: #EF4444;
+  color: white;
+  border-radius: 99px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+/* User footer */
+.pai-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.pai-sidebar--collapsed .pai-sidebar__user {
+  justify-content: center;
+  padding: 10px 8px;
+  gap:0
+}
+
+.pai-sidebar__avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+.pai-sidebar__avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+}
+.pai-sidebar__online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10B981;
+  border: 2px solid #0B1120;
+}
+.pai-sidebar__user-info {
+  flex: 1;
+  min-width: 0;
+  opacity: 1;
+  transition: opacity .1s .05s;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.pai-sidebar--collapsed .pai-sidebar__user-info {
+  opacity: 0;
+  width: 0;
+  flex: 0;
+  transition: opacity .08s;
+}
+.pai-sidebar__user-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #E2E8F0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pai-sidebar__user-role {
+  font-size: 10px;
+  color: #475569;
+  font-weight: 500;
+}
+.pai-sidebar__logout {
+  background: #f1eeee;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s;
+  flex-shrink: 0;
+  opacity: 1;
+  transition: opacity .1s .05s, background .12s;
+}
+.pai-sidebar--collapsed .pai-sidebar__logout {
+  opacity: 0;
+  width: 0;
+  padding: 0;
+  pointer-events: none;
+  transition: opacity .08s;
+}
+.pai-sidebar__logout:hover { background: rgb(204, 191, 191)}
+
+/* ── Logout confirmation modal ──────────────────────────── */
+.pai-logout-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11,17,32,.55);
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn .15s ease;
+}
+.pai-logout-modal {
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.22);
+  padding: 32px 28px 24px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  animation: fadeUp .18s ease;
+}
+.pai-logout-modal__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #EFF6FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.pai-logout-modal__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0F172A;
+}
+.pai-logout-modal__msg {
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.6;
+}
+.pai-logout-modal__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  width: 100%;
+}
+.pai-logout-modal__cancel {
+  flex: 1;
+  height: 40px;
+  border: 1px solid #E2E8F0;
+  border-radius: 9px;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .12s;
+}
+.pai-logout-modal__cancel:hover { background: #F8FAFC; }
+.pai-logout-modal__confirm {
+  flex: 1;
+  height: 40px;
+  border: none;
+  border-radius: 9px;
+  background: #eb2525;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  font-family: inherit;
+  transition: filter .15s;
+}
+.pai-logout-modal__confirm:hover { filter: brightness(1.08); }
+

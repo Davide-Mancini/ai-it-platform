@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: it_platform_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: it_platform_backend
+    restart: always
+    env_file:
+      - ./backend/.env
+    environment:
+      # Dentro la rete Docker si raggiunge Postgres con l'hostname del
+      # servizio e la sua porta interna, non 127.0.0.1:5433 (quello è
+      # solo il mapping verso l'host per strumenti esterni tipo pgAdmin).
+      DB_HOST: db
+      DB_PORT: "5432"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    # Il Dockerfile ha come default il comando di produzione (senza --reload);
+    # qui lo sovrascriviamo per l'hot-reload in sviluppo.
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--timeout-graceful-shutdown", "3"]
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: it_platform_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
