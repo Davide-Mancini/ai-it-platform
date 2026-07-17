@@ -4,7 +4,7 @@ Piattaforma full-stack per la gestione di procedure IT, con generazione e revisi
 
 **Demo live:**
 
-- Frontend: https://ai-it-platform.vercel.app
+- Frontend: https://heximus-ai-platform.vercel.app
 - Backend (API): https://ai-assisted-it-procedure-platform-kda9.onrender.com — nota: è su piano gratuito Render, la prima richiesta dopo un periodo di inattività potrebbe richiedere qualche secondo in più (cold start) asnche se sto utilizzando cron-job per cercare di mantenerlo sempre attivo
 
 ## Funzionalità principali
