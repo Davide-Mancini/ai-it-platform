@@ -80,16 +80,16 @@ export default function AIChat({ isOpen, onToggle, messages, input, onInputChang
                         <button
                           className="pai-chat__accept"
                           onClick={() => onAccept(msg.recommendation)}
-                          disabled={msg.recAccepted || msg.recRejected}
+                          disabled={msg.recAccepted || msg.recRejected || msg.recSaving}
                         >
-                          {msg.recAccepted ? "✓ Salvato" : "✓ Accetta e salva"}
+                          {msg.recAccepted ? "✓ Salvato" : msg.recSaving ? "Salvataggio…" : "✓ Accetta e salva"}
                         </button>
                         <button
                           className="pai-chat__reject"
                           onClick={() => onReject(msg.recommendation)}
-                          disabled={msg.recAccepted || msg.recRejected}
+                          disabled={msg.recAccepted || msg.recRejected || msg.recSaving}
                         >
-                          Scarta
+                          {msg.recRejected ? "Scartata" : msg.recSaving ? "…" : "Scarta"}
                         </button>
                       </div>
                     )}

@@ -315,6 +315,19 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
   };
 
   const acceptRec = async (rec) => {
+    // Guardia sincrona contro i doppi click: disabilita subito il pulsante
+    // (prima ancora che parta la richiesta di rete) leggendo/scrivendo lo
+    // stato nello stesso updater funzionale, cosi' anche due click quasi
+    // simultanei vengono serializzati correttamente da React e il secondo
+    // trova gia' recSaving=true e viene ignorato.
+    let alreadyInProgress = false;
+    setAiMessages(prev => prev.map(m => {
+      if (m.recommendation !== rec) return m;
+      if (m.recAccepted || m.recRejected || m.recSaving) { alreadyInProgress = true; return m; }
+      return { ...m, recSaving: true };
+    }));
+    if (alreadyInProgress) return;
+
     try {
       await dispatch(acceptRecommendation(token, rec, i18n.language));
       // acceptRecommendation aggiorna solo lo stato "fetchProcedures" (usato per
@@ -322,18 +335,29 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
       // paginazione server-side di fetchProceduresBrowse, che va rinfrescata a parte.
       dispatch(fetchProceduresBrowse(token, i18n.language, { page: procPage, pageSize: 25, search: procSearch }));
       setAiMessages(prev => [
-        ...prev.map(m => m.recommendation === rec ? { ...m, recAccepted: true } : m),
+        ...prev.map(m => m.recommendation === rec ? { ...m, recAccepted: true, recSaving: false } : m),
         { role: "ai", text: "Procedura salvata! La trovi nella lista procedure." },
       ]);
     } catch (e) {
-      setAiMessages(prev => [...prev, { role: "ai", isError: true, text: e.message }]);
+      setAiMessages(prev => [
+        ...prev.map(m => m.recommendation === rec ? { ...m, recSaving: false } : m),
+        { role: "ai", isError: true, text: e.message },
+      ]);
     }
   };
 
   const rejectRec = async (rec) => {
+    let alreadyInProgress = false;
+    setAiMessages(prev => prev.map(m => {
+      if (m.recommendation !== rec) return m;
+      if (m.recAccepted || m.recRejected || m.recSaving) { alreadyInProgress = true; return m; }
+      return { ...m, recSaving: true };
+    }));
+    if (alreadyInProgress) return;
+
     await dispatch(rejectRecommendation(token, rec));
     setAiMessages(prev => [
-      ...prev.map(m => m.recommendation === rec ? { ...m, recRejected: true } : m),
+      ...prev.map(m => m.recommendation === rec ? { ...m, recRejected: true, recSaving: false } : m),
       { role: "ai", text: "Procedura scartata." },
     ]);
   };
