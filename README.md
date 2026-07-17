@@ -2,6 +2,8 @@
 
 Piattaforma full-stack per la gestione di procedure IT, con generazione e revisione assistita da AI (Google Gemini). Progetto di tirocinio.
 
+![Dashboard di Heximus AI Platform](preview.png)
+
 **Demo live:**
 
 - Frontend: https://heximus-ai-platform.vercel.app
