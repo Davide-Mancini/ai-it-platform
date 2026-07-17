@@ -58,6 +58,11 @@
     "message": "Your account has been created but doesn't have a role yet. Please wait for an administrator to grant you access — you'll be able to sign in normally once your role has been assigned.",
     "logout_btn": "Sign out"
   },
+  "not_found": {
+    "title": "Page not found",
+    "message": "The address you reached doesn't exist or has been moved.",
+    "back_btn": "Back to dashboard"
+  },
   "topbar": {
     "greeting": "Good morning, ",
     "procedure_detail": "Procedure Detail",

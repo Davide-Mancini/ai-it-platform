@@ -58,6 +58,11 @@
     "message": "Il tuo account è stato creato ma non ha ancora un ruolo assegnato. Attendi che un amministratore ti conceda l'accesso: potrai accedere normalmente non appena il ruolo sarà stato assegnato.",
     "logout_btn": "Esci"
   },
+  "not_found": {
+    "title": "Pagina non trovata",
+    "message": "L'indirizzo che hai raggiunto non esiste o è stato spostato.",
+    "back_btn": "Torna alla dashboard"
+  },
   "topbar": {
     "greeting": "Buongiorno ",
     "procedure_detail": "Dettaglio Procedura",

@@ -58,6 +58,11 @@
     "message": "Jūsų paskyra sukurta, bet jai dar nepriskirtas vaidmuo. Palaukite, kol administratorius suteiks jums prieigą — galėsite prisijungti įprastai, kai vaidmuo bus priskirtas.",
     "logout_btn": "Atsijungti"
   },
+  "not_found": {
+    "title": "Puslapis nerastas",
+    "message": "Adresas, kurį pasiekėte, neegzistuoja arba buvo perkeltas.",
+    "back_btn": "Grįžti į suvestinę"
+  },
   "topbar": {
     "greeting": "Labas rytas, ",
     "procedure_detail": "Procedūros informacija",

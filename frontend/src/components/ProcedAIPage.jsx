@@ -30,10 +30,21 @@ import CustomerDocumentsPage from "./procedai/CustomerDocumentsPage";
 import CreateModal     from "./procedai/CreateModal";
 import ManualForm      from "./procedai/ManualForm";
 import AIChat          from "./procedai/AIChat";
+import NotFoundPage    from "./procedai/NotFoundPage";
 import "../style/ProcedAIPage.css";
 import { API_BASE } from "../config/api";
 
 const AI_PROMPT_MAX_LENGTH = 2000;
+
+// Tutti i pathname gestiti da renderContent qui sotto. Un pathname che non è
+// in questa lista è un URL inesistente/sbagliato -> pagina 404, non un
+// redirect silenzioso alla dashboard (che invece resta il comportamento per
+// un pathname valido ma senza i permessi richiesti, es. /users da non-admin).
+const KNOWN_PATHS = [
+  "/procedures", "/tasks", "/documents", "/my-documents", "/team",
+  "/analytics", "/notifications", "/settings", "/users", "/agent-review",
+  "/customers", "/dashboard",
+];
 
 export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdate }) {
   const dispatch = useDispatch();
@@ -546,6 +557,12 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
       />
     );
 
+    if (!KNOWN_PATHS.includes(pathname)) {
+      return <NotFoundPage onBack={() => navigate("/dashboard")} />;
+    }
+
+    // Pathname valido ma senza i permessi richiesti (es. /users da non-admin):
+    // redirect silenzioso alla dashboard, non un 404.
     return <Navigate to="/dashboard" replace />;
   };
 

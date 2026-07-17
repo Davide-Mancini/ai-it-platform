@@ -1,0 +1,46 @@
+.pai-notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.pai-notfound__code {
+  font-size: 56px;
+  font-weight: 800;
+  color: #367CC0;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.pai-notfound__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.pai-notfound__sub {
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.6;
+  max-width: 360px;
+  margin-bottom: 24px;
+}
+
+.pai-notfound__btn {
+  border: none;
+  border-radius: 8px;
+  background: #367CC0;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.pai-notfound__btn:hover {
+  background: #2f6aa6;
+}
