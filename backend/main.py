@@ -90,12 +90,15 @@ with engine.connect() as _conn:
 app = FastAPI(title="AI Assisted IT Platform API")
 
 # Configurazione CORS
+# PROD_FRONTEND_ORIGIN: dominio fisso del frontend deployato (es. Vercel),
+# aggiunto in produzione via env var. Il regex resta per coprire dev locale
+# (localhost/IP LAN) e i preview deploy di Vercel (https://<progetto>-<hash>.vercel.app).
+_prod_frontend_origin = os.getenv("PROD_FRONTEND_ORIGIN")
+_allow_origins = [_prod_frontend_origin] if _prod_frontend_origin else []
 app.add_middleware(
     CORSMiddleware,
-    # Regex invece di una lista fissa di origin: copre sia localhost sia
-    # qualunque IP della rete locale (es. http://192.168.1.x:5173), cosi'
-    # il frontend e' raggiungibile anche da altri dispositivi sulla stessa WiFi.
-    allow_origin_regex=r"http://(localhost|(\d{1,3}\.){3}\d{1,3}):(5173|3000|5174)",
+    allow_origins=_allow_origins,
+    allow_origin_regex=r"http://(localhost|(\d{1,3}\.){3}\d{1,3}):(5173|3000|5174)|https://[a-zA-Z0-9-]+\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -117,6 +120,11 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Includiamo tutte le rotte del progetto con un unico comando
 app.include_router(api_router, prefix="/api")
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 
 def _run_scheduled_procedure_review():

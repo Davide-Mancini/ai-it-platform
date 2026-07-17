@@ -16,8 +16,7 @@ from mail_sender import send_simple_message, send_custom_email
 from services import notification_service
 
 RESET_TOKEN_EXPIRE_MINUTES = 30
-# Dev: l'app gira su questa origine. In un deploy reale andrebbe letto da config/env.
-FRONTEND_BASE_URL = "http://localhost:5173"
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
 # Un cookie "Secure" viene salvato dal browser solo su HTTPS (o su "localhost",
 # che i browser trattano come contesto sicuro anche in HTTP). Aprendo l'app in
 # LAN da un altro dispositivo (es. http://192.168.x.x:5173) la pagina non e'
@@ -25,6 +24,12 @@ FRONTEND_BASE_URL = "http://localhost:5173"
 # login sembrerebbe "non fare nulla". Default a False per l'uso in LAN/dev
 # attuale; impostare COOKIE_SECURE=true quando l'app girera' dietro HTTPS.
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+# SameSite=None e' obbligatorio quando frontend e backend sono su domini
+# diversi (es. Vercel + Render): con "Lax" il browser scarta il cookie sulle
+# richieste fetch/XHR cross-site, e il login sembra funzionare ma le chiamate
+# successive risultano non autenticate. Richiede sempre Secure=True, quindi si
+# attiva solo insieme a COOKIE_SECURE.
+COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
 
 
 def _hash_reset_token(token: str) -> str:
@@ -102,7 +107,7 @@ def login(
     value=access_token,
     httponly=True,
     secure=COOKIE_SECURE,
-    samesite="lax",
+    samesite=COOKIE_SAMESITE,
     max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     path="/"
     )

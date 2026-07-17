@@ -1,7 +1,6 @@
-# Dockerfile di SVILUPPO: hot-reload via uvicorn --reload + codice montato
-# come volume da docker-compose. Non adatto alla produzione così com'è
-# (vedi nota nel README / conversazione: per prod serve un build separato
-# senza --reload, senza mount del codice, con utente non-root).
+# Il CMD di base (senza --reload) è quello usato per il build di produzione
+# (es. Render). Per lo sviluppo locale, docker-compose.yml sovrascrive il
+# comando aggiungendo --reload e monta il codice come volume per l'hot-reload.
 
 FROM python:3.14-slim
 
@@ -14,4 +13,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--timeout-graceful-shutdown", "3"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-graceful-shutdown", "3"]

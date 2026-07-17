@@ -29,6 +29,9 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+    # Il Dockerfile ha come default il comando di produzione (senza --reload);
+    # qui lo sovrascriviamo per l'hot-reload in sviluppo.
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--timeout-graceful-shutdown", "3"]
     depends_on:
       - db
 

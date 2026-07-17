@@ -18,6 +18,10 @@ db_host = os.getenv("DB_HOST", "127.0.0.1")
 db_port = os.getenv("DB_PORT", "5433")
 #Creo l'url di connessione al db
 SQLALCHEMY_DATABASE_URL = f"postgresql://{username}:{password}@{db_host}:{db_port}/{db_name}"
+#Provider come Neon richiedono SSL: DB_SSL=true aggiunge il parametro senza
+#toccare nulla per Postgres locale/Docker, dove non serve.
+if os.getenv("DB_SSL", "false").lower() == "true":
+    SQLALCHEMY_DATABASE_URL += "?sslmode=require"
 
 #Creo il motore di connessione al db
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
