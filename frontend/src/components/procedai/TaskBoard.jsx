@@ -34,6 +34,13 @@ function PriorityBadge({ priority, onChangePriority, canManage = true }) {
   const ref = useRef(null);
   const cfg = PRIORITIES.find(p => p.id === priority) || PRIORITIES[0];
 
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+
   if (!canManage) {
     return (
       <span className="pai-task-priority" style={{ color: cfg.color, background: cfg.bg }}>
@@ -50,13 +57,6 @@ function PriorityBadge({ priority, onChangePriority, canManage = true }) {
     }
     setOpen(o => !o);
   };
-
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, [open]);
 
   return (
     <>
