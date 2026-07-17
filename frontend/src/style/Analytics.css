@@ -1,0 +1,48 @@
+.pai-analytics__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.pai-analytics__title { font-size: 18px; font-weight: 800; color: #0F172A; letter-spacing: -0.4px; }
+.pai-analytics__sub   { font-size: 13px; color: #64748B; margin-top: 2px; }
+
+.pai-analytics__refresh-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: white;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s, color .12s, border-color .12s;
+  flex-shrink: 0;
+}
+.pai-analytics__refresh-btn:hover:not(:disabled) {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+.pai-analytics__refresh-btn:disabled { cursor: not-allowed; }
+.pai-analytics__refresh-btn--spinning svg {
+  animation: pai-analytics-spin .7s linear infinite;
+}
+@keyframes pai-analytics-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.pai-analytics__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 1024px) {
+  .pai-analytics__grid {
+    grid-template-columns: 1fr;
+  }
+}

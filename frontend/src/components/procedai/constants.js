@@ -1,0 +1,105 @@
+export const NAV_ITEMS = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: "M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    icon: "M3 3v18h18M8 17V9m4 8V5m4 12v-6",
+  },
+  {
+    id: "procedures",
+    label: "Procedure",
+    icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h4",
+  },
+  {
+    id: "tasks",
+    label: "Task Board",
+    icon: "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11",
+  },
+  {
+    id: "documents",
+    label: "Documenti & Policy",
+    icon: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+  },
+  {
+    id: "team",
+    label: "Team",
+    icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75",
+  },
+  {
+    id: "notifications",
+    label: "Notifiche",
+    icon: "M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0",
+    badge: true,
+  },
+  {
+    id: "settings",
+    label: "Impostazioni",
+    icon: "M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z",
+  },
+];
+
+export const STEP_STATUS = {
+  todo: { labelKey: "procedures.todo_badge", color: "#94A3B8", bg: "#F1F5F9", text: "#475569" },
+  inprogress: {
+    labelKey: "procedures.inprogress_badge",
+    color: "#2563EB",
+    bg: "#EFF6FF",
+    text: "#2563EB",
+  },
+  done: { labelKey: "procedures.done_badge", color: "#059669", bg: "#ECFDF5", text: "#059669" },
+};
+
+export const TASK_STATUS = {
+  pending: { label: "Da fare", color: "#94A3B8" },
+  in_progress: { label: "In corso", color: "#2563EB" },
+  done: { label: "Fatto", color: "#059669" },
+};
+
+export const PRIORITY = {
+  critical: { label: "Critico", color: "#DC2626", bg: "#FEF2F2" },
+  high: { label: "Alto", color: "#EA580C", bg: "#FFF7ED" },
+  medium: { label: "Medio", color: "#CA8A04", bg: "#FEFCE8" },
+  low: { label: "Basso", color: "#94A3B8", bg: "#F8FAFC" },
+};
+
+export const LANGUAGES = [
+  { code: "it", flag: "🇮🇹", label: "Italiano" },
+  { code: "en", flag: "🇬🇧", label: "English" },
+  { code: "lt", flag: "🇱🇹", label: "Lietuvių" },
+];
+
+export const ROLE_COLORS = {
+  Admin:        { color: "#DC2626", bg: "#dc262625" },
+  "IT Manager": { color: "#7C3AED", bg: "#7c3aed28" },
+  Engineer:     { color: "#2563EB", bg: "#2564eb2d" },
+  Sales:        { color: "#eb25e1", bg: "#eb25e11e" },
+  Auditor:      { color: "#ebcd25", bg: "#ebcd251f" },
+  Customer:     { color: "#25ebe1", bg: "#25ebe12f" },
+};
+
+export function stepNextStatus(current) {
+  if (current === "todo") return "inprogress";
+  if (current === "inprogress") return "done";
+  return "todo";
+}
+
+export function procedureProgress(steps) {
+  if (!steps || steps.length === 0) return { done: 0, total: 0, pct: 0 };
+  const done = steps.filter((s) => s.status === "done").length;
+  return {
+    done,
+    total: steps.length,
+    pct: Math.round((done / steps.length) * 100),
+  };
+}
+
+export function displayInitials(userInfo) {
+  if (!userInfo) return "U";
+  const f = userInfo.first_name?.[0] || "";
+  const l = userInfo.last_name?.[0] || "";
+  return (f + l).toUpperCase() || userInfo.email?.[0]?.toUpperCase() || "U";
+}

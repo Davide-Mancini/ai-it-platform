@@ -1,0 +1,30 @@
+.pai-chart-card {
+  overflow: hidden;
+}
+
+.pai-chart-card__sub {
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.pai-chart-card__body {
+  padding: 0 12px 14px;
+}
+
+.pai-chart-tooltip {
+  background: #0F172A;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+}
+.pai-chart-tooltip__value {
+  font-weight: 700;
+  font-size: 13px;
+}
+.pai-chart-tooltip__label {
+  color: #CBD5E1;
+}
