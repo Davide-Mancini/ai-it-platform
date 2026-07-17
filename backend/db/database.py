@@ -7,21 +7,30 @@ from dotenv import load_dotenv
 
 #Carica le variabili d'ambiente dal file .env
 load_dotenv()
-username = os.getenv("DB_USERNAME")
-password = os.getenv("DB_PASSWORD")
-db_name = os.getenv("DB_NAME")
-#Host/porta configurabili: in locale il default resta 127.0.0.1:5433 (porta
-#esposta da docker-compose per il solo servizio db); dentro docker-compose
-#con anche backend/frontend containerizzati, DB_HOST=db e DB_PORT=5432
-#(porta interna del servizio Postgres nella rete Docker).
-db_host = os.getenv("DB_HOST", "127.0.0.1")
-db_port = os.getenv("DB_PORT", "5433")
-#Creo l'url di connessione al db
-SQLALCHEMY_DATABASE_URL = f"postgresql://{username}:{password}@{db_host}:{db_port}/{db_name}"
-#Provider come Neon richiedono SSL: DB_SSL=true aggiunge il parametro senza
-#toccare nulla per Postgres locale/Docker, dove non serve.
-if os.getenv("DB_SSL", "false").lower() == "true":
-    SQLALCHEMY_DATABASE_URL += "?sslmode=require"
+
+#Provider come Neon forniscono direttamente una connection string completa:
+#se DATABASE_URL e' impostata la usiamo cosi' com'e' (evita di dover spezzare
+#a mano utente/password/host, con rischio di errori su password con caratteri
+#speciali), altrimenti si ricostruisce dai singoli DB_* come in locale/Docker.
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    SQLALCHEMY_DATABASE_URL = database_url
+else:
+    username = os.getenv("DB_USERNAME")
+    password = os.getenv("DB_PASSWORD")
+    db_name = os.getenv("DB_NAME")
+    #Host/porta configurabili: in locale il default resta 127.0.0.1:5433 (porta
+    #esposta da docker-compose per il solo servizio db); dentro docker-compose
+    #con anche backend/frontend containerizzati, DB_HOST=db e DB_PORT=5432
+    #(porta interna del servizio Postgres nella rete Docker).
+    db_host = os.getenv("DB_HOST", "127.0.0.1")
+    db_port = os.getenv("DB_PORT", "5433")
+    #Creo l'url di connessione al db
+    SQLALCHEMY_DATABASE_URL = f"postgresql://{username}:{password}@{db_host}:{db_port}/{db_name}"
+    #Provider come Neon richiedono SSL: DB_SSL=true aggiunge il parametro senza
+    #toccare nulla per Postgres locale/Docker, dove non serve.
+    if os.getenv("DB_SSL", "false").lower() == "true":
+        SQLALCHEMY_DATABASE_URL += "?sslmode=require"
 
 #Creo il motore di connessione al db
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
