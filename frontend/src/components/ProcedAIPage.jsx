@@ -429,6 +429,10 @@ export default function ProcedAIPage({ token, onLogout, userInfo, onProfileUpdat
 
   // ── Rendering basato su URL (React Router) + stato per il dettaglio ──────
   const renderContent = () => {
+    // Root "/" e' l'ingresso naturale dopo il login (non un URL sbagliato):
+    // va sempre reindirizzato alla dashboard, non trattato come 404.
+    if (pathname === "/") return <Navigate to="/dashboard" replace />;
+
     if (pathname === "/procedures") {
       // Dettaglio procedura: approccio originale con stato locale
       if (selectedProcId && selectedProc) {
