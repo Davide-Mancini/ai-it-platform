@@ -66,6 +66,13 @@ function CloseIcon() {
     </svg>
   );
 }
+function BookIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 016.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+    </svg>
+  );
+}
 
 /* ── Document view modal ─────────────────────────────────────────────────────── */
 function DocModal({ doc, customerName, onClose }) {
@@ -468,6 +475,192 @@ function PolicyRow({ policy, documents, onSelect }) {
   );
 }
 
+/* ── Create KB item modal ────────────────────────────────────────────────────── */
+function CreateKBModal({ onClose, onCreated }) {
+  const { t } = useTranslation();
+  const [form, setForm]       = useState({ title: "", content: "", category: "", tags: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+
+  const handleSubmit = async () => {
+    if (!form.title.trim() || !form.content.trim() || !form.category.trim()) {
+      setError(t("documents.err_kb_fields")); return;
+    }
+    setLoading(true); setError("");
+    try {
+      const res = await fetch(`${API_BASE}/api/knowledge-base-item/`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title:    form.title.trim(),
+          content:  form.content.trim(),
+          category: form.category.trim(),
+          tags:     form.tags.split(",").map(tg => tg.trim()).filter(Boolean),
+        }),
+      });
+      if (res.ok) {
+        onCreated(await res.json());
+        onClose();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setError(err.detail || t("documents.err_kb_create"));
+      }
+    } catch {
+      setError(t("documents.err_network"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="pai-overlay" onClick={onClose}>
+      <div className="pai-modal-box pai-policy-form" onClick={e => e.stopPropagation()}>
+        <div className="pai-policy-form__header">
+          <div>
+            <div className="pai-policy-form__title">{t("documents.create_kb_title")}</div>
+            <div className="pai-policy-form__sub">{t("documents.create_kb_sub")}</div>
+          </div>
+          <button className="pai-doc-edit-modal__close" onClick={onClose}><CloseIcon /></button>
+        </div>
+
+        <div className="pai-policy-form__body">
+          <div className="pai-task-form__row">
+            <div className="pai-field" style={{ flex: 2 }}>
+              <label className="pai-field__label">{t("documents.field_title")}</label>
+              <input
+                className="pai-field__input"
+                value={form.title}
+                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="Es. Procedura reset password AD"
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+            <div className="pai-field" style={{ flex: 1 }}>
+              <label className="pai-field__label">{t("documents.field_category")}</label>
+              <input
+                className="pai-field__input"
+                value={form.category}
+                onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                placeholder="Es. Networking"
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div className="pai-field">
+            <label className="pai-field__label">{t("documents.field_content")}</label>
+            <textarea
+              className="pai-field__textarea"
+              rows={6}
+              value={form.content}
+              onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
+              disabled={loading}
+              placeholder={t("documents.kb_content_placeholder")}
+            />
+          </div>
+
+          <div className="pai-field">
+            <label className="pai-field__label">{t("documents.field_tags")}</label>
+            <input
+              className="pai-field__input"
+              value={form.tags}
+              onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
+              placeholder={t("documents.kb_tags_placeholder")}
+              disabled={loading}
+            />
+          </div>
+
+          {error && <div className="pai-task-form__error">{error}</div>}
+
+          <div className="pai-task-form__actions">
+            <button className="pai-btn pai-btn--ghost" onClick={onClose} disabled={loading}>{t("documents.cancel")}</button>
+            <button className="pai-btn pai-btn--primary" onClick={handleSubmit} disabled={loading}>
+              {loading ? t("documents.creating") : t("documents.create_kb_btn")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── KB item detail modal ────────────────────────────────────────────────────── */
+function KBModal({ item, onClose }) {
+  const { t } = useTranslation();
+  const cc = catColor(item.category);
+  return (
+    <div className="pai-overlay" onClick={onClose}>
+      <div className="pai-doc-modal pai-policy-modal" onClick={e => e.stopPropagation()}>
+        <div className="pai-doc-modal__header">
+          <div className="pai-doc-modal__header-left">
+            <div className="pai-policy-modal__icon">
+              <BookIcon />
+            </div>
+            <div>
+              <div className="pai-doc-modal__title">{item.title}</div>
+              <div className="pai-doc-modal__meta" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="pai-policy-row__cat" style={{ color: cc.color, background: cc.bg, fontSize: 10 }}>
+                  {item.category}
+                </span>
+                <span>·</span>
+                <span>{t("documents.kb_updated_on")} {formatDate(item.updated_at || item.created_at)}</span>
+              </div>
+            </div>
+          </div>
+          <button className="pai-doc-modal__close" onClick={onClose}><CloseIcon /></button>
+        </div>
+
+        <div className="pai-doc-modal__body">
+          {item.tags?.length > 0 && (
+            <div className="pai-policy-modal__section">
+              <div className="pai-policy-modal__section-label">{t("documents.kb_col_tags")}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {item.tags.map((tag, i) => (
+                  <span key={i} className="pai-chip" style={{ color: "#2563EB", background: "#EFF6FF" }}>{tag}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="pai-policy-modal__section">
+            <div className="pai-policy-modal__section-label">{t("documents.field_content")}</div>
+            {item.content.split("\n").map((line, i) =>
+              line.trim() ? <p key={i} className="pai-doc-modal__paragraph">{line}</p> : <div key={i} className="pai-doc-modal__spacer" />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── KB item row ──────────────────────────────────────────────────────────────── */
+function KBRow({ item, onSelect }) {
+  const { t } = useTranslation();
+  const cc = catColor(item.category);
+  const tags = item.tags || [];
+  return (
+    <div className="pai-kb-row" onClick={() => onSelect(item)} style={{ cursor: "pointer" }}>
+      <div className="pai-policy-row__body">
+        <div className="pai-policy-row__title">{item.title}</div>
+        <div className="pai-policy-row__desc">{item.content}</div>
+      </div>
+      <span className="pai-policy-row__cat" style={{ color: cc.color, background: cc.bg }}>
+        {item.category}
+      </span>
+      <div className="pai-kb-row__tags">
+        {tags.length === 0 && <span className="pai-policy-row__doc-badge pai-policy-row__doc-badge--none">{t("documents.kb_no_tags")}</span>}
+        {tags.slice(0, 3).map((tag, i) => (
+          <span key={i} className="pai-chip" style={{ color: "#2563EB", background: "#EFF6FF" }}>{tag}</span>
+        ))}
+        {tags.length > 3 && <span className="pai-policy-row__date">+{tags.length - 3}</span>}
+      </div>
+      <span className="pai-policy-row__date text-center">{formatDate(item.updated_at || item.created_at)}</span>
+    </div>
+  );
+}
+
 /* ── Document row ────────────────────────────────────────────────────────────── */
 function DocRow({ doc, customer, isAdmin, t, onSelect, onEdit, onDelete }) {
   const ext   = doc.file_type?.replace(".", "").toLowerCase() || "doc";
@@ -522,6 +715,11 @@ export default function Documents({ documents, loading, isAdmin, token, customer
   const [showCreatePolicy, setShowCP]   = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState(null); // { policy, linkedDoc }
 
+  const [kbItems, setKbItems]         = useState([]);
+  const [loadingKB, setLoadingKB]     = useState(true);
+  const [showCreateKB, setShowCreateKB] = useState(false);
+  const [selectedKB, setSelectedKB]   = useState(null);
+
   useEffect(() => {
     if (!token) return;
     fetch(`${API_BASE}/api/policy/?limit=200`, {
@@ -531,6 +729,17 @@ export default function Documents({ documents, loading, isAdmin, token, customer
       .then(data => setPolicies(data))
       .catch(() => {})
       .finally(() => setLoadingP(false));
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API_BASE}/api/knowledge-base-item/?limit=200`, {
+      credentials: "include",
+    })
+      .then(r => (r.ok ? r.json() : []))
+      .then(data => setKbItems(data))
+      .catch(() => {})
+      .finally(() => setLoadingKB(false));
   }, [token]);
 
   const internalDocs = documents.filter(d => !d.customer_id);
@@ -572,6 +781,14 @@ export default function Documents({ documents, loading, isAdmin, token, customer
           <ShieldIcon />
           <span style={{ marginLeft: 6 }}>{t("documents.tab_policies")}</span>
           <span className="pai-docs-tab__count">{policies.length}</span>
+        </button>
+        <button
+          className={`pai-docs-tab${tab === "knowledge_base" ? " pai-docs-tab--active" : ""}`}
+          onClick={() => setTab("knowledge_base")}
+        >
+          <BookIcon size={13} />
+          <span style={{ marginLeft: 6 }}>{t("documents.tab_kb")}</span>
+          <span className="pai-docs-tab__count">{kbItems.length}</span>
         </button>
       </div>
 
@@ -698,6 +915,45 @@ export default function Documents({ documents, loading, isAdmin, token, customer
         </div>
       )}
 
+      {/* ── Knowledge Base tab ── */}
+      {tab === "knowledge_base" && (
+        <div className="pai-docs">
+          <div className="pai-docs__main" style={{ width: "100%" }}>
+            <div className="pai-card pai-docs__table">
+              <div className="pai-policy-list-header">
+                <div className="pai-policy-list-header__left">
+                  <BookIcon />
+                  <span>{t("documents.kb_list_title")}</span>
+                  <span className="pai-kanban-col__count" style={{ marginLeft: 6 }}>{kbItems.length}</span>
+                </div>
+                {isAdmin && (
+                  <button className="pai-btn pai-btn--primary pai-btn--sm" onClick={() => setShowCreateKB(true)}>
+                    <PlusIcon /> {t("documents.kb_new_btn")}
+                  </button>
+                )}
+              </div>
+
+              <div className="pai-kb-table-header">
+                <span>{t("documents.kb_col_title")}</span>
+                <span className="text-center">{t("documents.kb_col_category")}</span>
+                <span className="text-center">{t("documents.kb_col_tags")}</span>
+                <span className="text-center">{t("documents.kb_col_date")}</span>
+              </div>
+
+              {loadingKB && <div className="pai-docs__loading">{t("documents.kb_loading")}</div>}
+              {!loadingKB && kbItems.length === 0 && (
+                <div className="pai-docs__empty">
+                  {isAdmin ? t("documents.kb_empty_admin") : t("documents.kb_empty")}
+                </div>
+              )}
+              {kbItems.map(item => (
+                <KBRow key={item.id} item={item} onSelect={setSelectedKB} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {selected && (
         <DocModal
           doc={selected}
@@ -732,6 +988,18 @@ export default function Documents({ documents, loading, isAdmin, token, customer
           policy={selectedPolicy.policy}
           linkedDoc={selectedPolicy.linkedDoc}
           onClose={() => setSelectedPolicy(null)}
+        />
+      )}
+      {showCreateKB && (
+        <CreateKBModal
+          onClose={() => setShowCreateKB(false)}
+          onCreated={(item) => setKbItems(prev => [item, ...prev])}
+        />
+      )}
+      {selectedKB && (
+        <KBModal
+          item={selectedKB}
+          onClose={() => setSelectedKB(null)}
         />
       )}
     </div>

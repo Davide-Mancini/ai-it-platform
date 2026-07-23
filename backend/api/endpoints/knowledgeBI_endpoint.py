@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -16,6 +16,8 @@ def create_kb_item(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_approved_user),
 ):
+    if current_user.role.name != "Admin":
+        raise HTTPException(status_code=403, detail="Solo gli admin possono creare voci della knowledge base")
     return KBItemService.create_item(db, item)
 
 @router.get("/", response_model=List[KBItemResponse])

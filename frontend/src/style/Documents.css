@@ -414,6 +414,39 @@
 }
 .pai-policy-row__status--active { background: #ECFDF5; color: #059669; }
 
+/* ── Knowledge base list ─────────────────────────────────── */
+.pai-kb-table-header {
+  display: grid;
+  grid-template-columns: 1fr 140px 220px 140px;
+  padding: 9px 16px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  gap: 8px;
+}
+.pai-kb-row {
+  display: grid;
+  grid-template-columns: 1fr 140px 220px 140px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #F8FAFC;
+  align-items: center;
+  gap: 8px;
+  transition: background .1s;
+}
+.pai-kb-row:last-child { border-bottom: none; }
+.pai-kb-row:hover { background: #F8FAFC; }
+.pai-kb-row__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+}
+
 /* ── Btn small ───────────────────────────────────────────── */
 .pai-btn--sm { padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 5px; }
 
