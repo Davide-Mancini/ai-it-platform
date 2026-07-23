@@ -133,7 +133,14 @@ def reset_password(
 #rotta di logout: essendo il cookie httpOnly, il frontend non puo' cancellarlo da JS
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie(key="access_token")
+    # secure/samesite devono combaciare con quelli usati in set_cookie al login,
+    # altrimenti il browser non riconosce il Set-Cookie di cancellazione come lo
+    # stesso cookie e la sessione resta valida (visibile al refresh dopo il logout).
+    response.delete_cookie(
+        key="access_token",
+        secure=auth_service.COOKIE_SECURE,
+        samesite=auth_service.COOKIE_SAMESITE,
+    )
     return {"message": "Logout effettuato"}
 
 #rotta che restituisce informazione sul'utente autenticato, utile nel frontend per mostrare il nome dell'utente o il suo ruolo
