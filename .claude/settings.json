@@ -1,9 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(docker exec *)",
-      "Bash(python -c ' *)",
-      "Bash(python -m pytest tests/test_auth_api.py::test_register_new_user_returns_201_like_response_with_default_role -q)"
+      "Bash(docker exec it_platform_backend *)",
+      "Bash(docker exec it_platform_db psql *)",
+      "Bash(python -m pytest tests/ -q)"
+    ],
+    "deny": [
+      "Bash(docker exec * rm -rf *)",
+      "Bash(docker exec * shutdown *)",
+      "Bash(docker exec * reboot *)"
     ]
   }
 }
